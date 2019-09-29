@@ -10,7 +10,7 @@ Work in progress 2D stealth/platformer browser game. Made with node.js
 * [nipplejs](https://www.npmjs.com/package/nipplejs):  virtual joysticks
 
 ## Bundling:
-Export settings are in the [webpack.config.js](https://github.com/abobco/Catatonia/blob/master/webpack.config.js).
+Export settings are in [webpack.config.js](https://github.com/abobco/Catatonia/blob/master/webpack.config.js).
 Build the app from the terminal with this command:
  `
  npm run build
