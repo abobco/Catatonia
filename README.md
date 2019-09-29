@@ -14,9 +14,8 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
 ## Bundling:
 Export settings are in [webpack.config.js](https://github.com/abobco/Catatonia/blob/master/webpack.config.js).
 Build the app from the terminal with this command:
- `
- npm run build
- `
+ 
+ `npm run build`
 
 ## Art:
 The art for this game was ripped from *Castlevania: Order of Ecclesia*, a Nintendo DS exclusive, originally released by Konami on October 21, 2008. If you like the art in this game, go support Konami and buy that game! 
