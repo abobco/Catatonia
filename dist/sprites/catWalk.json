@@ -1,0 +1,105 @@
+{"frames": {
+
+"tile000.png":
+{
+	"frame": {"x":0,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile001.png":
+{
+	"frame": {"x":24,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile002.png":
+{
+	"frame": {"x":48,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile003.png":
+{
+	"frame": {"x":72,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile004.png":
+{
+	"frame": {"x":96,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile005.png":
+{
+	"frame": {"x":120,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile006.png":
+{
+	"frame": {"x":144,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile007.png":
+{
+	"frame": {"x":168,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile008.png":
+{
+	"frame": {"x":192,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+},
+"tile009.png":
+{
+	"frame": {"x":216,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16},
+	"anchor": {"x":0.5,"y":0.5}
+}},
+"animations": {
+	"tile": ["tile000.png","tile001.png","tile002.png","tile003.png","tile004.png","tile005.png","tile006.png","tile007.png","tile008.png","tile009.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "catWalk.png",
+	"format": "RGBA8888",
+	"size": {"w":240,"h":16},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:69d61153b1570b167b7ad208237f0f61:0b24e0c237fadf5a4fb14f0298e9d133:133225caf27704fb0ad37fde9337908d$"
+}
+}

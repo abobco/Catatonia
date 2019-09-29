@@ -1,0 +1,47 @@
+{"frames": {
+
+"wallSlide000.png":
+{
+	"frame": {"x":0,"y":0,"w":16,"h":18},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":18},
+	"sourceSize": {"w":16,"h":18}
+},
+"wallSlide001.png":
+{
+	"frame": {"x":0,"y":18,"w":16,"h":18},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":18},
+	"sourceSize": {"w":16,"h":18}
+},
+"wallSlide002.png":
+{
+	"frame": {"x":0,"y":36,"w":16,"h":18},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":18},
+	"sourceSize": {"w":16,"h":18}
+},
+"wallSlide003.png":
+{
+	"frame": {"x":0,"y":54,"w":16,"h":18},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":18},
+	"sourceSize": {"w":16,"h":18}
+}},
+"animations": {
+	"wallSlide": ["wallSlide000.png","wallSlide001.png","wallSlide002.png","wallSlide003.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "wallSlide.png",
+	"format": "RGBA8888",
+	"size": {"w":16,"h":72},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:d23746808604881af5b9447977bb2647:5f5d272d8164829dc6f2bfc02b3c2083:a255b4c11a76502cc022c935e9ba095d$"
+}
+}

@@ -1,0 +1,55 @@
+{"frames": {
+
+"stop000.png":
+{
+	"frame": {"x":0,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16}
+},
+"stop001.png":
+{
+	"frame": {"x":24,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16}
+},
+"stop002.png":
+{
+	"frame": {"x":48,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16}
+},
+"stop003.png":
+{
+	"frame": {"x":72,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16}
+},
+"stop004.png":
+{
+	"frame": {"x":96,"y":0,"w":24,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
+	"sourceSize": {"w":24,"h":16}
+}},
+"animations": {
+	"tile": ["stop000.png","stop001.png","stop002.png","stop003.png","stop004.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "catStop.png",
+	"format": "RGBA8888",
+	"size": {"w":120,"h":16},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:a9dd4aa10ac734d1bb56a1ce237fb8b1:32bf0d2f0d40d350b615e3ea10319ff1:a7c009010b7bc8118a627da3f7e84bca$"
+}
+}
