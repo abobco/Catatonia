@@ -2,12 +2,12 @@
  
 Work in progress 2D Stealth/Platformer game. You play as a cat, trying to climb furniture while avoiding your owners' vision. Made with node.js
 
-  ## Dependencies:
-   [npm](https://www.npmjs.com/get-npm) :        package manager
-   [webpack](https://webpack.js.org/guides/getting-started/) :    asset bundler
-   [pixi.js](https://www.pixijs.com/) :    2D WebGL renderer
-   [matter.js](https://www.npmjs.com/package/matter-js) :  2D physics engine 
-   [nipplejs](https://www.npmjs.com/package/nipplejs) :   virtual joysticks
+## Dependencies:
+[npm](https://www.npmjs.com/get-npm): package manager 
+[webpack](https://webpack.js.org/guides/getting-started/): asset bundler 
+[pixi.js](https://www.pixijs.com/): 2D WebGL renderer
+[matter.js](https://www.npmjs.com/package/matter-js): 2D physics engine 
+[nipplejs](https://www.npmjs.com/package/nipplejs): virtual joysticks
 
 ## Bundling:
 Export settings are in the "webpack.config.js" file
