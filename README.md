@@ -12,7 +12,7 @@ Work in progress 2D stealth/platformer browser game. Made with node.js
 ## Bundling:
 Export settings are in the "webpack.config.js" file
 Build the app from the terminal with this command:
-        npm run build
+ `npm run build`
 
 ## Art:
 The art for this game was ripped from "Castlevania: Order of Ecclesia", a Nintendo DS exclusive, originally released by Konami on October 21, 2008. If you like the art in this game, go support Konami and buy that game! 
