@@ -115,7 +115,7 @@ app.renderer.resize(window.innerWidth, window.innerHeight);
 // Add the canvas to the document
 document.getElementById('myCanvas').appendChild(app.view);
 
-// Make an array of sprite files paths
+// Make an array of sprite file paths
 var filePaths = [];
 filePaths.push("sprites/catWalk.json");
 filePaths.push("sprites/catStop.json");
@@ -128,7 +128,7 @@ loader
   .add(filePaths)
   .load(setup)
 
-// start game after images load 
+// Start game after images load 
 function setup() {
 
   // Load images into AnimatedSprite objects  
@@ -182,21 +182,22 @@ function setup() {
 
   // Lock the camera to the cat's position 
   app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
+
   // Start the game loop 
   app.ticker.add(delta => gameLoop(delta)); 
   
 }
 
-// updates every 16.66 ms
-function gameLoop(delta){//delta is in ms
+// Updates every 16.66 ms
+function gameLoop(delta){// delta is in ms
 
-  // apply velocity from user inputs
+  // Apply velocity from user inputs
   Matter.Body.setVelocity(catBody, new Vector.create(catPlayer.xVel, catBody.velocity.y) );
 
-  // move the sprites to follow their physicis body
+  // Move the sprites to follow their physicis body
   catPlayer.setPosition(catBody.position.x, catBody.position.y);
   
-  // move stage origin to simulate camera movement
+  // Move stage origin to simulate camera movement
   app.stage.pivot.copy(catPlayer.centerPos);
 
   if ( catPlayer.inSlowDown ) 
@@ -215,7 +216,7 @@ function collisionEventSetup() {
       var catCollision = false;
       var pairs = event.pairs;
     
-      // iterate through collision pairs
+      // Iterate through collision pairs
       for (var i = 0; i < pairs.length; i++) {
         var pair = pairs[i];
         var otherBodyTemp;
@@ -229,7 +230,7 @@ function collisionEventSetup() {
         // check if collision with walkBox
         if ( otherBodyTemp.isSensor ) 
             inWalkBox = true;
-        else // check if physics collision
+        else // Check if physics collision
             catCollision = true;
       }
       if (!inWalkBox && catCollision && !catPlayer.isGrounded){
@@ -277,7 +278,9 @@ function collisionEventSetup() {
 
 // Physics engine setup
 function matterSetUp() {
+    // Run matterjs engine
     Runner.run(catRunner, catEngine);
+    // Add the cat's rigidbody
     catBody = new Bodies.rectangle(catPlayer.centerPos.x, catPlayer.centerPos.y, catPlayer.colliderWidth, catPlayer.colliderHeight, {
       density: 0.0005,
       frictionAir: 0.06,
@@ -287,6 +290,7 @@ function matterSetUp() {
   }); 
     World.add(catWorld, catBody);
 
+    // Add terrain
     platform = new Terrain(window.innerWidth / 2, window.innerHeight * .8, 800, 50 )
     platforms.push(platform);
 
@@ -302,11 +306,12 @@ function matterSetUp() {
         World.add(catWorld, element.walkBox);
         element.drawRect(Erector); 
     });
+
 }
 
 // Load animation frame images into AnimatedSprites
 function loadAnimations() {
-    // init the anmiation objects
+    // Init the anmiation objects
     let frames = [],
     stopFrames = [],
     jumpFrames = [],
@@ -381,20 +386,21 @@ function onWindowResize() {
     app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
   }
 
-  // draw text box
-function textBox(x,y,w,h, content, mRenderer, TR) {
-  // Draw the tutorial text
+// Draw text box
+function textBox(x,y,w,h, content, mRenderer, TextRectangle) {
+  // font style
   let style = new PIXI.TextStyle({
     fill: "white",
     fontSize: 18,
   })
-  TR.lineStyle(2, 0xFF00FF, 1);
-  TR.beginFill(0x650A5A);
-  TR.drawRoundedRect(x, y, w, h, 16);
-  TR.endFill();
+  // box border style
+  TextRectangle.lineStyle(2, 0xFF00FF, 1);
+  TextRectangle.beginFill(0x650A5A); // fill color
+  TextRectangle.drawRoundedRect(x, y, w, h, 16);
+  TextRectangle.endFill();
   mRenderer = new PIXI.Text(content, style);
   mRenderer.position.set(x+10, y+10);
-  app.stage.addChild(TR);
+  app.stage.addChild(TextRectangle);
   app.stage.addChild(mRenderer);
 }
 
