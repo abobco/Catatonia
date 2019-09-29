@@ -2,6 +2,8 @@
  
 Work in progress 2D stealth/platformer browser game. Made with [node.js](https://nodejs.org/en/).
 
+Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
+
 ## Dependencies:
 * [npm](https://www.npmjs.com/get-npm):  package manager
 * [webpack](https://webpack.js.org/guides/getting-started/):  asset bundler 
