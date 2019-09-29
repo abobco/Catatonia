@@ -17,7 +17,7 @@ Build the app from the terminal with this command:
  `
 
 ## Art:
-The art for this game was ripped from "Castlevania: Order of Ecclesia", a Nintendo DS exclusive, originally released by Konami on October 21, 2008. If you like the art in this game, go support Konami and buy that game! 
+The art for this game was ripped from *Castlevania: Order of Ecclesia*, a Nintendo DS exclusive, originally released by Konami on October 21, 2008. If you like the art in this game, go support Konami and buy that game! 
 
 If you want to make your own project with sprites from this game, you can find them here:
 https://www.spriters-resource.com/ds_dsi/castlevaniaorderofecclesia/
