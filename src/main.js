@@ -107,7 +107,7 @@ let app = new Application({
   }
 );
 
-// Set bg color and fit the canvas to the window
+// Fit the canvas to the window
 app.renderer.view.style.position = "absolute";
 app.renderer.view.style.display = "block";
 app.renderer.resize(window.innerWidth, window.innerHeight);
@@ -123,12 +123,12 @@ filePaths.push("sprites/catJump.json");
 filePaths.push("sprites/wallSlide.json");
 filePaths.push("sprites/cathouse_r1.png");
 
-// start the loader
+// Start the pixi file loader
 loader
   .add(filePaths)
   .load(setup)
 
-// Set up animators after files load 
+// start game after images load 
 function setup() {
 
   // Load images into AnimatedSprite objects  
@@ -190,7 +190,7 @@ function setup() {
 // updates every 16.66 ms
 function gameLoop(delta){//delta is in ms
 
-  // change apply velocity from user inputs
+  // apply velocity from user inputs
   Matter.Body.setVelocity(catBody, new Vector.create(catPlayer.xVel, catBody.velocity.y) );
 
   // move the sprites to follow their physicis body
