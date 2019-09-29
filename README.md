@@ -1,6 +1,6 @@
 # Catatonia
  
-Work in progress 2D Stealth/Platformer game. Made with node.js
+Work in progress 2D stealth/platformer browser game. Made with node.js
 
 ## Dependencies:
 * [npm](https://www.npmjs.com/get-npm):  package manager
