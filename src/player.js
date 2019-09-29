@@ -10,7 +10,6 @@ var Player = function(rectangle, animationMap ) {
     this.colliderWidth = rectangle.width;
     this.colliderHeight = rectangle.height; 
     // action flags
-    this.isGrounded = false;
     this.isGrounded = false,
     this.inSlide = false,
     this.inSlowDown = false;
