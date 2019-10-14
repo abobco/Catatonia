@@ -1,62 +1,7 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {Ray} from "./ray.js";
 
-var RaySource = function(x,y) {
-    
-    this.pos = Matter.Vector.create(x, y);
-    this.rays = [];
-    for (var i = 45; i < 135; i+=2) {
-        this.rays.push(new Ray(this.pos, i * Math.PI/180 ));
-    }
-
-    this.update = function(x,y) {
-        this.pos.x = x;
-        this.pos.y = y;
-    }
-
-    this.look = function(walls, graphics) {
-        for ( let ray of this.rays) {
-            this.reflect(ray, walls, graphics);
-        }
-    }
-
-    this.reflect = function(ray, walls, graphics) {
-        let closest = null;
-        let record = Infinity;
-        let closestWall = null;
-        for ( let wall of walls) {              
-            const pt = ray.cast(wall);
-            if (pt) {
-                //const d = p5.Vector.dist(this.pos, pt);
-                const d = Math.sqrt(Math.pow(this.pos.x - pt.x,2) + Math.pow(this.pos.y - pt.y,2));
-                if ( d < record ) {
-                    record = d;
-                    closest = pt;
-                    closestWall = wall;
-                }                    
-            }
-        }
-        if ( closest ) {
-            graphics.lineStyle(2, 0xFEEB77, 1);
-            graphics.moveTo(ray.pos.x, ray.pos.y);
-            graphics.lineTo(closest.x, closest.y);
-
-        }
-    }
-
-    this.show = function(graphics) {
-        // Circle
-        graphics.lineStyle(0); // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
-        graphics.beginFill(0xDE3249, 1);
-        graphics.drawCircle(this.pos.x, this.pos.y, 10);
-        graphics.endFill();
-    }
-}
-
-RaySource.prototype.constructor = RaySource;
-export { RaySource }
-
-var RaySource2 = function(x, y, walls, segments, endpoints) {
+var RaySource = function(x, y, walls, segments, endpoints) {
     this.pos = Matter.Vector.create(x, y);
     this.rays = [];
     this.cornerRays = [];
@@ -101,12 +46,11 @@ var RaySource2 = function(x, y, walls, segments, endpoints) {
 
     this.look = function(walls, graphics) {
         for ( let ray of this.rays) {
-            this.reflect(ray, walls, graphics, false);
+            this.cast(ray, walls, graphics, false);
         }
-        this.reflect(this.hangRay, walls, graphics, true);
     }
 
-    this.reflect = function(ray, walls, graphics, drawBlack) {
+    this.cast = function(ray, walls, graphics, drawBlack) {
         let closest = ray.endpoint;
         let record = Math.sqrt(Math.pow(this.pos.x - closest.x,2) + Math.pow(this.pos.y - closest.y,2));
         for ( let wall of walls) {              
@@ -135,9 +79,9 @@ var RaySource2 = function(x, y, walls, segments, endpoints) {
                 try { 
                     let ray1 = new Ray(this.pos, 0, Matter.Vector.create(-5000,0));
                     let ray2 = new Ray(this.pos, 0, Matter.Vector.create(-5000,0));
-    
-                    ray1.setDir(Matter.Vector.rotate(ray.dir,-0.02));
-                    ray2.setDir(Matter.Vector.rotate(ray.dir,0.02));
+                    
+                    ray1.setDir(Matter.Vector.rotate(ray.dir,-0.005));
+                    ray2.setDir(Matter.Vector.rotate(ray.dir,0.005));
                     
                     this.cornerRays.push(ray1, ray2);
                     
@@ -185,12 +129,14 @@ var RaySource2 = function(x, y, walls, segments, endpoints) {
         return ray;
     }
 
-    this.show = function(graphics) {
+    this.show = function(walls, graphics) {
         // Circle
         graphics.lineStyle(1, 0xDE3249); // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
         graphics.beginFill(0xFEEB77, 1);
         graphics.drawCircle(this.pos.x, this.pos.y, 10);
         graphics.endFill();
+
+        this.cast(this.hangRay, walls, graphics, true);
     }
 
     this.drawLight = function(graphics){
@@ -213,6 +159,6 @@ var RaySource2 = function(x, y, walls, segments, endpoints) {
     }
 }
 
-RaySource2.prototype.constructor = RaySource2;
-export { RaySource2 }
+RaySource.prototype.constructor = RaySource;
+export { RaySource }
 

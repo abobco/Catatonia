@@ -1,16 +1,16 @@
 import Matter from 'matter-js/build/matter.min.js';
 
 import {Player} from './player.js';
-import {RaySource2} from './raySource.js';
+import {RaySource} from './raySource.js';
 
 var NPC = function(x,y, walls, castSegments, endpoints, graphics) {
 
     this.pos = Matter.Vector.create(x,y);
     this.castSegments = castSegments;
 
-    this.visionSource = new RaySource2( x, y, walls, castSegments, endpoints );
+    this.visionSource = new RaySource( x, y, walls, castSegments, endpoints );
     this.numStaticRays = this.visionSource.rays.length;
-    this.vel = -1;
+    this.vel = -1.5;
     this.visionSource.look(this.castSegments, graphics);
     this.visionSource.auxLook(this.castSegments, graphics);
 

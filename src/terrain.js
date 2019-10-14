@@ -2,6 +2,7 @@
     Sets of Colliders for physics collisions and Player action triggers
 */
 import Matter from 'matter-js/build/matter.min.js';
+import {Corner} from './geometry.js';
 
 var Boundary = function(x1,y1,x2,y2, isEdge = false) {
     this.a = new Matter.Vector.create(x1,y1);
@@ -42,6 +43,12 @@ var Terrain = function (x, y, w, h) {
                    (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
                    (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
                    (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
+    
+    // For edge raycasting geometry
+    this.corners = [new Corner(this.A, this.B, this.C),
+                    new Corner(this.B, this.A, this.D),
+                    new Corner(this.C, this.A, this.D),
+                    new Corner(this.D, this.B, this.C)];
 
     //this.segments = new RectSegments(x,y,w,h);
 

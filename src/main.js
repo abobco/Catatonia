@@ -33,7 +33,7 @@ import Matter from 'matter-js/build/matter.min.js';
 import {Player} from './player.js';
 import {Terrain, Boundary} from './terrain.js';
 import {Controller, KBController} from './controller.js';
-import { RaySource, RaySource2 } from './raySource.js'
+import { RaySource } from './raySource.js'
 import {Corner} from './geometry.js';
 import {NPC} from './NPC.js';
 
@@ -94,16 +94,13 @@ import {NPC} from './NPC.js';
         platform,
         platforms = new Array();
     // raycaster
-    // var castTest = new RaySource(window.innerWidth/2, window.innerHeight/2);
-    var castSegments = [];
-    var castGraphics = new PIXI.Graphics();
-
-    // raycaster2
-    var betterCastTest;
-    var endPoints = [];
-
-    var movingLight;
-
+    var bakedLight; // baked lighting
+    var movingLight;  // dynamic lighting
+    var castSegments = [];  // array of line segments
+    var endPoints = [];   // array of vertices
+    var corners = []; // array of corner vectors
+    var castGraphics = new PIXI.Graphics(); // geometry renderer
+    
 //===========================================================================//
 
 //============================ Setup ========================================//
@@ -157,15 +154,6 @@ function setup() {
                         ['slide',slideAnim]]);
     catPlayer = new Player(playerRect, animMap);
 
-    // initialize raycast segments and endpoints
-    //catPlayer.bounds.forEach( function(value) {
-    //  castSegments.push(value);
-    //});
-    //endPoints.push(catPlayer.A);
-    //endPoints.push(catPlayer.B);
-    //endPoints.push(catPlayer.C);
-    //endPoints.push(catPlayer.D);
-
     // Geometry Renderer
     app.stage.addChild(Erector);
 
@@ -188,14 +176,10 @@ function setup() {
       value.drawRect(Erector);
     });
     
-
-    // castTest.show(castGraphics);
-    // 
     // Textboxes 
-    //textBox(platform.x - 140, platform.y - 165, 250, 40, 
-    //  messageContent1, messageRenderer1, messageRect1);
-
-    
+    textBox(platform.x - 140, platform.y - 145, 250, 40, 
+    messageContent1, messageRenderer1, messageRect1);
+ 
     // Cat Animations
     catPlayer.animations.forEach(function(value, key){
         app.stage.addChild(value);  // add all animations to world
@@ -204,90 +188,50 @@ function setup() {
     // raycast debug graphics 
     app.stage.addChild(castGraphics);
 
+    // Init world events
+    collisionEventSetup();
+    window.addEventListener( 'resize', onWindowResize, false );
+    preventScroll();  // stops joystick from scrolling page on mobile
 
+    // Lock the camera to the cat's position 
+    app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
+    
+    bakedLight.show(castSegments, castGraphics);
+    bakedLight.look(castSegments, castGraphics);
+    bakedLight.auxLook(castSegments,castGraphics);
 
-  // Init world events
-  collisionEventSetup();
-  window.addEventListener( 'resize', onWindowResize, false );
-  preventScroll();  // stops joystick from scrolling page on mobile
-
-  // Lock the camera to the cat's position 
-  app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
-  
-  betterCastTest.show(castGraphics);
-  betterCastTest.look(castSegments, castGraphics);
-  betterCastTest.auxLook(castSegments,castGraphics);
-
-  
-  //movingLight.visionSource.look(castSegments, castGraphics);
-  //movingLight.visionSource.auxLook(castSegments,castGraphics);
-  
-
-    // draw a buncha polygons
-  //castGraphics.lineStyle(0);
-  // castGraphics.beginFill(0xFEEB77, 0.5);
-  // castGraphics.drawPolygon([betterCastTest.pos.x, betterCastTest.pos.y,
-  //                           betterCastTest.rays[0].closestPoint.x, betterCastTest.rays[0].closestPoint.y,
-  //                           betterCastTest.rays[betterCastTest.rays.length-1].closestPoint.x, 
-  //                           betterCastTest.rays[betterCastTest.rays.length-1].closestPoint.y]);
-  // castGraphics.endFill();
-  // for ( let i = 1; i < betterCastTest.rays.length; i++) {
-  //   castGraphics.beginFill(0xFEEB77, 0.5);
-  //   castGraphics.drawPolygon([betterCastTest.pos.x, betterCastTest.pos.y,
-  //                             betterCastTest.rays[i-1].closestPoint.x, betterCastTest.rays[i-1].closestPoint.y,
-  //                             betterCastTest.rays[i].closestPoint.x, betterCastTest.rays[i].closestPoint.y]);
-  //   castGraphics.endFill();
-  // }
-
-  // Start the game loop 
-  app.ticker.add(delta => gameLoop(delta)); 
-
+    // Start the game loop 
+    app.ticker.add(delta => gameLoop(delta)); 
 }
 
 // Updates every 16.66 ms
 function gameLoop(delta){// delta is in ms
+  castGraphics.clear();
 
   // Apply velocity from user inputs
   Matter.Body.setVelocity(catBody, new Vector.create(catPlayer.xVel, catBody.velocity.y) );
-
   // Move the sprites to follow their physicis body
   catPlayer.setPosition(catBody.position.x, catBody.position.y);
-  
   // Move stage origin to simulate camera movement
   app.stage.pivot.copyFrom(catPlayer.centerPos);
-
+  // apply friction
   if ( catPlayer.inSlowDown ) 
-    slowVelocity();
+    catPlayer.slowVelocity();
 
-   castGraphics.clear();
-  // dynamic shadow update for cat
-    //for (let i = 0; i < 4; i++){
-    //  castSegments[i] = catPlayer.bounds[i];
-    //}
-    //endPoints[0] = catPlayer.A;
-    //endPoints[1] = catPlayer.B;
-    //endPoints[2] = catPlayer.C;
-    //endPoints[3] = catPlayer.D;
+  // draw the static light
+  bakedLight.drawLight(castGraphics);
+  bakedLight.show(castSegments, castGraphics);
 
-  // castTest.look(castSegments, castGraphics);
-  // betterCastTest.show(castGraphics);
-  
-  //betterCastTest.update(betterCastTest.pos.x, betterCastTest.pos.y, castGraphics);
-  betterCastTest.drawLight(castGraphics);
-
+  // move the dynamic light, update and draw its rays
   if ( movingLight.pos.x < platform.x - 800) {
     movingLight.vel = 1.5;
-  }
+  } 
   else if ( movingLight.pos.x > platform.x - 300) {
     movingLight.vel = -1.5;
   }
-  movingLight.update(castGraphics);
+  movingLight.update(castGraphics); 
   movingLight.visionSource.drawLight(castGraphics);
-
-  movingLight.visionSource.show(castGraphics);
-  betterCastTest.show(castGraphics);
-
-
+  movingLight.visionSource.show(castSegments, castGraphics);
 }
 
 //===========================================================================//
@@ -401,8 +345,6 @@ function matterSetUp() {
         element.drawRect(Erector); 
     });
 
-    // castTest = new RaySource(platform.x + 25, platform.y - 450);
-
     platforms.forEach( function(rectangle) {
       //console.log(rectangle);
       rectangle.bounds.forEach( function(bound) {
@@ -415,9 +357,8 @@ function matterSetUp() {
     });
 
     // init Raycaster2
-    betterCastTest = new RaySource2(platform.x + 25, platform.y - 420, platforms, castSegments, endPoints);
-    movingLight = new NPC(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, castGraphics);
-      
+    bakedLight = new RaySource(platform.x + 25, platform.y - 420, platforms, castSegments, endPoints);
+    movingLight = new NPC(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, castGraphics);     
 }
 
 // Load animation frame images into AnimatedSprites

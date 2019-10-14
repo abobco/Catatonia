@@ -84,6 +84,23 @@ var Player = function(rectangle, animationMap ) {
         this.animations.forEach(function (value) {
             value.scale.x = localScale;
         })        
+    };
+
+    this.slowVelocity = function() {
+        if ( this.xVel > 0 ) {
+            this.xVel -= 0.1;
+          if ( this.xVel <= 0 ) {
+            this.xVel = 0;
+            this.inSlowDown = false;
+          }
+        }
+        else if ( this.xVel < 0 ) {
+            this.xVel += 0.1
+          if ( this.xVel >= 0 ) {
+            this.xVel = 0;
+            this.inSlowDown = false;
+          }
+        }
     }
 };
 
