@@ -1,3 +1,6 @@
+import Matter from 'matter-js/build/matter.min.js'; 
+import {Boundary} from "./terrain.js";
+
 var Player = function(rectangle, animationMap ) {
 
     // physics variables
@@ -19,10 +22,33 @@ var Player = function(rectangle, animationMap ) {
     // Key-value pairs of strings and animations
     this.animations = animationMap;
 
+    this.A = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
+    this.B = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
+    this.C = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
+    this.D = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
+
+    this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
+                   (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
+                   (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
+                   (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
+
     // Move all sprites
     this.setPosition = function(ix,iy) {
         this.centerPos.x = ix;
         this.centerPos.y = iy;
+
+        this.A = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
+        this.B = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
+        this.C = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
+        this.D = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
+    
+        this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
+                       (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
+                       (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
+                       (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
+    
+
+        //console.log(this.A);
 
         this.animations.forEach(function (value) {
             value.x = ix;

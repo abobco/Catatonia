@@ -1,20 +1,26 @@
 import Matter from 'matter-js/build/matter.min.js';
 
 import {Player} from './player.js';
+import {RaySource2} from './raySource.js';
 
-var NPC = function(rectangle, animationMap) {
-    // inheritance call
-    Player.call(this, rectangle, animationMap);
+var NPC = function(x,y, walls, castSegments, endpoints, graphics) {
 
-    // new data
+    this.pos = Matter.Vector.create(x,y);
+    this.castSegments = castSegments;
+
+    this.visionSource = new RaySource2( x, y, walls, castSegments, endpoints );
+    this.numStaticRays = this.visionSource.rays.length;
+    this.vel = -1;
+    this.visionSource.look(this.castSegments, graphics);
+    this.visionSource.auxLook(this.castSegments, graphics);
+
+    this.update = function(graphics) {
+      this.pos.x += this.vel;
+    
+        this.visionSource.update(this.pos.x, this.pos.y, graphics)
+    }
 
 }
 
-// This is neccessary to inherit functions from parent class
-NPC.prototype = Object.create(Player.prototype);
-// Have to manually change the constructor back to the defined child class constructor
-Object.defineProperty(NPC.prototype, 'constructor', {
-    value: NPC, 
-    enumerable: false, // so that it does not appear in 'for in' loop
-    writable: true 
-});
+NPC.prototype.constructor = NPC
+export {NPC};
