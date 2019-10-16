@@ -1,6 +1,6 @@
 import Matter from 'matter-js/build/matter.min.js';
 
-var Ray = function(pos, angle, endpoint, isAux = false) {
+var Ray = function(pos, angle, endpoint) {
     
         this.pos = pos;
         //this.dir = p5.Vector.fromAngle(angle);
@@ -11,11 +11,10 @@ var Ray = function(pos, angle, endpoint, isAux = false) {
 
         this.endpoint = endpoint;
         this.closestPoint = endpoint;
-        this.isAux = isAux;
 
     this.setDir = function(dirVector) {
         this.dir = dirVector;
-        this.angle = Matter.Vector.angle(this.dir, Matter.Vector.create(1,0));
+        this.angle = Matter.Vector.angle(this.dir, Matter.Vector.create(0,0));
     }
 
 

@@ -1,5 +1,6 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {Ray} from "./ray.js";
+import {Corner} from './geometry.js'
 
 var RaySource = function(x, y, walls, segments, endpoints) {
     this.pos = Matter.Vector.create(x, y);
@@ -26,7 +27,7 @@ var RaySource = function(x, y, walls, segments, endpoints) {
     
         return angleA - angleB;
     }
-    this.update = function(x,y, graphics) {
+    this.update = function(x,y) {
         this.pos.x = x;
         this.pos.y = y;
 
@@ -40,20 +41,20 @@ var RaySource = function(x, y, walls, segments, endpoints) {
             this.rays.push(newRay);
         }
 
-        this.look(this.segments, graphics);
-        this.auxLook(this.segments, graphics);
+        this.look();
+        this.auxLook();
     }
 
-    this.look = function(walls, graphics) {
+    this.look = function() {
         for ( let ray of this.rays) {
-            this.cast(ray, walls, graphics, false);
+            this.cast(ray);
         }
     }
 
-    this.cast = function(ray, walls, graphics, drawBlack) {
+    this.cast = function(ray) {
         let closest = ray.endpoint;
         let record = Math.sqrt(Math.pow(this.pos.x - closest.x,2) + Math.pow(this.pos.y - closest.y,2));
-        for ( let wall of walls) {              
+        for ( let wall of this.segments) {              
             const pt = ray.cast(wall);
             if (pt) {
                 //const d = p5.Vector.dist(this.pos, pt);
@@ -65,48 +66,31 @@ var RaySource = function(x, y, walls, segments, endpoints) {
             }
         }
         if ( closest ) {
-           if ( drawBlack ) {
-                graphics.lineStyle(2, 0x000000);
-                graphics.moveTo(ray.pos.x, ray.pos.y);
-                graphics.lineTo(closest.x, closest.y);
-           }
-
             ray.closestPoint = closest;
-          if ( closest != ray.endpoint) 
-                return; 
-          else {
-
-                try { 
-                    let ray1 = new Ray(this.pos, 0, Matter.Vector.create(-5000,0));
-                    let ray2 = new Ray(this.pos, 0, Matter.Vector.create(-5000,0));
-                    
-                    ray1.setDir(Matter.Vector.rotate(ray.dir,-0.005));
-                    ray2.setDir(Matter.Vector.rotate(ray.dir,0.005));
-                    
-                    this.cornerRays.push(ray1, ray2);
-                    
-                }
-                catch (e)
-                {
-                    return;
-                }           
-            }
+            if ( closest == ray.endpoint) {
+                let ray1 = new Ray(this.pos, 0, Matter.Vector.create(-5000,0));
+                let ray2 = new Ray(this.pos, 0, Matter.Vector.create(-5000,0));
+                
+                ray1.setDir(Matter.Vector.rotate(ray.dir,-0.005));
+                ray2.setDir(Matter.Vector.rotate(ray.dir,0.005));
+            
+                this.cornerRays.push(ray1, ray2);
+            }          
         }
     }
 
-    this.auxLook = function(walls, graphics) {
+    this.auxLook = function() {
         for ( let ray of this.cornerRays) {
-           ray = this.auxCast(ray, walls, graphics, false);
+           ray = this.auxCast(ray);
            this.rays.push(ray);
         }     
         this.rays.sort(compare);
     }
 
-
-    this.auxCast = function(ray, walls, graphics, drawBlack) {
-        let closest = ray.endpoint;
-        let record = Math.sqrt(Math.pow(this.pos.x - closest.x,2) + Math.pow(this.pos.y - closest.y,2));
-        for ( let wall of walls) {              
+    this.auxCast = function(ray) {
+        let closest = null
+        let record = Infinity;
+        for ( let wall of this.segments) {              
             const pt = ray.cast(wall);
             if (pt) {
                 //const d = p5.Vector.dist(this.pos, pt);
@@ -118,25 +102,17 @@ var RaySource = function(x, y, walls, segments, endpoints) {
             }
         }
         if ( closest ) {
-           if ( drawBlack ) {
-                graphics.lineStyle(2, 0x000000);
-                graphics.moveTo(ray.pos.x, ray.pos.y);
-                graphics.lineTo(closest.x, closest.y);
-           }
-
             ray.closestPoint = closest;
         }
         return ray;
     }
 
-    this.show = function(walls, graphics) {
+    this.show = function(graphics) {
         // Circle
         graphics.lineStyle(1, 0xDE3249); // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
         graphics.beginFill(0xFEEB77, 1);
         graphics.drawCircle(this.pos.x, this.pos.y, 10);
         graphics.endFill();
-
-        this.cast(this.hangRay, walls, graphics, true);
     }
 
     this.drawLight = function(graphics){

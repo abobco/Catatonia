@@ -196,9 +196,9 @@ function setup() {
     // Lock the camera to the cat's position 
     app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
     
-    bakedLight.show(castSegments, castGraphics);
-    bakedLight.look(castSegments, castGraphics);
-    bakedLight.auxLook(castSegments,castGraphics);
+    bakedLight.show(castGraphics);
+    bakedLight.look();
+    bakedLight.auxLook();
 
     // Start the game loop 
     app.ticker.add(delta => gameLoop(delta)); 
@@ -220,7 +220,7 @@ function gameLoop(delta){// delta is in ms
 
   // draw the static light
   bakedLight.drawLight(castGraphics);
-  bakedLight.show(castSegments, castGraphics);
+  bakedLight.show(castGraphics);
 
   // move the dynamic light, update and draw its rays
   if ( movingLight.pos.x < platform.x - 800) {
@@ -229,9 +229,9 @@ function gameLoop(delta){// delta is in ms
   else if ( movingLight.pos.x > platform.x - 300) {
     movingLight.vel = -1.5;
   }
-  movingLight.update(castGraphics); 
+  movingLight.update(); 
   movingLight.visionSource.drawLight(castGraphics);
-  movingLight.visionSource.show(castSegments, castGraphics);
+  movingLight.visionSource.show(castGraphics);
 }
 
 //===========================================================================//
@@ -302,7 +302,7 @@ function collisionEventSetup() {
       catPlayer.isGrounded = true;
       catPlayer.setAnimation("stop");
     }
-  })
+  });
 }
 
 // Physics engine setup
@@ -358,7 +358,7 @@ function matterSetUp() {
 
     // init Raycaster2
     bakedLight = new RaySource(platform.x + 25, platform.y - 420, platforms, castSegments, endPoints);
-    movingLight = new NPC(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, castGraphics);     
+    movingLight = new NPC(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints);     
 }
 
 // Load animation frame images into AnimatedSprites
