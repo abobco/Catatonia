@@ -164,7 +164,6 @@ function setup() {
     if ("ontouchstart" in document.documentElement) {
       messageContent1 = 'Use the joystick to move';
       customJoystick = new Controller(catPlayer, catBody);
-      customJoystick.init();
     }
 
     // Keyboard input manager

@@ -1,7 +1,7 @@
 import Matter from 'matter-js/build/matter.min.js';
 
-var Ray = function(pos, angle, endpoint) {
-    
+class Ray {
+    constructor(pos, angle, endpoint) {
         this.pos = pos;
         //this.dir = p5.Vector.fromAngle(angle);
         this.dir = Matter.Vector.create(1,0);
@@ -11,20 +11,21 @@ var Ray = function(pos, angle, endpoint) {
 
         this.endpoint = endpoint;
         this.closestPoint = endpoint;
+    }
 
-    this.setDir = function(dirVector) {
+    setDir(dirVector) {
         this.dir = dirVector;
         this.angle = Matter.Vector.angle(this.dir, Matter.Vector.create(0,0));
     }
 
 
-    this.lookAt = function(x,y) {
+    lookAt(x,y) {
         this.dir.x = x - this.pos.x;
         this.dir.y = y - this.pos.y;
         this.dir = Matter.Vector.normalise(this.dir)
     }
 
-    this.show = function() {
+    show() {
         stroke(127);
         push();
         translate(this.pos.x, this.pos.y);
@@ -32,7 +33,7 @@ var Ray = function(pos, angle, endpoint) {
         pop();
     }
 
-    this.cast = function(wall) {
+    cast(wall) {
         const x1 = wall.a.x,
               y1 = wall.a.y,  
               x2 = wall.b.x,  
@@ -62,5 +63,4 @@ var Ray = function(pos, angle, endpoint) {
     }
 }
 
-Ray.prototype.constructor = Ray;
 export { Ray };

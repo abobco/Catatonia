@@ -2,32 +2,36 @@ import Matter from 'matter-js/build/matter.min.js';
 import {Ray} from "./ray.js";
 import {Corner} from './geometry.js'
 
-var RaySource = function(x, y, walls, segments, endpoints) {
-    this.pos = Matter.Vector.create(x, y);
-    this.rays = [];
-    this.cornerRays = [];
-    this.hangRay = new Ray(this.pos,0,Matter.Vector.create(0,0));
-    this.hangRay.setDir(Matter.Vector.create(0,-1));
-    this.endpoints = endpoints;
-    this.segments = segments;
+class RaySource {
 
-    for ( let endpoint of endpoints ) {
-        let rayDir = Matter.Vector.create(endpoint.x - this.pos.x, endpoint.y - this.pos.y);
-        Matter.Vector.normalise(rayDir);
-        let newRay = new Ray(this.pos, 0, endpoint);
-        newRay.setDir(rayDir);
-
-        this.rays.push(newRay);
+    constructor(x, y, walls, segments, endpoints){
+        this.pos = Matter.Vector.create(x, y);  // ray source point
+        this.rays = []; // all the rays
+        this.cornerRays = []; // auxilary rays
+        this.hangRay = new Ray(this.pos,0,Matter.Vector.create(0,0)); // for visual of hanging from the ceiling
+        this.hangRay.setDir(Matter.Vector.create(0,-1)); // point upwards
+        this.endpoints = endpoints; // all terrain vertices
+        this.segments = segments; // all terrain line segments
+        // init all main rays
+        for ( let endpoint of endpoints ) {
+            let rayDir = Matter.Vector.create(endpoint.x - this.pos.x, endpoint.y - this.pos.y);
+            Matter.Vector.normalise(rayDir);
+            let newRay = new Ray(this.pos, 0, endpoint);
+            newRay.setDir(rayDir);
+            
+            this.rays.push(newRay);
+        }
     }
+   
 
     // compare 2 rays by angle
-    function compare(a,b) {
+    compare(a,b) {
         const angleA = a.angle;
         const angleB = b.angle;
     
         return angleA - angleB;
     }
-    this.update = function(x,y) {
+    update(x,y) {
         this.pos.x = x;
         this.pos.y = y;
 
@@ -45,13 +49,13 @@ var RaySource = function(x, y, walls, segments, endpoints) {
         this.auxLook();
     }
 
-    this.look = function() {
+    look() {
         for ( let ray of this.rays) {
             this.cast(ray);
         }
     }
 
-    this.cast = function(ray) {
+    cast(ray) {
         let closest = ray.endpoint;
         let record = Math.sqrt(Math.pow(this.pos.x - closest.x,2) + Math.pow(this.pos.y - closest.y,2));
         for ( let wall of this.segments) {              
@@ -79,15 +83,15 @@ var RaySource = function(x, y, walls, segments, endpoints) {
         }
     }
 
-    this.auxLook = function() {
+    auxLook() {
         for ( let ray of this.cornerRays) {
            ray = this.auxCast(ray);
            this.rays.push(ray);
         }     
-        this.rays.sort(compare);
+        this.rays.sort(this.compare);
     }
 
-    this.auxCast = function(ray) {
+    auxCast(ray) {
         let closest = null
         let record = Infinity;
         for ( let wall of this.segments) {              
@@ -107,7 +111,7 @@ var RaySource = function(x, y, walls, segments, endpoints) {
         return ray;
     }
 
-    this.show = function(graphics) {
+    show(graphics) {
         // Circle
         graphics.lineStyle(1, 0xDE3249); // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
         graphics.beginFill(0xFEEB77, 1);
@@ -115,7 +119,7 @@ var RaySource = function(x, y, walls, segments, endpoints) {
         graphics.endFill();
     }
 
-    this.drawLight = function(graphics){
+    drawLight(graphics){
         graphics.lineStyle(0);
         graphics.beginFill(0xFEEB77, 0.5);
 
@@ -135,6 +139,5 @@ var RaySource = function(x, y, walls, segments, endpoints) {
     }
 }
 
-RaySource.prototype.constructor = RaySource;
 export { RaySource }
 

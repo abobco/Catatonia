@@ -1,8 +1,8 @@
 import Matter from 'matter-js/build/matter.min.js'; 
 import {Boundary} from "./terrain.js";
 
-var Player = function(rectangle, animationMap ) {
-
+class Player {
+    constructor(rectangle, animationMap) {
     // physics variables
     this.centerPos = new PIXI.Point(rectangle.x, rectangle.y);
     this.scale = 3;
@@ -31,9 +31,10 @@ var Player = function(rectangle, animationMap ) {
                    (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
                    (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
                    (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
+    }
 
     // Move all sprites
-    this.setPosition = function(ix,iy) {
+    setPosition(ix,iy) {
         this.centerPos.x = ix;
         this.centerPos.y = iy;
 
@@ -57,7 +58,7 @@ var Player = function(rectangle, animationMap ) {
     }
 
     // change active animation, play at given frame
-    this.setAnimation = function(key, frame = 0) {
+    setAnimation(key, frame = 0) {
         // clear all previous animations
         this.animations.forEach(function (value) {
             value.visible = false;
@@ -69,7 +70,7 @@ var Player = function(rectangle, animationMap ) {
     } 
     
     // flip the cat around 
-    this.setFlip = function(dir) {
+    setFlip(dir) {
         var localScale;
         if ( dir == "right" ) {
             localScale = -3;
@@ -86,7 +87,7 @@ var Player = function(rectangle, animationMap ) {
         })        
     };
 
-    this.slowVelocity = function() {
+    slowVelocity() {
         if ( this.xVel > 0 ) {
             this.xVel -= 0.1;
           if ( this.xVel <= 0 ) {
@@ -104,5 +105,4 @@ var Player = function(rectangle, animationMap ) {
     }
 };
 
-Player.prototype.constructor = Player;
 export { Player };
