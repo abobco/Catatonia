@@ -21,6 +21,34 @@ class RaySource {
             
             this.rays.push(newRay);
         }
+
+        this.shader = PIXI.Shader.from(`
+
+        precision mediump float;
+        attribute vec2 aVertexPosition;
+        attribute vec3 aColor;
+    
+        uniform mat3 translationMatrix;
+        uniform mat3 projectionMatrix;
+    
+        varying vec3 vColor;
+    
+        void main() {
+    
+            vColor = aColor;
+            gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.5, 1.0);
+    
+        }`,
+    
+        `precision mediump float;
+    
+            varying vec3 vColor;
+    
+            void main() {
+                gl_FragColor = vec4(vColor, 1.0);
+            }
+    
+        `);
     }
    
 
@@ -136,6 +164,32 @@ class RaySource {
                     this.rays[i].closestPoint.x, this.rays[i].closestPoint.y]);
             graphics.endFill();
         }
+    }
+
+    drawMesh(filters) {
+        
+        var tris = [];
+
+        for ( let i = 1; i < this.rays.length; i++) {
+            var Verts = [];
+            var Colors = [];
+            Verts.push(this.pos.x, this.pos.y);
+            Verts.push(this.rays[i-1].closestPoint.x, this.rays[i-1].closestPoint.y);
+            Verts.push(this.rays[i].closestPoint.x, this.rays[i].closestPoint.y);
+            Colors.push(0.996, 0.922, 0.467);
+            Colors.push(0.996, 0.922, 0.467);
+            Colors.push(0.996, 0.922, 0.467);
+            
+            var triangle = new PIXI.Geometry()
+                .addAttribute('aVertexPosition', Verts, 2)
+                .addAttribute('aColor', Colors, 3);
+            var triMesh = new PIXI.Mesh(triangle, this.shader);
+            triMesh.position.set(this.pos.x, this.pos.y);
+            triMesh.filters = filters;
+            tris.push(triMesh);
+        }
+
+        return tris;
     }
 }
 

@@ -37,6 +37,8 @@ import { RaySource } from './raySource.js'
 import {Corner} from './geometry.js';
 import {NPC} from './NPC.js';
 
+// var fs = require("fs");
+
 //============================ Data =========================================//
 // Aliases
     // pixi.js aliases
@@ -71,16 +73,23 @@ import {NPC} from './NPC.js';
   // Keyboard Controller
   var KBInput;
 
-// UI Renderers
+// Renderers
   // Geometry
-      var Erector = new PIXI.Graphics();
+  var Erector = new PIXI.Graphics();
   // Text boxes
-      var messageRect1 = new PIXI.Graphics(),
-          messageRenderer1 = new PIXI.Graphics(),
-          messageContent1 = "Use the arrow keys to move",
-          messageRect2 = new PIXI.Graphics(),
-          messageRenderer2 = new PIXI.Graphics(),
-          messageContent2 = "Jump from wall to wall to climb";
+  var messageRect1 = new PIXI.Graphics(),
+      messageRenderer1 = new PIXI.Graphics(),
+      messageContent1 = "Use the arrow keys to move",
+      messageRect2 = new PIXI.Graphics(),
+      messageRenderer2 = new PIXI.Graphics(),
+      messageContent2 = "Jump from wall to wall to climb";
+// Shaders
+  // const lightVertShader = fs.readFile("./shaders/lightVert.GLSL").toString('utf-8'),
+  //       lightFragShader = fs.readFile('./shaders/lightFrag.GLSL').toString('utf-8'),
+  //       lightUniforms = {};
+  //       console.log(lightVertShader);
+  //       console.log(lightFragShader);
+  let lightFilter;
 
 // Physics Engine
     // matterjs engine
@@ -100,6 +109,8 @@ import {NPC} from './NPC.js';
     var endPoints = [];   // array of vertices
     var corners = []; // array of corner vectors
     var castGraphics = new PIXI.Graphics(); // geometry renderer
+
+  
     
 //===========================================================================//
 
@@ -132,6 +143,9 @@ filePaths.push("sprites/catStop.json");
 filePaths.push("sprites/catJump.json");
 filePaths.push("sprites/wallSlide.json");
 filePaths.push("sprites/cathouse_r1.png");
+// shader text files
+filePaths.push("shaders/lightVert.GLSL");
+filePaths.push("shaders/lightFrag.GLSL");
 
 // Start the pixi file loader
 loader
@@ -140,7 +154,13 @@ loader
 
 // Start game after images load 
 function setup() {
+  var vert = PIXI.loader.resources["shaders/lightVert.GLSL"].data;
+  var frag = PIXI.loader.resources["shaders/lightFrag.GLSL"].data;
+  console.log(vert);
+  console.log(frag);
 
+  lightFilter = new PIXI.Filter(vert, frag, {} );
+  castGraphics.filters = [new PIXI.filters.BlurFilter()];
   // Load images into AnimatedSprite objects  
   loadAnimations();
 
@@ -231,6 +251,16 @@ function gameLoop(delta){// delta is in ms
   movingLight.update(); 
   movingLight.visionSource.drawLight(castGraphics);
   movingLight.visionSource.show(castGraphics);
+  // var bakedTris = bakedLight.drawMesh([lightFilter, new PIXI.filters.BlurFilter()]);
+  // var movingTris = movingLight.visionSource.drawMesh([lightFilter, new PIXI.filters.BlurFilter()]);
+  // console.log(bakedTris);
+  // console.log(movingTris);
+  // for ( let tri in bakedTris) {
+  //   app.stage.addChild(tri);
+  // }
+  // for ( let tri in movingTris) {
+  //   app.stage.addChild(tri);
+  // }
 }
 
 //===========================================================================//
