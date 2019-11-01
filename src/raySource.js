@@ -4,7 +4,7 @@ import {Corner} from './geometry.js'
 
 class RaySource {
 
-    constructor(x, y, walls, segments, endpoints){
+    constructor(x, y, walls, segments, endpoints, shaderProgram){
         this.pos = Matter.Vector.create(x, y);  // ray source point
         this.rays = []; // all the rays
         this.cornerRays = []; // auxilary rays
@@ -12,6 +12,9 @@ class RaySource {
         this.hangRay.setDir(Matter.Vector.create(0,-1)); // point upwards
         this.endpoints = endpoints; // all terrain vertices
         this.segments = segments; // all terrain line segments
+        this.tris = [];
+        this.shaderProgram = shaderProgram;
+
         // init all main rays
         for ( let endpoint of endpoints ) {
             let rayDir = Matter.Vector.create(endpoint.x - this.pos.x, endpoint.y - this.pos.y);
@@ -21,37 +24,15 @@ class RaySource {
             
             this.rays.push(newRay);
         }
-
-        this.shader = PIXI.Shader.from(`
-
-        precision mediump float;
-        attribute vec2 aVertexPosition;
-        attribute vec3 aColor;
-    
-        uniform mat3 translationMatrix;
-        uniform mat3 projectionMatrix;
-    
-        varying vec3 vColor;
-    
-        void main() {
-    
-            vColor = aColor;
-            gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.5, 1.0);
-    
-        }`,
-    
-        `precision mediump float;
-    
-            varying vec3 vColor;
-    
-            void main() {
-                gl_FragColor = vec4(vColor, 1.0);
-            }
-    
-        `);
+        this.uniforms = {
+            dimensions:    [window.innerWidth, window.innerHeight],
+            position: [this.pos.x, this.pos.y] 
+          };
+                
+        this.shader = new PIXI.Shader.from(shaderProgram.vert, shaderProgram.frag, this.uniforms);
+        this.posBuffer = shaderProgram.cameraPos;
     }
-   
-
+    
     // compare 2 rays by angle
     compare(a,b) {
         const angleA = a.angle;
@@ -64,6 +45,13 @@ class RaySource {
         this.pos.y = y;
 
         this.rays = [];
+        
+
+        this.uniforms = {
+            dimensions:    [window.innerWidth, window.innerHeight],
+            position: [x, y] 
+          };
+        this.shader = new PIXI.Shader.from(this.shaderProgram.vert, this.shaderProgram.frag, this.uniforms);
         this.cornerRays = [];
         for ( let endpoint of this.endpoints) {
             let rayDir = Matter.Vector.create(endpoint.x - this.pos.x, endpoint.y - this.pos.y);
@@ -168,28 +156,46 @@ class RaySource {
 
     drawMesh(filters) {
         
-        var tris = [];
-
+        this.tris = [];
+        const firstTri = new PIXI.Geometry()
+                .addAttribute('aVertexPosition', 
+                   [this.pos.x,  this.pos.y,
+                    this.rays[0].closestPoint.x, this.rays[0].closestPoint.y,
+                    this.rays[this.rays.length-1].closestPoint.x, 
+                    this.rays[this.rays.length-1].closestPoint.y],
+                    2)
+                .addAttribute('aColor', 
+                    [0.996, 0.922, 0.467,
+                    0.996, 0.922, 0.467,
+                    0.996, 0.922, 0.467], 
+                    3)
+                .addAttribute('aCameraPos', this.posBuffer, 2)
+                .addAttribute('aDimensions',[window.innerWidth, window.innerHeight], 2);
+        const firstTriMesh = new PIXI.Mesh(firstTri, this.shader);
+        firstTriMesh.filters = filters;
+        this.tris.push(firstTriMesh);
         for ( let i = 1; i < this.rays.length; i++) {
-            var Verts = [];
-            var Colors = [];
-            Verts.push(this.pos.x, this.pos.y);
-            Verts.push(this.rays[i-1].closestPoint.x, this.rays[i-1].closestPoint.y);
-            Verts.push(this.rays[i].closestPoint.x, this.rays[i].closestPoint.y);
-            Colors.push(0.996, 0.922, 0.467);
-            Colors.push(0.996, 0.922, 0.467);
-            Colors.push(0.996, 0.922, 0.467);
-            
-            var triangle = new PIXI.Geometry()
-                .addAttribute('aVertexPosition', Verts, 2)
-                .addAttribute('aColor', Colors, 3);
-            var triMesh = new PIXI.Mesh(triangle, this.shader);
-            triMesh.position.set(this.pos.x, this.pos.y);
+       
+            const triangle = new PIXI.Geometry()
+                .addAttribute('aVertexPosition', 
+                        [ this.pos.x,  this.pos.y,
+                          this.rays[i-1].closestPoint.x, this.rays[i-1].closestPoint.y,
+                          this.rays[i].closestPoint.x, this.rays[i].closestPoint.y],
+                        2)
+                .addAttribute('aColor', 
+                        [0.996, 0.922, 0.467,
+                         0.996, 0.922, 0.467,
+                         0.996, 0.922, 0.467], 
+                        3)
+                .addAttribute('aCameraPos', this.posBuffer, 2)
+                .addAttribute('aDimensions',[window.innerWidth, window.innerHeight], 2);
+            // console.log(triangle);
+            const triMesh = new PIXI.Mesh(triangle, this.shader);
+             // console.log(triMesh);
+            // triMesh.position.set(this.pos.x, this.pos.y);
             triMesh.filters = filters;
-            tris.push(triMesh);
+            this.tris.push(triMesh);
         }
-
-        return tris;
     }
 }
 
