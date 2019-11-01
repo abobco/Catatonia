@@ -1,10 +1,10 @@
 precision highp float;
 attribute vec2 aVertexPosition;
 attribute vec3 aColor;
-attribute vec2 aDimensions;
+// attribute vec2 aDimensions;
 
 // passed as the world coordinates of the player object
-attribute vec2 aCameraPos;
+// attribute vec2 aCameraPos;
 
 
 uniform mat3 translationMatrix;
@@ -15,12 +15,11 @@ uniform vec2 dimensions;
 
 varying vec3 vColor;
 
-varying vec4 vCameraPos;
+// varying vec4 vCameraPos;
 varying vec2 lightPos;
-varying vec2 vDimensions;
+// varying vec2 vDimensions;
 
 vec4 firstVert = vec4(0,0,0,0);
-
 
 float TriAlpha;
 

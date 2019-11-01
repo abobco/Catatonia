@@ -114,10 +114,13 @@ import {NPC} from './NPC.js';
     var endPoints = [];   // array of vertices
     var corners = []; // array of corner vectors
     var castGraphics = new PIXI.Graphics(); // geometry renderer
+    let shadowGraphics = new PIXI.Graphics();
 
     let cameraPosBuffer,
         cameraPos,
         cameraPosArray;
+
+    
     
 //===========================================================================//
 
@@ -178,63 +181,46 @@ function setup() {
 
   // Initialize game objects
     // Player
-    var playerRect = new Rectangle(walkAnim.x, walkAnim.y, walkAnim.width, walkAnim.height);
+      var playerRect = new Rectangle(walkAnim.x, walkAnim.y, walkAnim.width, walkAnim.height);
 
-    animMap = new Map ([['walk', walkAnim],
-                        ['stop', stopAnim],
-                        ['jump', jumpAnim],
-                        ['slide',slideAnim]]);
-    catPlayer = new Player(playerRect, animMap);
+      animMap = new Map ([['walk', walkAnim],
+                          ['stop', stopAnim],
+                          ['jump', jumpAnim],
+                          ['slide',slideAnim]]);
+      catPlayer = new Player(playerRect, animMap);
 
-    cameraPosArray = new Float32Array(catPlayer.centerPos.x, catPlayer.centerPos.y);
-    // cameraPosBuffer = new PIXI.Buffer.from(cameraPosArray);
-    cameraPosBuffer = new PIXI.Buffer(cameraPosArray.buffer, false);
-    cameraPos = new PIXI.Attribute(cameraPosBuffer,2);
+    // set up shaders/filters
+      cameraPosArray = new Float32Array(catPlayer.centerPos.x, catPlayer.centerPos.y);
+      // cameraPosBuffer = new PIXI.Buffer.from(cameraPosArray);
+      cameraPosBuffer = new PIXI.Buffer(cameraPosArray.buffer, false);
+      cameraPos = new PIXI.Attribute(cameraPosBuffer,2);
 
-    lightShader = {
-      "vert": vert,
-      "frag": frag,
-      "cameraPos" : cameraPosBuffer };
-    lightFilter = new PIXI.Filter(filterVert, filterFrag, uniforms );
+      lightShader = {
+        "vert": vert,
+        "frag": frag,
+        "cameraPos" : cameraPosBuffer };
+      lightFilter = new PIXI.Filter(filterVert, filterFrag, uniforms );
 
-    castGraphics.filters = [new PIXI.filters.BlurFilter()];
-    filters = [lightFilter, new PIXI.filters.BlurFilter()];
+      castGraphics.filters = [new PIXI.filters.BlurFilter()];
+      filters = [lightFilter, new PIXI.filters.BlurFilter()];
 
     // Physics engine
-    matterSetUp();
+      matterSetUp();
 
     // Joystick manager
-    if ("ontouchstart" in document.documentElement) {
-      messageContent1 = 'Use the joystick to move';
-      customJoystick = new Controller(catPlayer, catBody);
-    }
+      if ("ontouchstart" in document.documentElement) {
+        messageContent1 = 'Use the joystick to move';
+        customJoystick = new Controller(catPlayer, catBody);
+      }
 
     // Keyboard input manager
-    KBInput = new KBController(catPlayer, catBody);
+      KBInput = new KBController(catPlayer, catBody);
 
   // Add objects to Pixi world
     // Terrain
     terrain.forEach(function (value) {
       value.drawRect(Erector);
     });
-    
-    // Textboxes 
-    textBox(platform.x - 140, platform.y - 145, 250, 40, 
-    messageContent1, messageRenderer1, messageRect1);
- 
-    // Cat Animations
-    catPlayer.animations.forEach(function(value, key){
-        app.stage.addChild(value);  // add all animations to world
-    });
-    
-    // add the light to the stage
-    app.stage.addChild(lightContainer);
-
-    // Geometry Renderer
-    app.stage.addChild(Erector);
-
-    // raycast debug graphics 
-    app.stage.addChild(castGraphics);
 
     // Init world events
     collisionEventSetup();
@@ -255,19 +241,44 @@ function setup() {
       lightContainer.addChild(bakedLight.tris[i]);
     }
 
-    app.stage.addChild(movingLight.lightContainer);
+  // Add objects to pixi stage (last added = top layer)
+    // Textboxes 
+      textBox(platform.x - 140, platform.y - 145, 250, 40, 
+        messageContent1, messageRenderer1, messageRect1);
+      
+    // Cat Animations
+      catPlayer.animations.forEach(function(value, key){
+          app.stage.addChild(value);  // add all animations to world
+      });
 
-    // let myBlurFilter = new PIXI.filters.BlurFilter();
-    // myBlurFilter.autoFit = false;
-    // lightContainer.filters = [myBlurFilter]; 
-                                                                                                                          
-    // lightContainer.filterArea = app.renderer.screen;
-    // lightContainer.filterArea.fit(app.renderer.screen);
+    // Shadow renderer
+      app.stage.addChild(shadowGraphics);
+      
+    // Geometry Renderer
+      app.stage.addChild(Erector);
+  
+    // light renderers
+      app.stage.addChild(castGraphics);
 
-    // let radialBlur = new RadialBlurFilter(60, 9)
-    // lightFilter.filterArea= app.renderer.screen;
-     
-    lightContainer.filters = [lightFilter];
+      app.stage.addChild(lightContainer);
+
+      app.stage.addChild(movingLight.lightContainer);
+
+    // apply filters
+      // let myBlurFilter = new PIXI.filters.BlurFilter();
+      // myBlurFilter.autoFit = false;
+      // lightContainer.filters = [myBlurFilter]; 
+                                                                                                                            
+      // lightContainer.filterArea = app.renderer.screen;
+      // lightContainer.filterArea.fit(app.renderer.screen);
+
+      // let radialBlur = new RadialBlurFilter(60, 9)
+      // lightFilter.filterArea= app.renderer.screen;
+      // lightContainer.filters = [lightFilter];
+      // movingLight.lightContainer.filters = [lightFilter];
+
+    // draw big ole rect for shadows
+     pDrawRect(shadowGraphics, 0,0, 5000, 5000, 0.3, 0.5);
 
     // Start the game loop 
     app.ticker.add(delta => gameLoop(delta)); 
@@ -276,7 +287,7 @@ function setup() {
 // Updates every 16.66 ms
 function gameLoop(delta){// delta is in ms
   castGraphics.clear();
-
+  
   // Apply velocity from user inputs
   Matter.Body.setVelocity(catBody, new Vector.create(catPlayer.xVel, catBody.velocity.y) );
   // Move the sprites to follow their physicis body
@@ -306,7 +317,8 @@ function gameLoop(delta){// delta is in ms
     else if ( movingLight.pos.x > platform.x - 300) {
       movingLight.vel = -1.5;
     }
-     movingLight.update(); 
+     movingLight.update();
+     app.stage.addChild(movingLight.lightContainer); 
   // movingLight.visionSource.drawLight(castGraphics);
   movingLight.visionSource.show(castGraphics);
 
@@ -525,7 +537,7 @@ function onWindowResize() {
     app.renderer.resize(window.innerWidth, window.innerHeight);
     // Lock the camera to the cat's position 
     app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
-  }
+}
 
 // Draw text box
 function textBox(x,y,w,h, content, mRenderer, TextRectangle) {
@@ -556,4 +568,12 @@ function preventScroll() {
   document.getElementById('myCanvas').ontouchstart = (e) => {
     e.preventDefault();
   };
+}
+
+function pDrawRect(renderer, x, y, w, h, color, alpha) {
+
+  renderer.beginFill(color, alpha);
+  renderer.drawRect(x - (w/2) , y - (h/2) -1, w , h );
+  renderer.endFill();
+
 }

@@ -11,7 +11,7 @@
                 "/property:GenerateFullPaths=true",
                 "/t:build",
                 "/consoleloggerparameters:NoSummary"
-            ],
+                    ],
             "group": "build",
             "presentation": {
                 "reveal": "silent"
@@ -31,7 +31,7 @@
             "type": "shell",
             "command": "http-server",
             "options":{
-                "cwd": "D:/Programming/Web Projects/cat game/Catatonia/dist"
+                "cwd": "D:/Programming/Web Projects/cat game/Catatonia/dist/"
             } 
         }
     ]

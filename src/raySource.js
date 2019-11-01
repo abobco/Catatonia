@@ -14,6 +14,9 @@ class RaySource {
         this.segments = segments; // all terrain line segments
         this.tris = [];
         this.shaderProgram = shaderProgram;
+        this.color = [1, 0.945, 0.588,
+                      1, 0.945, 0.588,
+                      1, 0.945, 0.588]
 
         // init all main rays
         for ( let endpoint of endpoints ) {
@@ -155,7 +158,6 @@ class RaySource {
     }
 
     drawMesh(filters) {
-        
         this.tris = [];
         const firstTri = new PIXI.Geometry()
                 .addAttribute('aVertexPosition', 
@@ -165,12 +167,8 @@ class RaySource {
                     this.rays[this.rays.length-1].closestPoint.y],
                     2)
                 .addAttribute('aColor', 
-                    [0.996, 0.922, 0.467,
-                    0.996, 0.922, 0.467,
-                    0.996, 0.922, 0.467], 
-                    3)
-                .addAttribute('aCameraPos', this.posBuffer, 2)
-                .addAttribute('aDimensions',[window.innerWidth, window.innerHeight], 2);
+                    this.color, 
+                    3);
         const firstTriMesh = new PIXI.Mesh(firstTri, this.shader);
         firstTriMesh.filters = filters;
         this.tris.push(firstTriMesh);
@@ -183,16 +181,9 @@ class RaySource {
                           this.rays[i].closestPoint.x, this.rays[i].closestPoint.y],
                         2)
                 .addAttribute('aColor', 
-                        [0.996, 0.922, 0.467,
-                         0.996, 0.922, 0.467,
-                         0.996, 0.922, 0.467], 
-                        3)
-                .addAttribute('aCameraPos', this.posBuffer, 2)
-                .addAttribute('aDimensions',[window.innerWidth, window.innerHeight], 2);
-            // console.log(triangle);
+                        this.color, 
+                        3);
             const triMesh = new PIXI.Mesh(triangle, this.shader);
-             // console.log(triMesh);
-            // triMesh.position.set(this.pos.x, this.pos.y);
             triMesh.filters = filters;
             this.tris.push(triMesh);
         }

@@ -18,7 +18,8 @@ class NPC {
   }
 
   update() {
-    this.lightContainer.removeChildren();
+    this.lightContainer.destroy({ "children" : true });
+    this.lightContainer = new PIXI.Container();
     this.pos.x += this.vel;
     this.visionSource.update(this.pos.x, this.pos.y);
     this.visionSource.drawMesh();
