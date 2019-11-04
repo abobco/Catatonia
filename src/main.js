@@ -30,14 +30,12 @@
 
 import Matter from 'matter-js/build/matter.min.js';
 
+import {FilePaths} from './FilePaths.js'
 import {Player} from './player.js';
 import {Terrain} from './terrain.js';
 import {Controller, KBController} from './controller.js';
 import { RaySource } from './raySource.js'
-import {NPC} from './NPC.js';
-
-
-// var fs = require("fs");
+import {PointLight} from './PointLight.js';
 
 //============================ Data =========================================//
 // Aliases
@@ -49,17 +47,20 @@ import {NPC} from './NPC.js';
         Rectangle = PIXI.Rectangle,
         TextureCache = PIXI.utils.TextureCache;
     // matter.js aliases
-    var Engine = Matter.Engine,
+    let Engine = Matter.Engine,
         Runner = Matter.Runner,
         World = Matter.World,
         Bodies = Matter.Bodies,
         Vector = Matter.Vector,
         Events = Matter.Events;
 
+// strings of files for loader
+let loaderFiles = new FilePaths();
+
 // Player Object
     // Animator
     const playerScale = 3;
-    var catPlayer,
+    let catPlayer,
         animMap,
         walkAnim,
         stopAnim,
@@ -69,59 +70,43 @@ import {NPC} from './NPC.js';
 
 // Input
   // Joystick object
-  var customJoystick;
+  let customJoystick;
   // Keyboard Controller
-  var KBInput;
+  let KBInput;
 
 // Renderers
   // Geometry
-  var Erector = new PIXI.Graphics();
+  let Erector = new PIXI.Graphics();
   // Text boxes
-  var messageRect1 = new PIXI.Graphics(),
+  let messageRect1 = new PIXI.Graphics(),
       messageRenderer1 = new PIXI.Graphics(),
-      messageContent1 = "Use the arrow keys to move",
-      messageRect2 = new PIXI.Graphics(),
-      messageRenderer2 = new PIXI.Graphics(),
-      messageContent2 = "Jump from wall to wall to climb";
+      messageContent1 = "Use the arrow keys to move"
 // Shaders
-  // const lightVertShader = fs.readFile("./shaders/lightVert.GLSL").toString('utf-8'),
-  //       lightFragShader = fs.readFile('./shaders/lightFrag.GLSL').toString('utf-8'),
-  //       lightUniforms = {};
-  //       console.log(lightVertShader);
-  //       console.log(lightFragShader);
-  let lightFilter;
-  let filters;
-  let lightShader;
-
-  let lightContainer = new PIXI.Container();
-  let stageFilterBounds;
+  let lightFilter,
+      filters,
+      lightShader,
+      lightContainer = new PIXI.Container();
 
 // Physics Engine
     // matterjs engine
-    var catEngine = Engine.create(),
+    let catEngine = Engine.create(),
         catWorld = catEngine.world,
         catRunner = Runner.create();
     // Player collider
-    var catBody,
+    let catBody,
     // Terrain colliders
         terrain = new Array(),
         platform,
         platforms = new Array();
     // raycaster
-    var bakedLight; // baked lighting
-    var movingLight;  // dynamic lighting
-    var castSegments = [];  // array of line segments
-    var endPoints = [];   // array of vertices
-    var corners = []; // array of corner vectors
-    var castGraphics = new PIXI.Graphics(); // geometry renderer
-    let shadowGraphics = new PIXI.Graphics();
+    let bakedLight, // baked lighting
+        movingLight,  // dynamic lighting
+        castSegments = [],  // array of line segments
+        endPoints = [],   // array of vertices
+        corners = [], // array of corner vectors
+        lightBulbs = new PIXI.Graphics(), // geometry renderer
+        shadowGraphics = new PIXI.Graphics();
 
-    let cameraPosBuffer,
-        cameraPos,
-        cameraPosArray;
-
-    
-    
 //===========================================================================//
 
 //============================ Setup ========================================//
@@ -142,39 +127,25 @@ let app = new Application({
 app.renderer.view.style.position = "absolute";
 app.renderer.view.style.display = "block";
 app.renderer.resize(window.innerWidth, window.innerHeight);
+// Add the canvas to the document
+document.getElementById('myCanvas').appendChild(app.view);
 
 let uniforms = {
   dimensions:   [app.renderer.screen.width, app.renderer.screen.height] 
 };
 
-// Add the canvas to the document
-document.getElementById('myCanvas').appendChild(app.view);
-
-// Make an array of sprite file paths
-var filePaths = [];
-filePaths.push("sprites/catWalk.json");
-filePaths.push("sprites/catStop.json");
-filePaths.push("sprites/catJump.json");
-filePaths.push("sprites/wallSlide.json");
-filePaths.push("sprites/cathouse_r1.png");
-// shader text files
-filePaths.push("shaders/lightFilterVert.GLSL");
-filePaths.push("shaders/lightFilterFrag.GLSL");
-filePaths.push("shaders/lightVert.GLSL");
-filePaths.push("shaders/lightFrag.GLSL");
-
 // Start the pixi file loader
 loader
-  .add(filePaths)
-  .load(setup)
+  .add(loaderFiles.array())
+  .load(setup);
 
 // Start game after images load 
 function setup() {
   // Load lighting shaders/filters
-    var filterVert = PIXI.loader.resources["shaders/lightFilterVert.GLSL"].data;
-    var filterFrag = PIXI.loader.resources["shaders/lightFilterFrag.GLSL"].data;
-    var vert = PIXI.loader.resources["shaders/lightVert.GLSL"].data;
-    var frag = PIXI.loader.resources["shaders/lightFrag.GLSL"].data;
+    let filterVert = PIXI.loader.resources["shaders/lightFilterVert.GLSL"].data,
+        filterFrag = PIXI.loader.resources["shaders/lightFilterFrag.GLSL"].data,
+        vert = PIXI.loader.resources["shaders/lightVert.GLSL"].data,
+        frag = PIXI.loader.resources["shaders/lightFrag.GLSL"].data;
 
   // Load images into AnimatedSprite objects  
     loadAnimations();
@@ -182,7 +153,6 @@ function setup() {
   // Initialize game objects
     // Player
       var playerRect = new Rectangle(walkAnim.x, walkAnim.y, walkAnim.width, walkAnim.height);
-
       animMap = new Map ([['walk', walkAnim],
                           ['stop', stopAnim],
                           ['jump', jumpAnim],
@@ -190,18 +160,12 @@ function setup() {
       catPlayer = new Player(playerRect, animMap);
 
     // set up shaders/filters
-      cameraPosArray = new Float32Array(catPlayer.centerPos.x, catPlayer.centerPos.y);
-      // cameraPosBuffer = new PIXI.Buffer.from(cameraPosArray);
-      cameraPosBuffer = new PIXI.Buffer(cameraPosArray.buffer, false);
-      cameraPos = new PIXI.Attribute(cameraPosBuffer,2);
-
       lightShader = {
         "vert": vert,
         "frag": frag,
-        "cameraPos" : cameraPosBuffer };
+      };
       lightFilter = new PIXI.Filter(filterVert, filterFrag, uniforms );
-
-      castGraphics.filters = [new PIXI.filters.BlurFilter()];
+      lightBulbs.filters = [new PIXI.filters.BlurFilter()];
       filters = [lightFilter, new PIXI.filters.BlurFilter()];
 
     // Physics engine
@@ -230,55 +194,14 @@ function setup() {
     // Lock the camera to the cat's position 
     app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
     
-    bakedLight.show(castGraphics);
+    // draw the static light
+    bakedLight.show(lightBulbs);
     bakedLight.look();
     bakedLight.auxLook();
-
     bakedLight.drawMesh([]);
 
-    // add light to stage
-    for ( let i = 0; i < bakedLight.tris.length; i++) {
-      lightContainer.addChild(bakedLight.tris[i]);
-    }
-
-  // Add objects to pixi stage (last added = top layer)
-    // Textboxes 
-      textBox(platform.x - 140, platform.y - 145, 250, 40, 
-        messageContent1, messageRenderer1, messageRect1);
-      
-    // Cat Animations
-      catPlayer.animations.forEach(function(value, key){
-          app.stage.addChild(value);  // add all animations to world
-      });
-
-    // Shadow renderer
-      app.stage.addChild(shadowGraphics);
-      
-    // Geometry Renderer
-      app.stage.addChild(Erector);
-  
-    // light renderers
-      app.stage.addChild(castGraphics);
-
-      app.stage.addChild(lightContainer);
-
-      app.stage.addChild(movingLight.lightContainer);
-
-    // apply filters
-      // let myBlurFilter = new PIXI.filters.BlurFilter();
-      // myBlurFilter.autoFit = false;
-      // lightContainer.filters = [myBlurFilter]; 
-                                                                                                                            
-      // lightContainer.filterArea = app.renderer.screen;
-      // lightContainer.filterArea.fit(app.renderer.screen);
-
-      // let radialBlur = new RadialBlurFilter(60, 9)
-      // lightFilter.filterArea= app.renderer.screen;
-      // lightContainer.filters = [lightFilter];
-      // movingLight.lightContainer.filters = [lightFilter];
-
-    // draw big ole rect for shadows
-     pDrawRect(shadowGraphics, 0,0, 5000, 5000, 0.3, 0.5);
+  // Add objects to pixi stage
+    initLayers();
 
     // Start the game loop 
     app.ticker.add(delta => gameLoop(delta)); 
@@ -286,53 +209,31 @@ function setup() {
 
 // Updates every 16.66 ms
 function gameLoop(delta){// delta is in ms
-  castGraphics.clear();
+  lightBulbs.clear();
   
   // Apply velocity from user inputs
   Matter.Body.setVelocity(catBody, new Vector.create(catPlayer.xVel, catBody.velocity.y) );
   // Move the sprites to follow their physicis body
   catPlayer.setPosition(catBody.position.x, catBody.position.y);
-  //console.log(catBody.position.x, catBody.position.y);
-  //console.log(bakedLight.pos);
   // Move stage origin to simulate camera movement
   app.stage.pivot.copyFrom(catPlayer.centerPos);
-
-  cameraPosArray[0] = catPlayer.centerPos.x;
-  cameraPosArray[1] = catPlayer.centerPos.y;
-
-  cameraPosBuffer.update(cameraPosArray.buffer);
 
   // apply friction
   if ( catPlayer.inSlowDown ) 
     catPlayer.slowVelocity();
 
   // draw the static light
-  // bakedLight.drawLight(castGraphics);
-   bakedLight.show(castGraphics);
+   bakedLight.show(lightBulbs);
 
   // move the dynamic light, update and draw its rays
-    if ( movingLight.pos.x < platform.x - 800) {
+    if ( movingLight.pos.x < platform.x - 800) 
       movingLight.vel = 1.5;
-    } 
-    else if ( movingLight.pos.x > platform.x - 300) {
+    else if ( movingLight.pos.x > platform.x - 300) 
       movingLight.vel = -1.5;
-    }
+
      movingLight.update();
      app.stage.addChild(movingLight.lightContainer); 
-  // movingLight.visionSource.drawLight(castGraphics);
-  movingLight.visionSource.show(castGraphics);
-
-  
-  // var bakedTris = bakedLight.drawMesh([lightFilter, new PIXI.filters.BlurFilter()]);
-  // var movingTris = movingLight.visionSource.drawMesh([lightFilter, new PIXI.filters.BlurFilter()]);
-  // console.log(bakedTris);
-  // console.log(movingTris);
-  // for ( let tri in bakedTris) {
-  //   app.stage.addChild(tri);
-  // }
-  // for ( let tri in movingTris) {
-  //   app.stage.addChild(tri);
-  // }
+     movingLight.visionSource.show(lightBulbs);
 }
 
 //===========================================================================//
@@ -459,7 +360,7 @@ function matterSetUp() {
 
     // init Raycaster2
     bakedLight = new RaySource(platform.x + 25, platform.y - 420, platforms, castSegments, endPoints, lightShader);
-    movingLight = new NPC(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, lightShader);     
+    movingLight = new PointLight(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, lightShader);     
 }
 
 // Load animation frame images into AnimatedSprites
@@ -570,10 +471,40 @@ function preventScroll() {
   };
 }
 
+// draw rectangle primitives
 function pDrawRect(renderer, x, y, w, h, color, alpha) {
 
   renderer.beginFill(color, alpha);
   renderer.drawRect(x - (w/2) , y - (h/2) -1, w , h );
   renderer.endFill();
 
+}
+
+// add pixi objects to global renderer, 
+// works like a stack, last element added = top graphics layer
+function initLayers() {
+  // add baked light to the light container
+  for ( let i = 0; i < bakedLight.tris.length; i++) {
+    lightContainer.addChild(bakedLight.tris[i]);
+  }
+
+  // Textboxes 
+  textBox(platform.x - 140, platform.y - 145, 250, 40, 
+  messageContent1, messageRenderer1, messageRect1);
+    
+  // Cat Animations
+  catPlayer.animations.forEach(function(value, key){
+      app.stage.addChild(value);  // add all animations to world
+  });
+  // Shadow renderer
+  app.stage.addChild(shadowGraphics); 
+  // Geometry Renderer
+  app.stage.addChild(Erector);
+  // light renderers
+  app.stage.addChild(lightBulbs);
+  app.stage.addChild(lightContainer);
+  app.stage.addChild(movingLight.lightContainer);
+
+  // draw big ole rect for shadows
+  pDrawRect(shadowGraphics, 0,0, 5000, 5000, 0.3, 0.5);
 }

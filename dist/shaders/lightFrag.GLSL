@@ -35,7 +35,7 @@ void main() {
     normPos = gl_FragCoord.xy / dimensions;
     normPos.x *= dimensions.x/dimensions.y;
     
-    float dist = 0.5 - distance(lightPos, normPos);
+    float dist = 0.8 - distance(lightPos, normPos);
     dist = dist;
 
     // float dist = 0.5;

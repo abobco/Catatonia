@@ -33,7 +33,6 @@ class RaySource {
           };
                 
         this.shader = new PIXI.Shader.from(shaderProgram.vert, shaderProgram.frag, this.uniforms);
-        this.posBuffer = shaderProgram.cameraPos;
     }
     
     // compare 2 rays by angle
@@ -43,19 +42,22 @@ class RaySource {
     
         return angleA - angleB;
     }
+
+    // for moving light
     update(x,y) {
         this.pos.x = x;
         this.pos.y = y;
 
-        this.rays = [];
-        
+        this.rays = [];   
 
         this.uniforms = {
             dimensions:    [window.innerWidth, window.innerHeight],
             position: [x, y] 
           };
+
         this.shader = new PIXI.Shader.from(this.shaderProgram.vert, this.shaderProgram.frag, this.uniforms);
         this.cornerRays = [];
+
         for ( let endpoint of this.endpoints) {
             let rayDir = Matter.Vector.create(endpoint.x - this.pos.x, endpoint.y - this.pos.y);
             Matter.Vector.normalise(rayDir);
@@ -157,23 +159,11 @@ class RaySource {
         }
     }
 
+    // make webgl meshes to draw light, pass shader from constructor
     drawMesh(filters) {
         this.tris = [];
-        const firstTri = new PIXI.Geometry()
-                .addAttribute('aVertexPosition', 
-                   [this.pos.x,  this.pos.y,
-                    this.rays[0].closestPoint.x, this.rays[0].closestPoint.y,
-                    this.rays[this.rays.length-1].closestPoint.x, 
-                    this.rays[this.rays.length-1].closestPoint.y],
-                    2)
-                .addAttribute('aColor', 
-                    this.color, 
-                    3);
-        const firstTriMesh = new PIXI.Mesh(firstTri, this.shader);
-        firstTriMesh.filters = filters;
-        this.tris.push(firstTriMesh);
+        // draw a triangle beween the endpoints & source of every ray
         for ( let i = 1; i < this.rays.length; i++) {
-       
             const triangle = new PIXI.Geometry()
                 .addAttribute('aVertexPosition', 
                         [ this.pos.x,  this.pos.y,
@@ -187,6 +177,20 @@ class RaySource {
             triMesh.filters = filters;
             this.tris.push(triMesh);
         }
+        // draw an extra triangle to connect the beginning and end of the array
+        const firstTri = new PIXI.Geometry()
+        .addAttribute('aVertexPosition', 
+        [this.pos.x,  this.pos.y,
+            this.rays[0].closestPoint.x, this.rays[0].closestPoint.y,
+            this.rays[this.rays.length-1].closestPoint.x, 
+            this.rays[this.rays.length-1].closestPoint.y],
+            2)
+        .addAttribute('aColor', 
+            this.color, 
+            3);
+        const firstTriMesh = new PIXI.Mesh(firstTri, this.shader);
+        firstTriMesh.filters = filters;
+        this.tris.push(firstTriMesh);
     }
 }
 
