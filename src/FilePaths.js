@@ -15,7 +15,6 @@ class FilePaths {
             "shaders/lightFrag.GLSL"
         ];
     }
-
     array() {
         return this.filePaths;
     }
