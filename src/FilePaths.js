@@ -6,6 +6,7 @@ class FilePaths {
             "sprites/catStop.json",
             "sprites/catJump.json",
             "sprites/wallSlide.json",
+            "sprites/catHang.json",
             "sprites/cathouse_r1.png",
 
             // shaders

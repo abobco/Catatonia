@@ -13,6 +13,10 @@ class Controller{
 
         // bind joystick events to game actions
         this.manager.on('start', function (evt, nipple) {
+          if (catPlayer.isHanging){
+            catPlayer.isHanging = false;
+            Matter.Body.setStatic(catBody, false);
+          }
           // moonwalk
           if (catPlayer.isGrounded) {
             catPlayer.setAnimation("walk");
@@ -89,7 +93,12 @@ var KBController = function(catPlayer, catBody) {
 
         e = e || window.event;
 
+       //if ( !catPlayer.isHanging ) {
         if (e.keyCode == '38') {
+          if (catPlayer.isHanging){
+            catPlayer.isHanging = false;
+            Matter.Body.setStatic(catBody, false);
+          }
             // up arrow
             // jump from ground
             if ( catPlayer.isGrounded ) {
@@ -125,6 +134,10 @@ var KBController = function(catPlayer, catBody) {
             // down arrow
         }
         else if (e.keyCode == '37' && !this.leftDown) {
+          if (catPlayer.isHanging){
+            catPlayer.isHanging = false;
+            Matter.Body.setStatic(catBody, false);
+          }
             // left arrow
             this.rightDown = false;
             this.leftDown = true;
@@ -135,6 +148,10 @@ var KBController = function(catPlayer, catBody) {
             catPlayer.xVel = -catPlayer.maxVel;
         }
         else if (e.keyCode == '39' && !this.rightDown) {
+          if (catPlayer.isHanging){
+            catPlayer.isHanging = false;
+            Matter.Body.setStatic(catBody, false);
+          }
             // right arrow
             this.leftDown = false;
             this.rightDown = true;
@@ -144,7 +161,8 @@ var KBController = function(catPlayer, catBody) {
             catPlayer.inSlowDown = false;
             catPlayer.xVel = catPlayer.maxVel;
         }
-        }
+     // }
+    }
 
         function checkKeyUp(e) {
 

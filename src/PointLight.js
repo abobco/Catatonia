@@ -5,7 +5,7 @@ import {RaySource} from './raySource.js';
 
 class PointLight {
 
-  constructor(x,y, walls, castSegments, endpoints, shaderProgram) {
+  constructor(x,y, walls, castSegments, endpoints, shaderProgram, baseRenderer) {
     this.pos = Matter.Vector.create(x,y);
     this.castSegments = castSegments;
 
@@ -15,6 +15,7 @@ class PointLight {
     this.visionSource.look();
     this.visionSource.auxLook();
     this.lightContainer = new PIXI.Container();
+    this.baseRenderer = baseRenderer;
   }
 
   update() {
@@ -26,6 +27,7 @@ class PointLight {
     for ( let i = 0; i < this.visionSource.tris.length; i++) {
       this.lightContainer.addChild(this.visionSource.tris[i]);
     }
+    this.visionSource.show(this.baseRenderer);
   }
 }
 

@@ -1,0 +1,39 @@
+{"frames": {
+
+"catHang000.png":
+{
+	"frame": {"x":0,"y":0,"w":18,"h":24},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":18,"h":24},
+	"sourceSize": {"w":18,"h":24}
+},
+"catHang001.png":
+{
+	"frame": {"x":18,"y":0,"w":18,"h":24},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":18,"h":24},
+	"sourceSize": {"w":18,"h":24}
+},
+"catHang002.png":
+{
+	"frame": {"x":36,"y":0,"w":18,"h":24},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":18,"h":24},
+	"sourceSize": {"w":18,"h":24}
+}},
+"animations": {
+	"catHang": ["catHang000.png","catHang001.png","catHang002.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "catHang.png",
+	"format": "RGBA8888",
+	"size": {"w":54,"h":24},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3303ad0e3c85add9e9a8e14409605aef:26c62bb85573a6f4805d67ff88e98dda:4ca37a807db42e185e68ed456914081d$"
+}
+}

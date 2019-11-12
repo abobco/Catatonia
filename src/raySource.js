@@ -14,9 +14,9 @@ class RaySource {
         this.segments = segments; // all terrain line segments
         this.tris = [];
         this.shaderProgram = shaderProgram;
-        this.color = [1, 0.945, 0.588,
-                      1, 0.945, 0.588,
-                      1, 0.945, 0.588]
+        this.color = [0.933, 0.867, 0.51,
+                      0.933, 0.867, 0.51,
+                      0.933, 0.867, 0.51,]
 
         // init all main rays
         for ( let endpoint of endpoints ) {

@@ -27,57 +27,112 @@ var RectSegments = function(x,y,w,h) {
 
 RectSegments.prototype.constructor = RectSegments;
 
-var Terrain = function (x, y, w, h) {
-    // collision rectangle 
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
+class Terrain{
+    constructor(x,y,w,h){
+            // collision rectangle 
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
 
-    this.A = Matter.Vector.create(x - (w/2), y - (h/2));
-    this.B = Matter.Vector.create(x + (w/2), y - (h/2));
-    this.C = Matter.Vector.create(x - (w/2), y + (h/2));
-    this.D = Matter.Vector.create(x + (w/2), y + (h/2));
+        this.A = Matter.Vector.create(x - (w/2), y - (h/2));
+        this.B = Matter.Vector.create(x + (w/2), y - (h/2));
+        this.C = Matter.Vector.create(x - (w/2), y + (h/2));
+        this.D = Matter.Vector.create(x + (w/2), y + (h/2));
 
-    this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
-                   (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
-                   (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
-                   (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
+        this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
+                    (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
+                    (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
+                    (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
+        
+        // For edge raycasting geometry
+        this.corners = [new Corner(this.A, this.B, this.C),
+                        new Corner(this.B, this.A, this.D),
+                        new Corner(this.C, this.A, this.D),
+                        new Corner(this.D, this.B, this.C)];
+
+        //this.segments = new RectSegments(x,y,w,h);
+
+        // physics collider
+        this.Collider = new Matter.Bodies.rectangle(x,y,w,h,{ isStatic : true });
+        this.walkBoxHeight = 20;
+        this.edgeBoxWidth = 10;
+        this.edgeBoxHeight = 20;
+
+        // action trigger colliders
+        this.walkBox = new Matter.Bodies.rectangle(x, y - (h/2) - (this.walkBoxHeight/2), 
+                                                w, this.walkBoxHeight, 
+                                                    { isStatic : true,
+                                                      isSensor : true  
+                                                    });
+        this.walkBox.isEdgeBox = false;
+        
+        const edgeBoxOffset = 10;
+        this.edgeBoxes = [new Matter.Bodies.rectangle( x + w/2 + this.edgeBoxWidth/2, 
+                                                       y - h/2 + edgeBoxOffset, 
+                                                       this.edgeBoxWidth,
+                                                       this.walkBoxHeight, 
+                                                        { 
+                                                          isStatic : true,
+                                                          isSensor : true,
+                                                        }
+                                                     ),
+                          new Matter.Bodies.rectangle( x - w/2 - this.edgeBoxWidth/2,
+                                                       y - h/2 + edgeBoxOffset, 
+                                                       this.edgeBoxWidth, 
+                                                       this.walkBoxHeight, 
+                                                        { 
+                                                          isStatic : true,
+                                                          isSensor : true 
+                                                        }
+                                                     )
+                        ];
+        this.edgeBoxes[0].isEdgeBox = true;
+        this.edgeBoxes[1].isEdgeBox = true;
+        this.edgeBoxes[0].isRight = true;
+        this.edgeBoxes[1].isRight = false
+
+
+    }
     
-    // For edge raycasting geometry
-    this.corners = [new Corner(this.A, this.B, this.C),
-                    new Corner(this.B, this.A, this.D),
-                    new Corner(this.C, this.A, this.D),
-                    new Corner(this.D, this.B, this.C)];
-
-    //this.segments = new RectSegments(x,y,w,h);
-
-    // physics collider
-    this.Collider = new Matter.Bodies.rectangle(x,y,w,h,{ isStatic : true });
-    const walkBoxHeight = 20;
-
-    // action trigger colliders
-    this.walkBox = new Matter.Bodies.rectangle(x, y - (h/2) - (walkBoxHeight/2), 
-                                               w, walkBoxHeight, 
-                                                { isStatic : true,
-                                                  isSensor : true 
-                                                });
     
     // draw rect given input PIXI Graphics object
-    this.drawRect = function(graphics) {
+    drawRect(graphics) {
         graphics.beginFill(0x6032a8);
-        graphics.drawRect( x - (w/2) , y - (h/2) -1, w , h );
+        graphics.drawRect( this.x - (this.w/2) , this.y - (this.h/2) -1, this.w , this.h );
         graphics.endFill();
 
-        /*
+        
         // draw walkBox for debug
-        graphics.beginFill(0x32a842);
-        graphics.drawRect(x - (w/2) , this.walkBox.position.y - (walkBoxHeight/2), w, walkBoxHeight);
-        graphics.endFill();
-        */
+        // graphics.beginFill(0x32a842);
+        // graphics.drawRect(this.x - (this.w/2) , this.walkBox.position.y - (this.walkBoxHeight/2), this.w, this.walkBoxHeight);
+        // graphics.endFill();
+
+        // draw edgeboxes
+        // for ( let box of this.edgeBoxes) {
+        //     graphics.beginFill(0xfc0303);
+        //     graphics.drawRect( box.position.x - (this.edgeBoxWidth/2) , 
+        //                        box.position.y - (this.edgeBoxWidth/2), 
+        //                        this.edgeBoxWidth, 
+        //                        this.edgeBoxHeight);
+        //     graphics.endFill();
+        // }
+        
+        
     }
+
+ 
+}
+function drawComponent(graphics, color, rectangle ) {
+    // draw walkBox for debug
+    graphics.beginFill(color);
+    graphics.drawRect( rectangle.position.x - (rectangle.width/2) , 
+                       rectangle.y - (rectangle.height/2), 
+                       rectangle.width, 
+                       rectangle.height);
+    graphics.endFill();
 }
 
-Terrain.prototype.constructor = Terrain;
 export { Terrain };
 export { RectSegments };
+export {drawComponent}
