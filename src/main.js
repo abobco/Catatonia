@@ -34,81 +34,78 @@ import {FilePaths} from './FilePaths.js'
 import {Player} from './player.js';
 import {Terrain} from './terrain.js';
 import {Controller, KBController} from './controller.js';
-import { RaySource } from './raySource.js'
 import {PointLight} from './PointLight.js';
 
 //============================ Data =========================================//
-// Aliases
-    // pixi.js aliases
-    let Application = PIXI.Application,
-        loader = PIXI.loader,
-        resources = PIXI.loader.resources,
-        Sprite = PIXI.Sprite,
-        Rectangle = PIXI.Rectangle,
-        TextureCache = PIXI.utils.TextureCache;
-    // matter.js aliases
-    let Engine = Matter.Engine,
-        Runner = Matter.Runner,
-        World = Matter.World,
-        Bodies = Matter.Bodies,
-        Vector = Matter.Vector,
-        Events = Matter.Events;
 
-// strings of files for loader
-let loaderFiles = new FilePaths();
+// Aliases
+// pixi.js 
+let Application = PIXI.Application,
+    loader = PIXI.loader,
+    resources = PIXI.loader.resources;
+// matter.js
+let Engine = Matter.Engine,
+    Runner = Matter.Runner,
+    World = Matter.World,
+    Bodies = Matter.Bodies,
+    Vector = Matter.Vector,
+    Events = Matter.Events;
 
 // pixi application object
 let app;
 
+// file path strings for loader
+let loaderFiles = new FilePaths();
+
 // Player Object
-  let catPlayer;
+let catPlayer;
 
 // Input
-  // Joystick object
-  let customJoystick;
-  // Keyboard Controller
-  let KBInput;
+// Joystick object
+let customJoystick;
+// Keyboard Controller
+let KBInput;
 
 // Renderers
-  // Geometry
-  let Erector = new PIXI.Graphics();
-  // Text boxes
-  let messageRect1 = new PIXI.Graphics(),
-      messageRenderer1 = new PIXI.Graphics(),
-      messageContent1 = "Use the arrow keys to move"
-  
-  var HudRect = new PIXI.Graphics(),
-      HudRenderer = new PIXI.Text(),
-      HudContent = "Bugs Found:",
-      BugsFound = 0,
-      sitOnLedgeBug = false,
-      fallingHang = false,
-      windowSizeBug = false;
-      let firstRodeo = true;
+// Geometry
+let Erector = new PIXI.Graphics();
+let playerColliderRenderer = new PIXI.Graphics();
+// Text boxes
+let messageRect1 = new PIXI.Graphics(),
+    messageRenderer1 = new PIXI.Graphics(),
+    messageContent1 = "Use the arrow keys to move"
+// Hud renders 
+let HudRect = new PIXI.Graphics(),
+    HudRenderer = new PIXI.Text(),
+    HudContent = "Bugs Found:",
+    // Debug minigame flags
+    BugsFound = 0,
+    sitOnLedgeBug = false,
+    fallingHang = false,
+    windowSizeBug = false;
 // Shaders
-  let lightFilter,
-      filters,
-      lightShader,
-      uniforms;
+let lightFilter,
+    filters,
+    lightShader,
+    uniforms;
 
 // Physics Engine
-    // matterjs engine
-    let catEngine = Engine.create(),
-        catWorld = catEngine.world,
-        catRunner = Runner.create();
-    // Player collider
-    // let catBody,
-    // Terrain colliders
-    let terrain = new Array(),
-        platform,
-        platforms = new Array();
-    // raycaster
-    let bakedLight, // baked lighting
-        movingLight,  // dynamic lighting
-        castSegments = [],  // array of line segments
-        endPoints = [],   // array of vertices
-        lightBulbs = new PIXI.Graphics(), // geometry renderer
-        shadowGraphics = new PIXI.Graphics();
+// matterjs engine
+let catEngine = Engine.create(),
+    catWorld = catEngine.world,
+    catRunner = Runner.create();
+    
+// Terrain colliders
+let terrain = new Array(),
+    platform,
+    platforms = new Array();
+// raycaster
+let bakedLight, // baked lighting
+    movingLight,  // dynamic lighting
+    castSegments = [],  // array of line segments
+    endPoints = [],   // array of vertices
+    lightBulbs = new PIXI.Graphics(), // geometry renderer
+    shadowGraphics = new PIXI.Graphics();
 
 //===========================================================================//
 
@@ -120,60 +117,60 @@ InitPixi();
 // Set up the game after all files load 
 function onLoad() {
   // Load lighting shaders/filters
-    let filterVert = resources["shaders/lightFilterVert.GLSL"].data,
-        filterFrag = resources["shaders/lightFilterFrag.GLSL"].data,
-              vert = resources["shaders/lightVert.GLSL"].data,
-              frag = resources["shaders/lightFrag.GLSL"].data;
+  let filterVert = resources["shaders/lightFilterVert.GLSL"].data,
+      filterFrag = resources["shaders/lightFilterFrag.GLSL"].data,
+            vert = resources["shaders/lightVert.GLSL"].data,
+            frag = resources["shaders/lightFrag.GLSL"].data;
 
   // Initialize game objects
-    // Player
-      let frameMap = loadFrames();
-      let playerPos = new PIXI.Point(app.screen.width/2, app.screen.height/2);
-      catPlayer = new Player(playerPos, frameMap);
+  // Player
+  let frameMap = loadFrames();
+  let playerPos = new PIXI.Point(app.screen.width/2, app.screen.height/2);
+  catPlayer = new Player(playerPos, frameMap);
 
-    // light shaders/filters
-      lightShader = {
-        "vert": vert,
-        "frag": frag,
-      };
-      lightFilter = new PIXI.Filter(filterVert, filterFrag, uniforms );
-      lightBulbs.filters = [new PIXI.filters.BlurFilter()];
-      filters = [lightFilter, new PIXI.filters.BlurFilter()];
+  // light shaders/filters
+  lightShader = {
+    "vert": vert,
+    "frag": frag,
+  };
+  lightFilter = new PIXI.Filter(filterVert, filterFrag, uniforms );
+  lightBulbs.filters = [new PIXI.filters.BlurFilter()];
+  filters = [lightFilter, new PIXI.filters.BlurFilter()];
 
-    // Physics engine
-      matterSetUp();
+  // Physics engine
+  matterSetUp();
 
-    // Joystick manager
-      if ("ontouchstart" in document.documentElement) {
-        messageContent1 = 'Use the joystick to move';
-        customJoystick = new Controller(catPlayer, catPlayer.body);
-      }
+  // Joystick manager
+  if ("ontouchstart" in document.documentElement) {
+    messageContent1 = 'Use the joystick to move';
+    customJoystick = new Controller(catPlayer, catPlayer.body);
+  }
 
-    // Keyboard input manager
-      KBInput = new KBController(catPlayer, catPlayer.body);
+  // Keyboard input manager
+  KBInput = new KBController(catPlayer, catPlayer.body);
 
   // Add objects to Pixi world
-    // Terrain
-    terrain.forEach(function (value) {
-      value.drawRect(Erector);
-    });
+  // Terrain
+  terrain.forEach(function (value) {
+    value.drawRect(Erector);
+  });
 
-    // Init world events
-    collisionEventSetup();
-    window.addEventListener( 'resize', onWindowResize, false );
-    preventScroll();  // stops joystick from scrolling page on mobile
+  // Init world events
+  collisionEventSetup();
+  window.addEventListener( 'resize', onWindowResize, false );
+  preventScroll();  // stops joystick from scrolling page on mobile
 
-    // Lock the camera to the cat's position 
-    app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
-    
-    // draw the static light
-    bakedLight.update();
+  // Lock the camera to the cat's position 
+  app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
+  
+  // draw the static light
+  bakedLight.update();
 
   // Add objects to pixi stage
-    initLayers();
+  initLayers();
 
-    // Start the game loop 
-    app.ticker.add(delta => gameLoop(delta)); 
+  // Start the game loop 
+  app.ticker.add(delta => gameLoop(delta)); 
 }
 
 // Updates every 16.66 ms
@@ -189,17 +186,18 @@ function gameLoop(delta){// delta is in ms
   app.stage.pivot.copyFrom(catPlayer.centerPos);
 
   // move the dynamic light, update and draw its rays
-    if ( movingLight.pos.x < platform.x - 800) 
-      movingLight.vel = 1.5;
-    else if ( movingLight.pos.x > platform.x - 300) 
-      movingLight.vel = -1.5;
+  if ( movingLight.pos.x < platform.x - 800) 
+    movingLight.vel = 1.5;
+  else if ( movingLight.pos.x > platform.x - 300) 
+    movingLight.vel = -1.5;
 
-     movingLight.update();
-     app.stage.addChild(movingLight.lightContainer); 
-     // movingLight.visionSource.show(lightBulbs);
-    checkBugs();
+  movingLight.update();
+  app.stage.addChild(movingLight.lightContainer); 
+  // movingLight.visionSource.show(lightBulbs);
+  checkBugs();
 
-     drawHud();
+  drawHud();
+  catPlayer.drawCollider(playerColliderRenderer);
 }
 
 //===========================================================================//
@@ -240,97 +238,102 @@ function InitPixi() {
 // Setup Collision Events
 // NSFW SPAGHETTI CODE
 function collisionEventSetup() {
-    Events.on(catEngine, 'collisionActive', function(event) {
-      var inWalkBox = false;
-      var catCollision = false;
-      var pairs = event.pairs;
-    
-      // Iterate through collision pairs
-      for (var i = 0; i < pairs.length; i++) {
-        var pair = pairs[i];
-        var otherBodyTemp;
-        // check if the collision involves the cat
-        if ( pair.bodyA.id == catPlayer.body.id )
-            otherBodyTemp = pair.bodyB;
-        else if ( pair.bodyB.id == catPlayer.body.id )
-            otherBodyTemp = pair.bodyA;
-        // go to next pair if cat not involved
-        else continue;
-        // check if collision with sensors
-        if ( otherBodyTemp.isSensor ) {
-          // if collding with a ledge grab trigger collider
-          if ( otherBodyTemp.isEdgeBox) {
-            console.log("edgeBox collision");
-            if (!catPlayer.isGrounded || catPlayer.inSlide) {
-              catPlayer.setAnimation("hang"); 
-              let xOffset,   // how far away from the ledge we will anchor the cat
-                  yOffset = 0;
-              if ( otherBodyTemp.isRight){
-                xOffset =15;
-                catPlayer.setFlip("left");
-              }  
-              else{
-                xOffset = -15;
-                catPlayer.setFlip("right");
-              }
-                
-              // catPlayer.setPosition(otherBodyTemp.position.x + xOffset, otherBodyTemp.position.y);
-              Matter.Body.setVelocity(catPlayer.body, new Vector.create(0, 0) );
-              Matter.Body.setPosition(catPlayer.body, new Vector.create(otherBodyTemp.position.x + xOffset, otherBodyTemp.position.y + yOffset));
-              Matter.Body.setStatic(catPlayer.body, true);
-              catPlayer.isHanging = true;
-            }     
-          }
-          else if (!catPlayer.isHanging)
-            inWalkBox = true;
-        }
+  Events.on(catEngine, 'collisionActive', function(event) {
+    var inWalkBox = false;
+    var catCollision = false;
+    var pairs = event.pairs;
+  
+    // Iterate through collision pairs
+    for (var i = 0; i < pairs.length; i++) {
+
+      let pair = pairs[i];
+      let otherBodyTemp;
+      // check if the collision involves the cat
+      if ( pair.bodyA.id == catPlayer.body.id )
+          otherBodyTemp = pair.bodyB;
+      else if ( pair.bodyB.id == catPlayer.body.id )
+          otherBodyTemp = pair.bodyA;
+
+      // go to next pair if cat not involved
+      else continue;
+
+      // check if collision with sensors
+      if ( otherBodyTemp.isSensor ) {
+        // if collding with a ledge grab trigger collider
+        if ( otherBodyTemp.isEdgeBox) {
+          console.log("edgeBox collision");
+         // if (!catPlayer.isGrounded || catPlayer.inSlide) {
+            catPlayer.inSlide = false;
+            catPlayer.isGrounded = false;
+            catPlayer.isHanging = true;
+            catPlayer.setAnimation("hang"); 
+            let xOffset = 15,   // how far away from the ledge we will anchor the cat
+                yOffset = 0;
+            if ( otherBodyTemp.isRight){
+              catPlayer.setFlip("left");
+            }  
+            else{
+              xOffset *= -1;
+              catPlayer.setFlip("right");
+            }
+              
+            // catPlayer.setPosition(otherBodyTemp.position.x + xOffset, otherBodyTemp.position.y);
+            Matter.Body.setStatic(catPlayer.body, true);
+            Matter.Body.setVelocity(catPlayer.body, new Vector.create(0, 0) );
+            Matter.Body.setPosition(catPlayer.body, new Vector.create(otherBodyTemp.position.x + xOffset, otherBodyTemp.position.y + yOffset));
+            return; // the player body will be static for the next few frames, no more collision checks are neccessary
             
-        else // Check if physics collision
-            catCollision = true;
+         // }     
+        }
+        else if (!catPlayer.isHanging)
+          inWalkBox = true;
       }
-      // cat is sliding on a wall case
-      if (!inWalkBox && catCollision && !catPlayer.isGrounded){
-        catPlayer.xVel = 0;
-        //console.log('this triggers');
-        catPlayer.inSlide = true;
-        if ( catPlayer.flip == "right"){
-          var slideAnimation = catPlayer.animations.get("slide");
-          slideAnimation.scale.x = -catPlayer.scale;
-          slideAnimation.angle = -90;
-          catPlayer.animations.set("slide", slideAnimation);
-        }
-        else if ( catPlayer.flip == "left"){
-          var slideAnimation = catPlayer.animations.get("slide");
-          slideAnimation.scale.x = -catPlayer.scale;
-          slideAnimation.angle = 90;
-          catPlayer.animations.set("slide", slideAnimation);
-        }
-        catPlayer.setAnimation("slide");
+          
+      else // Check if physics collision
+          catCollision = true;
+    }
+    // cat is sliding on a wall case
+    if (!inWalkBox && catCollision && !catPlayer.isGrounded ) {
+      catPlayer.xVel = 0;
+      //console.log('this triggers');
+      catPlayer.inSlide = true;
+      if ( catPlayer.flip == "right"){
+        var slideAnimation = catPlayer.animations.get("slide");
+        slideAnimation.scale.x = -catPlayer.scale;
+        slideAnimation.angle = -90;
+        catPlayer.animations.set("slide", slideAnimation);
       }
-      
-      // if landing   
-      else if ( !catPlayer.isGrounded && inWalkBox && catCollision )  {   
-          catPlayer.isGrounded = true;
-          catPlayer.inSlide = false;
-          if ( catPlayer.xVel == 0 || catPlayer.inSlowDown )
-            catPlayer.setAnimation("stop");
-          else if ( !catPlayer.inSlowDown )
-            catPlayer.setAnimation("walk");
-        }
+      else if ( catPlayer.flip == "left"){
+        var slideAnimation = catPlayer.animations.get("slide");
+        slideAnimation.scale.x = -catPlayer.scale;
+        slideAnimation.angle = 90;
+        catPlayer.animations.set("slide", slideAnimation);
+      }
+      catPlayer.setAnimation("slide");
+    }
+    
+    // if landing   
+    else if ( !catPlayer.isGrounded && inWalkBox && catCollision )  {   
+        catPlayer.isGrounded = true;
+        catPlayer.inSlide = false;
+        if ( catPlayer.xVel == 0 || catPlayer.inSlowDown )
+          catPlayer.setAnimation("stop");
+        else if ( !catPlayer.inSlowDown )
+          catPlayer.setAnimation("walk");
+      }
   });
   Events.on(catEngine, 'collisionEnd', function(event) {
-    catPlayer.isGrounded = false;
-    catPlayer.inSlide = false;
-    catPlayer.jumpInput = false;
-    slideFrames = 0;
-  });
-  Events.on(catEngine, 'beforeUpdate', function(event) {
-    if ( catPlayer.body.velocity.y == 0 && catPlayer.inSlide ) {
+      catPlayer.isGrounded = false;
       catPlayer.inSlide = false;
-      catPlayer.isGrounded = true;
-      catPlayer.setAnimation("stop");
-    }
+      catPlayer.jumpInput = false;    
   });
+  // Events.on(catEngine, 'beforeUpdate', function(event) {
+  //   if ( catPlayer.body.velocity.y == 0 && catPlayer.inSlide ) {
+  //     catPlayer.inSlide = false;
+  //     catPlayer.isGrounded = true;
+  //     catPlayer.setAnimation("stop");
+  //   }
+  // });
 }
 
 // Physics engine setup
@@ -389,7 +392,7 @@ function matterSetUp() {
 }
 
 // Load animation frame images into AnimatedSprites
-// this function is global because i dont know of a good way to p
+// this function is global because i dont know of a good way to just pass the texture atlas to the player object
 function loadFrames() {
     // Init the anmiation objects
     let walkFrames = [],
@@ -500,6 +503,7 @@ function initLayers() {
   app.stage.addChild(shadowGraphics); 
   // Geometry Renderer
   app.stage.addChild(Erector);
+  app.stage.addChild(playerColliderRenderer);
   // light renderers
   app.stage.addChild(lightBulbs);
   app.stage.addChild(bakedLight.lightContainer);

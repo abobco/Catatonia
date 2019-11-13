@@ -145,7 +145,7 @@ class Player {
         
         // setup the unique properties of each animation
         slideAnim.anchor.y = 0.3;
-        // hangAnim.anchor.y = 0.3;
+        hangAnim.anchor.y = 0.3;
         stopAnim.loop = false;  // the game currently starts with the cat falling
         jumpAnim.loop = false;
         slideAnim.loop = false;
@@ -175,6 +175,16 @@ class Player {
         newSprite.anchor.set(0.5);
         newSprite.animationSpeed = 0.2;
         return newSprite;
+    }
+
+    drawCollider(renderer){
+        renderer.clear();
+        renderer.beginFill(0xfc8803, 0.5);
+        renderer.drawRect( this.centerPos.x - (this.colliderWidth/2) , 
+                           this.centerPos.y - (this.colliderHeight/2) -1, 
+                           this.colliderWidth , 
+                           this.colliderHeight );
+        renderer.endFill();
     }
 
 };

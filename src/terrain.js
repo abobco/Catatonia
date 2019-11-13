@@ -56,8 +56,6 @@ class Terrain{
         // physics collider
         this.Collider = new Matter.Bodies.rectangle(x,y,w,h,{ isStatic : true });
         this.walkBoxHeight = 20;
-        this.edgeBoxWidth = 10;
-        this.edgeBoxHeight = 20;
 
         // action trigger colliders
         this.walkBox = new Matter.Bodies.rectangle(x, y - (h/2) - (this.walkBoxHeight/2), 
@@ -67,7 +65,9 @@ class Terrain{
                                                     });
         this.walkBox.isEdgeBox = false;
         
-        const edgeBoxOffset = 10;
+        this.edgeBoxWidth = 10;
+        this.edgeBoxHeight = 10;
+        const edgeBoxOffset = 20;
         this.edgeBoxes = [new Matter.Bodies.rectangle( x + w/2 + this.edgeBoxWidth/2, 
                                                        y - h/2 + edgeBoxOffset, 
                                                        this.edgeBoxWidth,
@@ -98,31 +98,28 @@ class Terrain{
     
     // draw rect given input PIXI Graphics object
     drawRect(graphics) {
+        // draw collision box rectangle
         graphics.beginFill(0x6032a8);
         graphics.drawRect( this.x - (this.w/2) , this.y - (this.h/2) -1, this.w , this.h );
         graphics.endFill();
-
         
-        // draw walkBox for debug
+        // draw sensor walkBox for debug
         // graphics.beginFill(0x32a842);
         // graphics.drawRect(this.x - (this.w/2) , this.walkBox.position.y - (this.walkBoxHeight/2), this.w, this.walkBoxHeight);
         // graphics.endFill();
 
-        // draw edgeboxes
-        // for ( let box of this.edgeBoxes) {
-        //     graphics.beginFill(0xfc0303);
-        //     graphics.drawRect( box.position.x - (this.edgeBoxWidth/2) , 
-        //                        box.position.y - (this.edgeBoxWidth/2), 
-        //                        this.edgeBoxWidth, 
-        //                        this.edgeBoxHeight);
-        //     graphics.endFill();
-        // }
-        
-        
+        // draw sensor edgeboxes
+        for ( let box of this.edgeBoxes) {
+            graphics.beginFill(0xfc0303);
+            graphics.drawRect( box.position.x - (this.edgeBoxWidth/2) , 
+                               box.position.y - (this.edgeBoxWidth/2), 
+                               this.edgeBoxWidth, 
+                               this.edgeBoxHeight);
+            graphics.endFill();
+        }    
     }
-
- 
 }
+
 function drawComponent(graphics, color, rectangle ) {
     // draw walkBox for debug
     graphics.beginFill(color);
