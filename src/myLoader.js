@@ -28,7 +28,7 @@ class myLoader {
 
        this.doneLoading = true;
 
-       this.checkLoad();
+       // this.checkLoad();
 
        setupFunction();
     }
@@ -44,8 +44,8 @@ class myLoader {
     // load light shaders into a {string:string} map
     loadShaders()
     {
-        vert = resources["shaders/lightVert.GLSL"].data,
-        frag = resources["shaders/lightFrag.GLSL"].data;
+        let vert = resources["shaders/lightVert.GLSL"].data,
+            frag = resources["shaders/lightFrag.GLSL"].data;
 
         return {
                 "vert": vert,
