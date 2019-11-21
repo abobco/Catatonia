@@ -16,6 +16,13 @@ class Player {
         this.inSlowDown = false;
         this.jumpInput = false;
         this.isHanging = false;
+        this.cameraSnapped = true;
+        this.doneHanging = false;
+        this.bouncyBug = 0;
+
+        this.climbTranslation = new PIXI.Point(0,0);
+
+        this.cameraMovement = new PIXI.Point(0,0);
 
         // to check sprite flip conveniently
         this.flip = "left";
@@ -52,12 +59,34 @@ class Player {
         // Apply velocity from user inputs
         Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel, this.body.velocity.y) );
 
+        if ( this.currentAnimation == "climb"){
+            if (!this.animations.get("climb").playing) {
+
+                Matter.Body.setStatic(this.body, false);
+                Matter.Body.setPosition(this.body, new Matter.Vector.create(this.climbTranslation.x, this.climbTranslation.y));
+                this.setAnimation("stop");
+                this.lockCamera();
+
+                if (!this.bouncyBug)
+                    this.bouncyBug = 1;
+
+                this.isGrounded = false;
+                this.inSlide = false;
+                this.inSlowDown = false;
+                this.jumpInput = false;
+                this.isHanging = false;
+            }
+        }
+
         // Move the sprites to follow their physicis body
         this.setPosition(this.body.position.x, this.body.position.y);
 
         // apply friction if needed
         if ( this.inSlowDown)
             this.slowVelocity();
+
+  
+
     }
 
     // Move all sprites
@@ -141,26 +170,37 @@ class Player {
             stopAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("stop"))),
             jumpAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("jump"))),
             slideAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("slide"))),
-            hangAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("hang")));
+            hangAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("hang"))),
+            climbAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("climb")));
         
         // setup the unique properties of each animation
         slideAnim.anchor.y = 0.3;
         hangAnim.anchor.y = 0.3;
+
+        climbAnim.anchor.y = 0.65;
+        climbAnim.anchor.x = 0.7
+
         stopAnim.loop = false;  // the game currently starts with the cat falling
         jumpAnim.loop = false;
         slideAnim.loop = false;
         hangAnim.loop = false;
+        climbAnim.loop = false;
         jumpAnim.play();
         walkAnim.visible = false;
         stopAnim.visible = false;
         slideAnim.visible = false;
         hangAnim.visible = false;
+        climbAnim.visible = false;
+
+        // animation event methods
+       // hangAnim.onComplete = this.lockCamera.apply(this);
 
         let animationMap = new Map([['walk', walkAnim],
                                     ['stop', stopAnim],
                                     ['jump', jumpAnim],
                                     ['slide',slideAnim],
-                                    ['hang', hangAnim]]);
+                                    ['hang', hangAnim],
+                                    ['climb', climbAnim]]);
         return animationMap;
 
     }
@@ -186,6 +226,19 @@ class Player {
                            this.colliderHeight );
         renderer.endFill();
     }
+
+    // calculate camera movement during climb animation
+    getClimbDistance(x,y){
+        const frames = this.animations.get("climb").totalFrames;
+        this.cameraMovement.x = (x - this.centerPos.x) / (9*5);
+        this.cameraMovement.y = (y - this.centerPos.y) / (9*5);
+    }
+
+    lockCamera(){
+        this.cameraSnapped = true; 
+        this.doneHanging = true;
+    }
+
 
 };
 

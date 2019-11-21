@@ -1,0 +1,87 @@
+{"frames": {
+
+"climb000.png":
+{
+	"frame": {"x":0,"y":0,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb001.png":
+{
+	"frame": {"x":0,"y":48,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb002.png":
+{
+	"frame": {"x":0,"y":96,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb003.png":
+{
+	"frame": {"x":0,"y":144,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb004.png":
+{
+	"frame": {"x":0,"y":192,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb005.png":
+{
+	"frame": {"x":0,"y":240,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb006.png":
+{
+	"frame": {"x":0,"y":288,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb007.png":
+{
+	"frame": {"x":0,"y":336,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+},
+"climb008.png":
+{
+	"frame": {"x":0,"y":384,"w":32,"h":48},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
+	"sourceSize": {"w":32,"h":48}
+}},
+"animations": {
+	"climb": ["climb000.png","climb001.png","climb002.png","climb003.png","climb004.png","climb005.png","climb006.png","climb007.png","climb008.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "catClimbFull.png",
+	"format": "RGBA8888",
+	"size": {"w":32,"h":432},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:4ce261d8f49d9fd22e50f7a7fb1ec62e:7681538f89ba7561aeafd5030c37858e:d18313da68d27fdcdfaa6e02e57cf533$"
+}
+}

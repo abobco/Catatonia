@@ -109,14 +109,14 @@ class Terrain{
         // graphics.endFill();
 
         // draw sensor edgeboxes
-        for ( let box of this.edgeBoxes) {
-            graphics.beginFill(0xfc0303);
-            graphics.drawRect( box.position.x - (this.edgeBoxWidth/2) , 
-                               box.position.y - (this.edgeBoxWidth/2), 
-                               this.edgeBoxWidth, 
-                               this.edgeBoxHeight);
-            graphics.endFill();
-        }    
+        // for ( let box of this.edgeBoxes) {
+        //     graphics.beginFill(0xfc0303);
+        //     graphics.drawRect( box.position.x - (this.edgeBoxWidth/2) , 
+        //                        box.position.y - (this.edgeBoxWidth/2), 
+        //                        this.edgeBoxWidth, 
+        //                        this.edgeBoxHeight);
+        //     graphics.endFill();
+        // }    
     }
 }
 

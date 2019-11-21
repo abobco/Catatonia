@@ -30,114 +30,96 @@
 
 import Matter from 'matter-js/build/matter.min.js';
 
-import {FilePaths} from './FilePaths.js'
 import {Player} from './player.js';
 import {Terrain} from './terrain.js';
 import {Controller, KBController} from './controller.js';
 import {PointLight} from './PointLight.js';
+import {myLoader} from './myLoader';
 
 //============================ Data =========================================//
 
 // Aliases
-// pixi.js 
-let Application = PIXI.Application,
-    loader = PIXI.loader,
-    resources = PIXI.loader.resources;
-// matter.js
-let Engine = Matter.Engine,
-    Runner = Matter.Runner,
-    World = Matter.World,
-    Bodies = Matter.Bodies,
-    Vector = Matter.Vector,
-    Events = Matter.Events;
+  // pixi.js 
+  let Application = PIXI.Application;
 
-// pixi application object
+  // matter.js
+  let Engine = Matter.Engine,
+      Runner = Matter.Runner,
+      World = Matter.World,
+      Bodies = Matter.Bodies,
+      Vector = Matter.Vector,
+      Events = Matter.Events;
+
+// Pixi application object
 let app;
-
-// file path strings for loader
-let loaderFiles = new FilePaths();
 
 // Player Object
 let catPlayer;
 
 // Input
-// Joystick object
-let customJoystick;
-// Keyboard Controller
-let KBInput;
+  // Joystick object
+  let customJoystick;
+  // Keyboard Controller
+  let KBInput;
 
 // Renderers
-// Geometry
-let Erector = new PIXI.Graphics();
-let playerColliderRenderer = new PIXI.Graphics();
-// Text boxes
-let messageRect1 = new PIXI.Graphics(),
-    messageRenderer1 = new PIXI.Graphics(),
-    messageContent1 = "Use the arrow keys to move"
-// Hud renders 
-let HudRect = new PIXI.Graphics(),
-    HudRenderer = new PIXI.Text(),
-    HudContent = "Bugs Found:",
-    // Debug minigame flags
-    BugsFound = 0,
-    sitOnLedgeBug = false,
-    fallingHang = false,
-    windowSizeBug = false;
-// Shaders
-let lightFilter,
-    filters,
-    lightShader,
-    uniforms;
+  // Geometry
+  let Erector = new PIXI.Graphics();
+  let playerColliderRenderer = new PIXI.Graphics();
+  let uniforms;
+  // Text boxes
+  let messageRect1 = new PIXI.Graphics(),
+      messageRenderer1 = new PIXI.Graphics(),
+      messageContent1 = "Use the arrow keys to move"
+  // Hud renders 
+  let HudRect = new PIXI.Graphics(),
+      HudRenderer = new PIXI.Text(),
+      HudContent = "Bugs Found:";
 
 // Physics Engine
-// matterjs engine
-let catEngine = Engine.create(),
-    catWorld = catEngine.world,
-    catRunner = Runner.create();
-    
-// Terrain colliders
-let terrain = new Array(),
-    platform,
-    platforms = new Array();
-// raycaster
-let bakedLight, // baked lighting
-    movingLight,  // dynamic lighting
-    castSegments = [],  // array of line segments
-    endPoints = [],   // array of vertices
-    lightBulbs = new PIXI.Graphics(), // geometry renderer
-    shadowGraphics = new PIXI.Graphics();
+  // matterjs engine
+  let catEngine = Engine.create(),
+      catWorld = catEngine.world,
+      catRunner = Runner.create();
+      
+  // Terrain colliders
+  let terrain = new Array(),
+      platform,
+      platforms = new Array();
+  // raycaster
+  let bakedLight, // baked lighting
+      movingLight,  // dynamic lighting
+      castSegments = [],  // array of line segments
+      endPoints = [],   // array of vertices
+      lightBulbs = new PIXI.Graphics(), // geometry renderer
+      shadowGraphics = new PIXI.Graphics();
+
+// Debug minigame flags
+let BugsFound = 0,
+    bouncyBug = false,
+    windowSizeBug = false;
 
 //===========================================================================//
 
 //============================ Setup ========================================//
 
-// Create Pixi Application, load files
+// Create Pixi Application
 InitPixi();
 
+// load files, call the setup function, bind the calling context to this file's global scope
+let customLoader = new myLoader(setup.bind(this));
+
 // Set up the game after all files load 
-function onLoad() {
-  // Load lighting shaders/filters
-  let filterVert = resources["shaders/lightFilterVert.GLSL"].data,
-      filterFrag = resources["shaders/lightFilterFrag.GLSL"].data,
-            vert = resources["shaders/lightVert.GLSL"].data,
-            frag = resources["shaders/lightFrag.GLSL"].data;
+function setup() {
 
-  // Initialize game objects
-  // Player
-  let frameMap = loadFrames();
+  // Contains player animations, physics bodies, flags, behavior functions
   let playerPos = new PIXI.Point(app.screen.width/2, app.screen.height/2);
-  catPlayer = new Player(playerPos, frameMap);
+  catPlayer = new Player(playerPos, customLoader.catFrameMap);
 
-  // light shaders/filters
-  lightShader = {
-    "vert": vert,
-    "frag": frag,
-  };
-  lightFilter = new PIXI.Filter(filterVert, filterFrag, uniforms );
+  // apply blur filter to light sources
   lightBulbs.filters = [new PIXI.filters.BlurFilter()];
-  filters = [lightFilter, new PIXI.filters.BlurFilter()];
 
-  // Physics engine
+  // Start the physics engine
   matterSetUp();
 
   // Joystick manager
@@ -183,7 +165,13 @@ function gameLoop(delta){// delta is in ms
   catPlayer.update();
 
   // Move stage origin to simulate camera movement
-  app.stage.pivot.copyFrom(catPlayer.centerPos);
+  if (catPlayer.cameraSnapped)
+    app.stage.pivot.copyFrom(catPlayer.centerPos);
+  else {
+    app.stage.pivot.x += catPlayer.cameraMovement.x;
+    app.stage.pivot.y += catPlayer.cameraMovement.y;
+  }
+  // console.log(catPlayer.cameraSnapped)
 
   // move the dynamic light, update and draw its rays
   if ( movingLight.pos.x < platform.x - 800) 
@@ -192,12 +180,13 @@ function gameLoop(delta){// delta is in ms
     movingLight.vel = -1.5;
 
   movingLight.update();
+  // add the dynamic light to the pixi application, cuz it gets deleted every frame
   app.stage.addChild(movingLight.lightContainer); 
-  // movingLight.visionSource.show(lightBulbs);
-  checkBugs();
+
+  checkBugs();  // mainly a joke for QA testers
 
   drawHud();
-  catPlayer.drawCollider(playerColliderRenderer);
+  //catPlayer.drawCollider(playerColliderRenderer);
 }
 
 //===========================================================================//
@@ -207,8 +196,8 @@ function gameLoop(delta){// delta is in ms
 // Initialize Pixi Application
 function InitPixi() {
     app = new Application({ 
-      width: 256, 
-      height: 256,                       
+      width: window.innerWidth, 
+      height: window.innerHeight,                       
       antialias: true, 
       transparent: false, 
       resolution: 1,
@@ -220,18 +209,12 @@ function InitPixi() {
   // Fit the canvas to the window
   app.renderer.view.style.position = "absolute";
   app.renderer.view.style.display = "block";
-  app.renderer.resize(window.innerWidth, window.innerHeight);
   // Add the canvas to the document
   document.getElementById('myCanvas').appendChild(app.view);
 
     uniforms = {
     dimensions:   [app.renderer.screen.width, app.renderer.screen.height] 
   };
-
-  // Start the pixi file loader
-  loader
-    .add(loaderFiles.array())
-    .load(onLoad);
 
 }
 
@@ -261,29 +244,35 @@ function collisionEventSetup() {
       if ( otherBodyTemp.isSensor ) {
         // if collding with a ledge grab trigger collider
         if ( otherBodyTemp.isEdgeBox) {
-          console.log("edgeBox collision");
-         // if (!catPlayer.isGrounded || catPlayer.inSlide) {
+         // console.log("edgeBox collision");
+         //if (catPlayer.currentAnimation != 'climb') {
             catPlayer.inSlide = false;
             catPlayer.isGrounded = false;
             catPlayer.isHanging = true;
-            catPlayer.setAnimation("hang"); 
+            catPlayer.setAnimation("climb"); 
             let xOffset = 15,   // how far away from the ledge we will anchor the cat
-                yOffset = 0;
+                yOffset = 0,
+                xClimbOffset = -45,
+                yClimbOffset = -50;
             if ( otherBodyTemp.isRight){
               catPlayer.setFlip("left");
             }  
             else{
               xOffset *= -1;
+              xClimbOffset *= -1;
               catPlayer.setFlip("right");
             }
               
-            // catPlayer.setPosition(otherBodyTemp.position.x + xOffset, otherBodyTemp.position.y);
+            // move the player to grab the ledge
             Matter.Body.setStatic(catPlayer.body, true);
             Matter.Body.setVelocity(catPlayer.body, new Vector.create(0, 0) );
             Matter.Body.setPosition(catPlayer.body, new Vector.create(otherBodyTemp.position.x + xOffset, otherBodyTemp.position.y + yOffset));
+            catPlayer.climbTranslation.set(otherBodyTemp.position.x + xOffset + xClimbOffset, otherBodyTemp.position.y + yOffset + yClimbOffset);
+            catPlayer.getClimbDistance(catPlayer.climbTranslation.x, catPlayer.climbTranslation.y);
+            catPlayer.cameraSnapped = false;
             return; // the player body will be static for the next few frames, no more collision checks are neccessary
             
-         // }     
+        // }     
         }
         else if (!catPlayer.isHanging)
           inWalkBox = true;
@@ -356,9 +345,9 @@ function matterSetUp() {
 
     // platforms.push(new Terrain(platform.x - 250, platform.y - 275, 50, 350));
 
-    platforms.push(new Terrain(platform.x + 125, platform.y - 200, 75, 50));
-    platforms.push(new Terrain(platform.x - 125, platform.y - 250, 50,50));
-    platforms.push(new Terrain(platform.x + 200, platform.y - 125, 75,50));
+    platforms.push(new Terrain(platform.x + 100, platform.y - 250, 75, 50));
+    platforms.push(new Terrain(platform.x - 125, platform.y - 275, 75, 50));
+    platforms.push(new Terrain(platform.x + 225, platform.y - 125, 75, 50));
 
     platforms.push(new Terrain(platform.x - 700, platform.y - 475, 700, 50));
     platforms.push(new Terrain(platform.x - 500, platform.y - 325, 100, 50));
@@ -387,47 +376,8 @@ function matterSetUp() {
     });
 
     // Initialize Lights
-    bakedLight = new PointLight(platform.x + 25, platform.y - 420, platforms, castSegments, endPoints, lightShader, lightBulbs);
-    movingLight = new PointLight(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, lightShader, lightBulbs);     
-}
-
-// Load animation frame images into AnimatedSprites
-// this function is global because i dont know of a good way to just pass the texture atlas to the player object
-function loadFrames() {
-    // Init the anmiation objects
-    let walkFrames = [],
-        stopFrames = [],
-        jumpFrames = [],
-        slideFrames = [],
-        hangFrames = [];
-    // load all them animation frames
-    for ( let i = 0; i < 10; i++ ) {
-        const val = i;
-        walkFrames.push(PIXI.Texture.from(`tile00${val}.png`));
-    }
-    for ( let i = 0; i < 5; i++ ) {
-        const val = i;
-        stopFrames.push(PIXI.Texture.from(`stop00${val}.png`));
-    }
-    for ( let i = 0; i < 8; i++ ) {
-        const val = i;
-        jumpFrames.push(PIXI.Texture.from(`Jump00${val}.png`));
-    }
-    for ( let i = 0; i < 4; i++ ) {
-      const val = i;
-      slideFrames.push(PIXI.Texture.from(`wallSlide00${val}.png`));
-    }
-    for ( let i = 0; i < 3; i++ ) {
-      const val = i;
-      hangFrames.push(PIXI.Texture.from(`catHang00${val}.png`));
-    }
-
-    let frameMap = new Map ([['walk', walkFrames],
-                              ['stop', stopFrames],
-                              ['jump', jumpFrames],
-                              ['slide',slideFrames],
-                              ['hang', hangFrames]]);
-    return frameMap;
+    bakedLight = new PointLight(platform.x + 25, platform.y - 420, platforms, castSegments, endPoints, customLoader.lightShader, lightBulbs);
+    movingLight = new PointLight(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, customLoader.lightShader, lightBulbs);     
 }
 
 // Re-center camera
@@ -520,26 +470,20 @@ function drawHud(){
   HudRect.clear();
   HudRect.lineStyle(2, 0xFF00FF, 1);
   HudRect.beginFill(0x650A5A); // fill color
-  HudRect.drawRoundedRect(catPlayer.centerPos.x + app.renderer.width/2 - 150, catPlayer.centerPos.y - app.renderer.height/2, 150, 50, 16);
+  HudRect.drawRoundedRect(app.stage.pivot.x + app.renderer.width/2 - 150, app.stage.pivot.y - app.renderer.height/2, 150, 50, 16);
   HudRect.endFill();
   HudContent = "Bugs Found:" + BugsFound.toString();
 
-  HudRenderer.x = catPlayer.centerPos.x + app.renderer.width/2 - 150 +10;
-  HudRenderer.y = catPlayer.centerPos.y - app.renderer.height/2 +10;
+  HudRenderer.x = app.stage.pivot.x + app.renderer.width/2 - 150 +10;
+  HudRenderer.y = app.stage.pivot.y - app.renderer.height/2 +10;
   HudRenderer.text = HudContent;
   // console.log(HudRenderer.children);
   
 }
 
 function checkBugs(){
-  if ( catPlayer.currentAnimation != "hang" && catPlayer.body.isStatic && !sitOnLedgeBug ){
-    BugsFound++;
-    sitOnLedgeBug = true;
-  }
-    
-  if ( catPlayer.currentAnimation == "hang" && !catPlayer.body.isStatic && !fallingHang){
-    BugsFound++;
-    fallingHang = true;
-  }
-    
+    if (catPlayer.bouncyBug && !bouncyBug) {
+      BugsFound++;
+      bouncyBug = true;
+    }
 }
