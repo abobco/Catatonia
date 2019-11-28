@@ -4,7 +4,7 @@ import {Boundary} from "./terrain.js";
 class Player {
     constructor(position, frameMap) {
         // physics variables
-        this.centerPos = new PIXI.Point(position.x, position.y);
+        this.position = new PIXI.Point(position.x, position.y);
         this.scale = 3;
         this.maxVel = 3;
         this.jumpVel = -12;
@@ -17,7 +17,6 @@ class Player {
         this.jumpInput = false;
         this.isHanging = false;
         this.cameraSnapped = true;
-        this.doneHanging = false;
         this.bouncyBug = 0;
 
         this.climbTranslation = new PIXI.Point(0,0);
@@ -36,17 +35,17 @@ class Player {
         this.colliderHeight = this.animations.get("walk").height; 
 
         // collision box line segments
-        this.A = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
-        this.B = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
-        this.C = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
-        this.D = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
+        this.A = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
+        this.B = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
+        this.C = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
+        this.D = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
         // array of the 4 collision box segments
         this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
                     (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
                     (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
                     (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
 
-        this.body = new Matter.Bodies.rectangle(this.centerPos.x, this.centerPos.y, this.colliderWidth, this.colliderHeight, {
+        this.body = new Matter.Bodies.rectangle(this.position.x, this.position.y, this.colliderWidth, this.colliderHeight, {
                                          density: 0.0005,
                                          frictionAir: 0.06,
                                          restitution: 0,
@@ -56,27 +55,34 @@ class Player {
     }
 
     update(){
-        // Apply velocity from user inputs
-        Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel, this.body.velocity.y) );
-
+        // Apply velocity from user inputs        
         if ( this.currentAnimation == "climb"){
             if (!this.animations.get("climb").playing) {
 
-                Matter.Body.setStatic(this.body, false);
+                
                 Matter.Body.setPosition(this.body, new Matter.Vector.create(this.climbTranslation.x, this.climbTranslation.y));
-                this.setAnimation("stop");
+                Matter.Body.setVelocity(this.body, new Matter.Vector.create(0,0));
+                if (this.xVel == 0)
+                    this.setAnimation("stop");
+                else
+                    this.setAnimation("walk");
                 this.lockCamera();
 
                 if (!this.bouncyBug)
                     this.bouncyBug = 1;
 
-                this.isGrounded = false;
+                this.isGrounded = true;
                 this.inSlide = false;
                 this.inSlowDown = false;
                 this.jumpInput = false;
                 this.isHanging = false;
+                this.inSlowDown = false;
+                Matter.Body.setStatic(this.body, false);
             }
+            
         }
+        else 
+            Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel, this.body.velocity.y) );
 
         // Move the sprites to follow their physicis body
         this.setPosition(this.body.position.x, this.body.position.y);
@@ -84,22 +90,22 @@ class Player {
         // apply friction if needed
         if ( this.inSlowDown)
             this.slowVelocity();
-
-  
+        
+            console.log(this.isGrounded)
 
     }
 
     // Move all sprites
     setPosition(ix,iy) {
         // move origin point
-        this.centerPos.x = ix;
-        this.centerPos.y = iy;
+        this.position.x = ix;
+        this.position.y = iy;
 
         // create new collision boundaries
-        this.A = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
-        this.B = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y - (this.colliderHeight/2));
-        this.C = Matter.Vector.create(this.centerPos.x - (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
-        this.D = Matter.Vector.create(this.centerPos.x + (this.colliderWidth/2), this.centerPos.y + (this.colliderHeight/2));
+        this.A = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
+        this.B = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
+        this.C = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
+        this.D = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
         this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
                        (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
                        (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
@@ -178,7 +184,7 @@ class Player {
         hangAnim.anchor.y = 0.3;
 
         climbAnim.anchor.y = 0.65;
-        climbAnim.anchor.x = 0.7
+        climbAnim.anchor.x = 0.85;
 
         stopAnim.loop = false;  // the game currently starts with the cat falling
         jumpAnim.loop = false;
@@ -220,8 +226,8 @@ class Player {
     drawCollider(renderer){
         renderer.clear();
         renderer.beginFill(0xfc8803, 0.5);
-        renderer.drawRect( this.centerPos.x - (this.colliderWidth/2) , 
-                           this.centerPos.y - (this.colliderHeight/2) -1, 
+        renderer.drawRect( this.position.x - (this.colliderWidth/2) , 
+                           this.position.y - (this.colliderHeight/2) -1, 
                            this.colliderWidth , 
                            this.colliderHeight );
         renderer.endFill();
@@ -230,13 +236,12 @@ class Player {
     // calculate camera movement during climb animation
     getClimbDistance(x,y){
         const frames = this.animations.get("climb").totalFrames;
-        this.cameraMovement.x = (x - this.centerPos.x) / (9*5);
-        this.cameraMovement.y = (y - this.centerPos.y) / (9*5);
+        this.cameraMovement.x = (x - this.position.x) / (9*5);
+        this.cameraMovement.y = (y - this.position.y) / (9*5);
     }
 
     lockCamera(){
         this.cameraSnapped = true; 
-        this.doneHanging = true;
     }
 
 

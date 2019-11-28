@@ -95,10 +95,10 @@ var KBController = function(catPlayer, catBody) {
 
        //if ( !catPlayer.isHanging ) {
         if (e.keyCode == '38') {
-          if (catPlayer.isHanging){
-            catPlayer.isHanging = false;
-            Matter.Body.setStatic(catBody, false);
-          }
+          // if (catPlayer.isHanging){
+          //   catPlayer.isHanging = false;
+          //   Matter.Body.setStatic(catBody, false);
+          // }
             // up arrow
             // jump from ground
             if ( catPlayer.isGrounded ) {
@@ -134,10 +134,10 @@ var KBController = function(catPlayer, catBody) {
             // down arrow
         }
         else if (e.keyCode == '37' && !this.leftDown) {
-          if (catPlayer.isHanging){
-            catPlayer.isHanging = false;
-            Matter.Body.setStatic(catBody, false);
-          }
+          // if (catPlayer.isHanging){
+          //   catPlayer.isHanging = false;
+          //   Matter.Body.setStatic(catBody, false);
+          // }
             // left arrow
             this.rightDown = false;
             this.leftDown = true;
@@ -148,10 +148,10 @@ var KBController = function(catPlayer, catBody) {
             catPlayer.xVel = -catPlayer.maxVel;
         }
         else if (e.keyCode == '39' && !this.rightDown) {
-          if (catPlayer.isHanging){
-            catPlayer.isHanging = false;
-            Matter.Body.setStatic(catBody, false);
-          }
+          // if (catPlayer.isHanging){
+          //   catPlayer.isHanging = false;
+          //   Matter.Body.setStatic(catBody, false);
+          // }
             // right arrow
             this.leftDown = false;
             this.rightDown = true;

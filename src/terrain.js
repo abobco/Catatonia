@@ -103,14 +103,14 @@ class Terrain{
         graphics.drawRect( this.x - (this.w/2) , this.y - (this.h/2) -1, this.w , this.h );
         graphics.endFill();
         
-        // draw sensor walkBox for debug
-        // graphics.beginFill(0x32a842);
+        // // draw sensor walkBox for debug
+        // graphics.beginFill(0x32a842, 0.5);
         // graphics.drawRect(this.x - (this.w/2) , this.walkBox.position.y - (this.walkBoxHeight/2), this.w, this.walkBoxHeight);
         // graphics.endFill();
 
-        // draw sensor edgeboxes
+        // // draw sensor edgeboxes
         // for ( let box of this.edgeBoxes) {
-        //     graphics.beginFill(0xfc0303);
+        //     graphics.beginFill(0xfc0303, 0.8);
         //     graphics.drawRect( box.position.x - (this.edgeBoxWidth/2) , 
         //                        box.position.y - (this.edgeBoxWidth/2), 
         //                        this.edgeBoxWidth, 

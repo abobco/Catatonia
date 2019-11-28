@@ -79,8 +79,8 @@ let catPlayer;
 // Physics Engine
   // matterjs engine
   let catEngine = Engine.create(),
-      catWorld = catEngine.world,
-      catRunner = Runner.create();
+      catWorld = catEngine.world;
+      // catRunner = Runner.create();
       
   // Terrain colliders
   let terrain = new Array(),
@@ -153,6 +153,7 @@ function setup() {
 
   // Start the game loop 
   app.ticker.add(delta => gameLoop(delta)); 
+
 }
 
 // Updates every 16.66 ms
@@ -164,9 +165,12 @@ function gameLoop(delta){// delta is in ms
   // move player sprites & physics body from input
   catPlayer.update();
 
+  Engine.update(catEngine, app.ticker.deltaMS)
+  console.log(app.ticker.deltaMS);
+
   // Move stage origin to simulate camera movement
   if (catPlayer.cameraSnapped)
-    app.stage.pivot.copyFrom(catPlayer.centerPos);
+    app.stage.pivot.copyFrom(catPlayer.position);
   else {
     app.stage.pivot.x += catPlayer.cameraMovement.x;
     app.stage.pivot.y += catPlayer.cameraMovement.y;
@@ -186,7 +190,7 @@ function gameLoop(delta){// delta is in ms
   checkBugs();  // mainly a joke for QA testers
 
   drawHud();
-  //catPlayer.drawCollider(playerColliderRenderer);
+  // catPlayer.drawCollider(playerColliderRenderer);
 }
 
 //===========================================================================//
@@ -250,10 +254,10 @@ function collisionEventSetup() {
             catPlayer.isGrounded = false;
             catPlayer.isHanging = true;
             catPlayer.setAnimation("climb"); 
-            let xOffset = 15,   // how far away from the ledge we will anchor the cat
+            let xOffset = 35,   // how far away from the ledge we will anchor the cat
                 yOffset = 0,
-                xClimbOffset = -45,
-                yClimbOffset = -50;
+                xClimbOffset = -60,
+                yClimbOffset = -48;
             if ( otherBodyTemp.isRight){
               catPlayer.setFlip("left");
             }  
@@ -328,7 +332,9 @@ function collisionEventSetup() {
 // Physics engine setup
 function matterSetUp() {
     // Run matterjs engine
-    Runner.run(catRunner, catEngine);
+    // Runner.run(catRunner, catEngine);
+    // Engine.run(catEngine);
+    
 
     // Add the player's rigidbody
     World.add(catWorld, catPlayer.body);
@@ -377,7 +383,9 @@ function matterSetUp() {
 
     // Initialize Lights
     bakedLight = new PointLight(platform.x + 25, platform.y - 420, platforms, castSegments, endPoints, customLoader.lightShader, lightBulbs);
-    movingLight = new PointLight(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, customLoader.lightShader, lightBulbs);     
+    movingLight = new PointLight(platform.x - 500, platform.y - 420, platforms, castSegments, endPoints, customLoader.lightShader, lightBulbs); 
+    
+   // catEngine.world = catWorld;
 }
 
 // Re-center camera
@@ -463,7 +471,7 @@ function initLayers() {
   pDrawRect(shadowGraphics, 0,0, 5000, 5000, 0.3, 0.5);
 
   // Add hud to the stage
-  HudRenderer = textBox(catPlayer.centerPos.x + app.renderer.width/2 - 150, catPlayer.centerPos.y - app.renderer.height/2, 150, 50, HudContent, HudRenderer, HudRect );
+  HudRenderer = textBox(catPlayer.position.x + app.renderer.width/2 - 150, catPlayer.position.y - app.renderer.height/2, 150, 50, HudContent, HudRenderer, HudRect );
 }
 
 function drawHud(){
