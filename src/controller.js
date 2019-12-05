@@ -27,7 +27,8 @@ class Controller{
               catPlayer.setAnimation("walk");
             catPlayer.setFlip("right");
             catPlayer.inSlowDown = false;
-            catPlayer.xVel = catPlayer.maxVel;
+            if (catPlayer.cameraSnapped)
+              catPlayer.xVel = catPlayer.maxVel;
           });
           // walk left
           nipple.on('dir:left', function (evt) {  
@@ -35,12 +36,13 @@ class Controller{
               catPlayer.setAnimation("walk");
             catPlayer.setFlip("left");
             catPlayer.inSlowDown = false;
-            catPlayer.xVel = -catPlayer.maxVel;
+            if (catPlayer.cameraSnapped)
+              catPlayer.xVel = -catPlayer.maxVel;
           });
           // jump 
           nipple.on('dir:up', function(evt) {
             // jump from ground
-            if ( catPlayer.isGrounded ) {
+            if ( catPlayer.isGrounded && catPlayer.cameraSnapped ) {
               Matter.Body.setVelocity(catBody, Matter.Vector.create(catPlayer.xVel, catPlayer.jumpVel) );
               catPlayer.setAnimation("jump");
               catPlayer.isGrounded = false;
@@ -48,7 +50,7 @@ class Controller{
               catPlayer.inSlide = false;
             }
             // jump from wall
-            else if ( catPlayer.inSlide ) {
+            else if ( catPlayer.inSlide && catPlayer.cameraSnapped ) {
               // if right side of cat is in contact with wall
               if ( catPlayer.flip == "right" ) {
                 catPlayer.setFlip("left");
@@ -83,7 +85,7 @@ class Controller{
 } 
 
 // using old syntax for now
-var KBController = function(catPlayer, catBody) {
+var KBController = function(catPlayer, catBody, gameTicker) {
     // keyboard controls
     this.rightDown = false;
     this.leftDown = false;
@@ -101,7 +103,7 @@ var KBController = function(catPlayer, catBody) {
           // }
             // up arrow
             // jump from ground
-            if ( catPlayer.isGrounded ) {
+            if ( catPlayer.isGrounded  ) {
                 Matter.Body.setVelocity(catBody, Matter.Vector.create(catPlayer.xVel, catPlayer.jumpVel) );
                 catPlayer.setAnimation("jump");
                 catPlayer.isGrounded = false;
@@ -133,7 +135,7 @@ var KBController = function(catPlayer, catBody) {
         else if (e.keyCode == '40') {
             // down arrow
         }
-        else if (e.keyCode == '37' && !this.leftDown) {
+        else if (e.keyCode == '37' && !this.leftDown ) {
           // if (catPlayer.isHanging){
           //   catPlayer.isHanging = false;
           //   Matter.Body.setStatic(catBody, false);
@@ -147,7 +149,7 @@ var KBController = function(catPlayer, catBody) {
             catPlayer.inSlowDown = false;
             catPlayer.xVel = -catPlayer.maxVel;
         }
-        else if (e.keyCode == '39' && !this.rightDown) {
+        else if (e.keyCode == '39' && !this.rightDown ) {
           // if (catPlayer.isHanging){
           //   catPlayer.isHanging = false;
           //   Matter.Body.setStatic(catBody, false);
@@ -161,6 +163,15 @@ var KBController = function(catPlayer, catBody) {
             catPlayer.inSlowDown = false;
             catPlayer.xVel = catPlayer.maxVel;
         }
+        // spacebar
+        else if (e.keyCode == '32'){
+          gameTicker.speed = 0.5;
+        }
+        // 'x' key
+        else if (e.keyCode == '88') {
+          catPlayer.showDebug  ^= true;
+        }
+
      // }
     }
 
@@ -195,6 +206,9 @@ var KBController = function(catPlayer, catBody) {
             else {
                 catPlayer.inSlowDown = true;
             }
+        }
+        else if (e.keyCode == '32'){
+          gameTicker.speed = 1;
         }
     }
 }

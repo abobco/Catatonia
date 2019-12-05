@@ -4,7 +4,7 @@ import {Corner} from './geometry.js'
 
 class RaySource {
 
-    constructor(x, y, walls, segments, endpoints, shaderProgram){
+    constructor(x, y, segments, endpoints, shaderProgram){
         this.pos = Matter.Vector.create(x, y);  // ray source point
         this.rays = []; // all the rays
         this.cornerRays = []; // auxilary rays

@@ -2,12 +2,12 @@ import Matter from 'matter-js/build/matter.min.js';
 import {Boundary} from "./terrain.js";
 
 class Player {
-    constructor(position, frameMap) {
+    constructor(position, frameMap, debugRenderer) {
         // physics variables
         this.position = new PIXI.Point(position.x, position.y);
         this.scale = 3;
-        this.maxVel = 3;
-        this.jumpVel = -12;
+        this.maxVel = 4;
+        this.jumpVel = -15;
         this.xVel = 0;
 
         // action flags
@@ -18,6 +18,9 @@ class Player {
         this.isHanging = false;
         this.cameraSnapped = true;
         this.bouncyBug = 0;
+
+        this.showDebug = false;
+        this.debugRenderer = debugRenderer;
 
         this.climbTranslation = new PIXI.Point(0,0);
 
@@ -54,7 +57,7 @@ class Player {
                     }); 
     }
 
-    update(){
+    update(timescale){
         // Apply velocity from user inputs        
         if ( this.currentAnimation == "climb"){
             if (!this.animations.get("climb").playing) {
@@ -62,10 +65,16 @@ class Player {
                 
                 Matter.Body.setPosition(this.body, new Matter.Vector.create(this.climbTranslation.x, this.climbTranslation.y));
                 Matter.Body.setVelocity(this.body, new Matter.Vector.create(0,0));
-                if (this.xVel == 0)
-                    this.setAnimation("stop");
-                else
+                if (this.xVel == this.maxVel){
                     this.setAnimation("walk");
+                    this.inSlowDown = false;
+                }     
+                else {
+                    this.setAnimation("stop");
+                    this.inSlowDown = true;
+                }
+                    
+                    
                 this.lockCamera();
 
                 if (!this.bouncyBug)
@@ -73,25 +82,30 @@ class Player {
 
                 this.isGrounded = true;
                 this.inSlide = false;
-                this.inSlowDown = false;
                 this.jumpInput = false;
                 this.isHanging = false;
-                this.inSlowDown = false;
                 Matter.Body.setStatic(this.body, false);
             }
             
         }
-        else 
-            Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel, this.body.velocity.y) );
-
+        else // apply velocity from input
+            Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel*timescale, this.body.velocity.y) );
         // Move the sprites to follow their physicis body
         this.setPosition(this.body.position.x, this.body.position.y);
 
         // apply friction if needed
-        if ( this.inSlowDown)
+        if ( this.inSlowDown){
             this.slowVelocity();
+        }
+            
         
-            console.log(this.isGrounded)
+        // change animation speed with timescale
+        this.animations.forEach(function (sprite) {
+            if (timescale == 0.5)
+                sprite.animationSpeed = 0.1;
+            else
+                sprite.animationSpeed = 0.2;
+        })
 
     }
 
@@ -136,20 +150,23 @@ class Player {
     // flip sprites around y axis 
     setFlip(dir) {
         var localScale;
-        if ( dir == "right" ) {
-            localScale = -3;
-            this.scale = -3;
-            this.flip = "right";
+        if (this.cameraSnapped){
+            if ( dir == "right" ) {
+                localScale = -3;
+                this.scale = -3;
+                this.flip = "right";
+            }
+            else if ( dir == "left") {
+                localScale = 3;
+                this.scale = 3;
+                this.flip = "left";
+            }
+            this.animations.forEach(function (value) {
+                value.scale.x = localScale;
+            })       
         }
-        else if ( dir == "left") {
-            localScale = 3;
-            this.scale = 3;
-            this.flip = "left";
-        }
-        this.animations.forEach(function (value) {
-            value.scale.x = localScale;
-        })        
-    };
+         
+    }
 
     // Air friction for dummies
     slowVelocity() {
