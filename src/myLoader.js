@@ -26,6 +26,8 @@ class myLoader {
 
        this.catFrameMap = this.loadFrames();
 
+       this.tileset = this.loadTiles();
+
        this.doneLoading = true;
 
        // this.checkLoad();
@@ -65,9 +67,9 @@ class myLoader {
             climbFrames = [];
         // load all them animation frames
         // frame counts are hardcoded cuz idk how to get that info from the loader
-        for ( let i = 0; i < 10; i++ ) {
+        for ( let i = 1; i < 11; i++ ) {
             const val = i;
-            walkFrames.push(PIXI.Texture.from(`tile00${val}.png`));
+            walkFrames.push(PIXI.Texture.from(`walk (${val}).png`));
         }
         for ( let i = 0; i < 5; i++ ) {
             const val = i;
@@ -97,6 +99,36 @@ class myLoader {
                                   ['hang', hangFrames],
                                   ['climb', climbFrames]]);
         return frameMap;
+    }
+    loadTiles(){
+        let tileSize = 150;
+        let sprites = []
+     
+        // let texture = resources['sprites/caveTiles.png'].texture;
+        
+        for ( let i = 1; i < 15; i++ ) {
+            const val = i;       
+            let texture = PIXI.Texture.from(`caveTile (${val}).png`); 
+            //let sprite = new PIXI.Sprite.from( PIXI.Texture.from(`caveTile (${val}).png`) );
+            //sprite.width = sprite.height = tileSize
+            //let sprite = new PIXI.TilingSprite( texture, tileSize, tileSize );
+            sprites.push( texture );
+        }
+        
+        return new Map([['Background', sprites[0]],
+                        ['TLCorner', sprites[1]],
+                        ['TopEdge', sprites[2]],
+                        ['TRCorner', sprites[3]],
+                        ['LeftEdge', sprites[4]],
+                        ['Interior', sprites[5]],
+                        ['RightEdge', sprites[6]],
+                        ['BLCorner', sprites[7]],
+                        ['BottomEdge', sprites[8]],
+                        ['BRCorner', sprites[9]],
+                        ['Wang', sprites[10]],
+                        ['Shaft', sprites[11]],
+                        ['Loner', sprites[13]]
+                    ]);
     }
 }
 

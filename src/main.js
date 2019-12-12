@@ -31,11 +31,9 @@
 import Matter from 'matter-js/build/matter.min.js';
 
 import {Player} from './player.js';
-import {Terrain} from './terrain.js';
 import {Controller, KBController} from './controller.js';
-import {PointLight} from './PointLight.js';
 import {myLoader} from './myLoader';
-import {MazeMap} from './mapGen.js';
+import {MazeMap, CellularMap} from './mapGen.js';
 
 //============================ Data =========================================//
 
@@ -69,10 +67,7 @@ let catPlayer;
   let playerColliderRenderer = new PIXI.Graphics();
   let debugGraphics = new PIXI.Graphics();
   let uniforms;
-  // Text boxes
-  let messageRect1 = new PIXI.Graphics(),
-      messageRenderer1 = new PIXI.Graphics(),
-      messageContent1 = "Use the arrow keys to move"
+
   // Hud renders 
   let HudRect = new PIXI.Graphics(),
       HudRenderer = new PIXI.Text(),
@@ -84,16 +79,8 @@ let catPlayer;
       catWorld = catEngine.world;
       // catRunner = Runner.create();
       
-  // Terrain colliders
-  let terrain = new Array(),
-      platform,
-      platforms = new Array();
-  // raycaster
-  let bakedLight, // baked lighting
-      movingLight,  // dynamic lighting
-      castSegments = [],  // array of line segments
-      endPoints = [],   // array of vertices
-      lightBulbs = new PIXI.Graphics(), // geometry renderer
+  // Geometry renderers
+  let lightBulbs = new PIXI.Graphics(), // geometry renderer
       shadowGraphics = new PIXI.Graphics();
 
 // Debug minigame flags
@@ -118,9 +105,8 @@ function setup() {
   // apply blur filter to light sources
   lightBulbs.filters = [new PIXI.filters.BlurFilter()];
 
-  // Start the physics engine
-  matterSetUp();
-
+  // generate map, make game objects
+  worldInit();
 
   // Joystick manager
   if ("ontouchstart" in document.documentElement) {
@@ -128,16 +114,10 @@ function setup() {
     customJoystick = new Controller(catPlayer, catPlayer.body);
   }
 
-    // Keyboard input manager
-    KBInput = new KBController(catPlayer, catPlayer.body, app.ticker);
+  // Keyboard input manager
+  KBInput = new KBController(catPlayer, catPlayer.body, app.ticker);
 
-  // Add objects to Pixi world
-  // Terrain
-  terrain.forEach(function (value) {
-    value.drawRect(Erector);
-  });
-
-  // Init world events
+  // set up world events
   collisionEventSetup();
   window.addEventListener( 'resize', onWindowResize, false );
   preventScroll();  // stops joystick from scrolling page on mobile
@@ -146,7 +126,6 @@ function setup() {
   app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
   
   // draw the static light
-  // bakedLight.update(app.ticker.speed);
   myMaze.lights.forEach( (light) => {
     light.update(app.ticker.speed);
   });
@@ -154,20 +133,18 @@ function setup() {
   // Add objects to pixi stage
   initLayers();
 
-  // app.ticker.speed = 0.5
+  // lock frame rate at 60 fps max
   app.ticker.maxFPS = 60;
-  // Start the game loop 
   app.stage.scale.set(0.5)
 
-  app.ticker.add(delta => gameLoop(delta)); 
-
+  // Start the game loop 
+  app.ticker.add(delta => gameLoop(delta));   
 }
 
 // Updates every 16.66 ms
 function gameLoop(delta){// delta is in ms
   // clear and redraw light sources
   lightBulbs.clear();
-  // bakedLight.visionSource.show(lightBulbs);
   myMaze.lights.forEach( (light) => {
     light.visionSource.show(lightBulbs);
   });
@@ -175,8 +152,8 @@ function gameLoop(delta){// delta is in ms
   // move player sprites & physics body from input
   catPlayer.update(app.ticker.speed);
 
+  // update physics bodies
   Engine.update(catEngine, app.ticker.deltaMS)
-  // console.log(app.ticker.deltaMS);
 
   // Move stage origin to simulate camera movement
   if (catPlayer.cameraSnapped)
@@ -185,22 +162,6 @@ function gameLoop(delta){// delta is in ms
     app.stage.pivot.x += catPlayer.cameraMovement.x;
     app.stage.pivot.y += catPlayer.cameraMovement.y;
   }
-  // console.log(catPlayer.cameraSnapped)
-
-  if ( catPlayer.showDebug ){
-    catPlayer.drawCollider(playerColliderRenderer);
-    debugGraphics.visible = true;
-    playerColliderRenderer.visible = true;
-  }
-  else {
-    debugGraphics.visible = false;
-    playerColliderRenderer.visible = false;
-  }
-
-  checkBugs();  // mainly a joke for QA testers
-
-  // drawHud();
-  
 }
 
 //===========================================================================//
@@ -339,33 +300,28 @@ function collisionEventSetup() {
   // });
 }
 
-// Physics engine setup
-function matterSetUp() {
-    
-    // Contains player animations, physics bodies, flags, behavior functionsxc
-    let playerPos = new PIXI.Point(150, 15*150 - 200);
-    catPlayer = new Player(playerPos, customLoader.catFrameMap, playerColliderRenderer);
+// Generate game map, player object and
+function worldInit() {
+  // Init rot.js Eller maze
+  // myMaze = new MazeMap(15,15, 150, customLoader.lightShader, lightBulbs);
+  // rot.js cellular automata map
+  myMaze = new CellularMap(30,30, 150, 6, customLoader.lightShader, lightBulbs, customLoader.tileset);
 
-    // Add player's rigidbody to matterjs world
-    World.add(catWorld, catPlayer.body);
+  // Contains player animations, physics bodies, flags, behavior functionsxc
+  let playerPos = myMaze.playerSpawn
+  catPlayer = new Player(playerPos, customLoader.catFrameMap, playerColliderRenderer);
 
-    // Init rot.js Eller maze
-    myMaze = new MazeMap(15,15, 150, customLoader.lightShader, lightBulbs);
-    
-    // Add tile colliders to matterjs engine
-    myMaze.terrain.forEach(function(element) {
-        World.add(catWorld, element.Collider);
-        if ( element.walkBox)
-          World.add(catWorld, element.walkBox);
+  // Add player's rigidbody to matterjs world
+  World.add(catWorld, catPlayer.body);
   
-        World.add(catWorld, element.edgeBoxes)
-        
-       
-        element.drawRect(Erector, debugGraphics); 
-    });
+  // Add tile colliders to matterjs engine
+  myMaze.terrain.forEach(function(element) {
+      World.add(catWorld, element.Collider);
+      if ( element.walkBox)
+        World.add(catWorld, element.walkBox);
 
- 
-  
+      World.add(catWorld, element.edgeBoxes)
+  });
 }
 
 // Re-center camera
@@ -373,38 +329,11 @@ function onWindowResize() {
     app.renderer.resize(window.innerWidth, window.innerHeight);
     // Lock the camera to the cat's position 
     app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
-
-   //bakedLight.update(app.ticker.speed);
-   //app.stage.addChild(bakedLight.lightContainer); 
+    
    myMaze.lights.forEach( ( light ) => {
      light.update(app.ticker.speed);
      app.stage.addChild(light.lightContainer);
    });
-    if (!windowSizeBug){
-      BugsFound++;
-      windowSizeBug = true;
-    }
-    
-}
-
-// Draw text box
-function textBox(x,y,w,h, content, mRenderer, TextRectangle) {
-  // font style
-  let style = new PIXI.TextStyle({
-    fill: "white",
-    fontSize: 18,
-  })
-  // box border style
-  TextRectangle.lineStyle(2, 0xFF00FF, 1);
-  TextRectangle.beginFill(0x650A5A); // fill color
-  TextRectangle.drawRoundedRect(x, y, w, h, 16);
-  TextRectangle.endFill();
-  mRenderer = new PIXI.Text(content, style);
-  mRenderer.position.set(x+10, y+10);
-  app.stage.addChild(TextRectangle);
-  app.stage.addChild(mRenderer);
-
-  return mRenderer;
 }
 
 // Prevent touch event scrolling on mobile
@@ -420,66 +349,23 @@ function preventScroll() {
   };
 }
 
-// draw rectangle primitives
-function pDrawRect(renderer, x, y, w, h, color, alpha) {
-
-  renderer.beginFill(color, alpha);
-  renderer.drawRect(x - (w/2) , y - (h/2) -1, w , h );
-  renderer.endFill();
-
-}
-
 // add pixi objects to global renderer, 
 // works like a stack, last element added = top graphics layer
 function initLayers() {
+  // tiling sprites
+  app.stage.addChild(myMaze.tileContainer);
 
-  // Textboxes 
-  // textBox(platform.x - 140, platform.y - 145, 250, 40, 
-  // messageContent1, messageRenderer1, messageRect1);
-    
   // Cat Animations
   catPlayer.animations.forEach(function(value, key){
       app.stage.addChild(value);  // add all animations to world
   });
   // Shadow renderer
   app.stage.addChild(shadowGraphics); 
-  // Geometry Renderer
-  app.stage.addChild(Erector);
-  app.stage.addChild(playerColliderRenderer);
-  app.stage.addChild(debugGraphics);
+
   // light renderers
   app.stage.addChild(lightBulbs);
-  // app.stage.addChild(bakedLight.lightContainer);
   myMaze.lights.forEach( (light) => {
     app.stage.addChild(light.lightContainer);
   });
-  // app.stage.addChild(movingLight.lightContainer);
 
-  // draw big ole rect for shadows
-  // pDrawRect(shadowGraphics, 0,0, 5000, 5000, 0.3, 0.5);
-
-  // Add hud to the stage
-  // HudRenderer = textBox(catPlayer.position.x + app.renderer.width/2 - 150, catPlayer.position.y - app.renderer.height/2, 150, 50, HudContent, HudRenderer, HudRect );
-}
-
-function drawHud(){
-  HudRect.clear();
-  HudRect.lineStyle(2, 0xFF00FF, 1);
-  HudRect.beginFill(0x650A5A); // fill color
-  HudRect.drawRoundedRect(app.stage.pivot.x + app.renderer.width/2 - 150, app.stage.pivot.y - app.renderer.height/2, 150, 50, 16);
-  HudRect.endFill();
-  HudContent = "Bugs Found:" + BugsFound.toString();
-
-  HudRenderer.x = app.stage.pivot.x + app.renderer.width/2 - 150 +10;
-  HudRenderer.y = app.stage.pivot.y - app.renderer.height/2 +10;
-  HudRenderer.text = HudContent;
-  // console.log(HudRenderer.children);
-  
-}
-
-function checkBugs(){
-    if (catPlayer.bouncyBug && !bouncyBug) {
-      BugsFound++;
-      bouncyBug = true;
-    }
 }

@@ -7,7 +7,7 @@ class Player {
         this.position = new PIXI.Point(position.x, position.y);
         this.scale = 3;
         this.maxVel = 4;
-        this.jumpVel = -15;
+        this.jumpVel = -25;
         this.xVel = 0;
 
         // action flags

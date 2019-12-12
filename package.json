@@ -8,14 +8,16 @@
     "@pixi/filter-radial-blur": "^3.0.3",
     "install": "^0.13.0",
     "matter-js": "^0.14.2",
-    "nipplejs": "^0.8.1",
-    "npm": "^6.11.3",
-    "pixi.js": "^5.1.5",
+    "nipplejs": "^0.8.4",
+    "npm": "^6.13.4",
+    "pixi.js": "^5.2.0",
     "rot-js": "^2.1.1",
-    "webpack": "^4.39.3",
-    "webpack-cli": "^3.3.8"
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "serialize-javascript": ">=2.1.1"
+  },
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

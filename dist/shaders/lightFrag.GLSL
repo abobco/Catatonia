@@ -34,9 +34,10 @@ void main() {
     // this method will lock the lighting shading to radiating from whatever lightPos is set to(0-1.0, 0-1.0)
     normPos = gl_FragCoord.xy / dimensions;
     normPos.x *= dimensions.x/dimensions.y;
-    
-    float dist = 0.4 - distance(lightPos, normPos);
-    dist = dist;
+
+   float startDist = dimensions.x/dimensions.y;
+   
+    float dist = 0.5 - distance(lightPos, normPos);
 
     // float dist = 0.5;
     gl_FragColor = vec4(vColor,dist);

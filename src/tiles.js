@@ -1,15 +1,5 @@
 import Matter from 'matter-js/build/matter.min.js';
 
-import {Terrain} from './terrain.js'
-
-class Tile {
-
-    constructor(x,y,edgeLength){
-        // this.collider = new Terrain(x*edgeLength, y*edgeLength, edgeLength, edgeLength);
-        this.collider = new TileCollider(x*edgeLength, y*edgeLength, edgeLength, false, false, true)
-    }
-}
-
 class TileCollider {
     constructor(x,y,r,leftLedge, rightLedge, hasWalkBox){
 
@@ -21,15 +11,16 @@ class TileCollider {
         // physics collider
         this.Collider = new Matter.Bodies.rectangle(this.x,this.y,r,r,{ isStatic : true });
         this.edgeBoxes = [];
-        this.edgeBoxWidth = 2;
+        this.edgeBoxWidth = 1;
         this.edgeBoxHeight = 2;
         const edgeBoxOffset = 20;
+        const xoffset = -1;
         
         this.walkBoxHeight = 20;
 
         if ( rightLedge ){
 
-            let triggercollider = new Matter.Bodies.rectangle( this.x + r/2 - this.edgeBoxWidth/2, 
+            let triggercollider = new Matter.Bodies.rectangle( this.x + r/2 - this.edgeBoxWidth/2 , 
                 this.y - r/2 + edgeBoxOffset, 
                 this.edgeBoxWidth,
                 this.walkBoxHeight, 
@@ -44,7 +35,7 @@ class TileCollider {
              
         }
         if ( leftLedge ){
-            let triggercollider = new Matter.Bodies.rectangle( this.x - r/2 + this.edgeBoxWidth/2,
+            let triggercollider = new Matter.Bodies.rectangle( this.x - r/2 + this.edgeBoxWidth/2 ,
                 this.y - r/2 + edgeBoxOffset, 
                 this.edgeBoxWidth, 
                 this.walkBoxHeight, 
@@ -70,7 +61,8 @@ class TileCollider {
     drawRect(graphics, debugGraphics) {
         // draw collision box rectangle
         graphics.beginFill(0x6032a8);
-        graphics.drawRect( this.x - (this.w/2) , this.y - (this.h/2) -1, this.w , this.h );
+        //graphics.drawRect( this.x - (this.w/2) , this.y - (this.h/2) -1, this.w , this.h );
+        graphics.drawRect( this.Collider.vertices[0].x, this.Collider.vertices[0].y, this.w , this.h );
         graphics.endFill();
         
         // draw sensor walkBox for debug

@@ -2,13 +2,14 @@ class FilePaths {
     constructor() {
         this.filePaths = [
             // sprites
-            "sprites/catWalk.json",
+            "sprites/catWalk1.json",
             "sprites/catStop.json",
             "sprites/catJump.json",
             "sprites/wallSlide.json",
             "sprites/catHang.json",
             "sprites/catClimbFull.json",
             "sprites/cathouse_r1.png",
+            "sprites/caveTiles.json",
 
             // shaders
             "shaders/lightFilterVert.GLSL",
