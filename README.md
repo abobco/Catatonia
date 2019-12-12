@@ -12,7 +12,7 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
 * [nipplejs](https://www.npmjs.com/package/nipplejs):  virtual joysticks for touch devices
 * [rot.js](https://www.npmjs.com/package/rot-js): procedural generation helper library
 
-## Contributing:
+## Build your own version:
  Navigate to your clone's directory and run the following commands:
  ```
  npm install
