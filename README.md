@@ -14,10 +14,10 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
 
 ## Contributing:
  Navigate to your clone's directory and run the following commands:
- `
+ ```
  npm install
  npm run build
- `
+ ```
  Then, host the `dist` folder however you like. I recommend using the [http-server](https://github.com/http-party/http-server) node    package
 
 ## Art:
