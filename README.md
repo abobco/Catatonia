@@ -2,7 +2,7 @@
  
 Work in progress 2D stealth/platformer browser game. Made with [node.js](https://nodejs.org/en/).
 
-Try the demo [here](http://www.xabnab.com/cat%20game/debug/procedural-generation/bigger-cells/index.html)!
+Try the demo [here](http://http://www.xabnab.com/cat%20game/debug/index.html)!
 
 ## Dependencies:
 * [npm](https://www.npmjs.com/get-npm):  package manager
