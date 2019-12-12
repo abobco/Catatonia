@@ -12,11 +12,13 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
 * [nipplejs](https://www.npmjs.com/package/nipplejs):  virtual joysticks for touch devices
 * [rot.js](https://www.npmjs.com/package/rot-js): procedural generation helper library
 
-## Bundling:
-Export settings are in [webpack.config.js](https://github.com/abobco/Catatonia/blob/master/webpack.config.js).
-Build the app from the terminal with this command:
- 
- `npm run build`
+## Contributing:
+ Navigate to your clone's directory and run the following commands:
+ `
+ npm install
+ npm run build
+ `
+ Then, host the `dist` folder however you like. I recommend using the [http-server](https://github.com/http-party/http-server) node    package
 
 ## Art:
 The art for this game was ripped from *Castlevania: Order of Ecclesia*, a Nintendo DS exclusive, originally released by Konami on October 21, 2008. If you like the art in this game, go support Konami and buy that game! 
