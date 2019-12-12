@@ -2,7 +2,7 @@
  
 Work in progress 2D stealth/platformer browser game. Made with [node.js](https://nodejs.org/en/).
 
-Try the demo [here](http://www.xabnab.com/cat%20game/debug/ledge%20climb/fixed%20hud/index.html)!
+Try the demo [here](http://www.xabnab.com/cat%20game/debug/procedural-generation/bigger-cells/index.html)!
 
 ## Dependencies:
 * [npm](https://www.npmjs.com/get-npm):  package manager
@@ -10,6 +10,7 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/ledge%20climb/fixed%2
 * [pixi.js](https://www.pixijs.com/):  2D WebGL renderer
 * [matter.js](https://www.npmjs.com/package/matter-js):  2D physics engine 
 * [nipplejs](https://www.npmjs.com/package/nipplejs):  virtual joysticks for touch devices
+* [rot.js](https://www.npmjs.com/package/rot-js): procedural generation helper library
 
 ## Bundling:
 Export settings are in [webpack.config.js](https://github.com/abobco/Catatonia/blob/master/webpack.config.js).
