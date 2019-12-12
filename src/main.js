@@ -63,30 +63,14 @@ let catPlayer;
 
 // Renderers
   // Geometry
-  let Erector = new PIXI.Graphics();
-  let playerColliderRenderer = new PIXI.Graphics();
-  let debugGraphics = new PIXI.Graphics();
-  let uniforms;
-
-  // Hud renders 
-  let HudRect = new PIXI.Graphics(),
-      HudRenderer = new PIXI.Text(),
-      HudContent = "Bugs Found:";
+  let playerColliderRenderer = new PIXI.Graphics(),
+      lightBulbs = new PIXI.Graphics(), // geometry renderer
+      shadowGraphics = new PIXI.Graphics();
 
 // Physics Engine
   // matterjs engine
   let catEngine = Engine.create(),
       catWorld = catEngine.world;
-      // catRunner = Runner.create();
-      
-  // Geometry renderers
-  let lightBulbs = new PIXI.Graphics(), // geometry renderer
-      shadowGraphics = new PIXI.Graphics();
-
-// Debug minigame flags
-let BugsFound = 0,
-    bouncyBug = false,
-    windowSizeBug = false;
 
 // procedural maze
 let myMaze;
@@ -186,11 +170,6 @@ function InitPixi() {
   app.renderer.view.style.display = "block";
   // Add the canvas to the document
   document.getElementById('myCanvas').appendChild(app.view);
-
-    uniforms = {
-    dimensions:   [app.renderer.screen.width, app.renderer.screen.height] 
-  };
-
 }
 
 // Setup Collision Events
