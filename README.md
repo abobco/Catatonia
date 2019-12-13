@@ -18,7 +18,7 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
  npm install
  npm run build
  ```
- Then, host the `dist` folder however you like. I recommend using the [http-server](https://github.com/http-party/http-server) node    package
+ Then, host the `dist` folder however you like. I recommend using the [http-server](https://github.com/http-party/http-server) node    package.
 
 ## Art:
 The art for this game was ripped from *Castlevania: Order of Ecclesia*, a Nintendo DS exclusive, originally released by Konami on October 21, 2008. If you like the art in this game, go support Konami and buy that game! 
