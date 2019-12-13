@@ -18,11 +18,7 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
  ```
  npm install http-server
  ```
-Then, open a new terminal in 
-```
-path/to/your/clone/dist
-```
-and run the command:
+Then, open a new terminal in `path/to/your/clone/dist` and run the command:
 ```
 http-server
 ```
