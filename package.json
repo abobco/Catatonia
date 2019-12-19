@@ -8,7 +8,7 @@
     "@pixi/filter-radial-blur": "^3.0.3",
     "install": "^0.13.0",
     "matter-js": "^0.14.2",
-    "nipplejs": "^0.8.4",
+    "nipplejs": "^0.8.1",
     "npm": "^6.13.4",
     "pixi.js": "^5.2.0",
     "rot-js": "^2.1.1",

@@ -5,7 +5,7 @@ class Player {
     constructor(position, frameMap, debugRenderer) {
         // physics variables
         this.position = new PIXI.Point(position.x, position.y);
-        this.scale = 3;
+        this.scale = 3.5;
         this.maxVel = 4;
         this.jumpVel = -25;
         this.xVel = 0;
@@ -152,13 +152,13 @@ class Player {
         var localScale;
         if (this.cameraSnapped){
             if ( dir == "right" ) {
-                localScale = -3;
-                this.scale = -3;
+                localScale = -Math.abs(this.scale);
+                this.scale = -Math.abs(this.scale);;
                 this.flip = "right";
             }
             else if ( dir == "left") {
-                localScale = 3;
-                this.scale = 3;
+                localScale = Math.abs(this.scale);
+                this.scale = Math.abs(this.scale);
                 this.flip = "left";
             }
             this.animations.forEach(function (value) {
@@ -259,6 +259,88 @@ class Player {
 
     lockCamera(){
         this.cameraSnapped = true; 
+    }
+
+    handleEvent(event){
+        switch(event.type){
+            case "inputDown":
+                console.log(event.type, event.direction)
+                switch(event.direction){
+                    case "up":
+                        // jump from ground
+                        if ( this.isGrounded  ) {
+                            Matter.Body.setVelocity(this.body, Matter.Vector.create(this.xVel, this.jumpVel) );
+                            this.setAnimation("jump");
+                            this.isGrounded = false;
+                            this.jumpInput = true;
+                            this.inSlide = false;
+                        }
+                        // jump from wall
+                        else if ( this.inSlide ) {
+                            // if right side of cat is in contact with wall
+                            if ( this.flip == "right" ) {
+                                this.setFlip("left");
+                                this.xVel = -this.maxVel * 1.5;
+                                Matter.Body.setVelocity(this.body, Matter.Vector.create(this.xVel, .85*this.jumpVel) );
+                                this.setAnimation("jump");
+                                this.inSlide = false;
+                                this.jumpInput = true;
+                            }
+                            // if left side of cat is in contact with wall
+                            else if (this.flip == "left") {
+                                this.setFlip("right");
+                                this.xVel = this.maxVel * 1.5;
+                                Matter.Body.setVelocity(this.body, Matter.Vector.create(this.xVel, .85*this.jumpVel) );
+                                this.setAnimation("jump");
+                                this.inSlide = false;
+                                this.jumpInput = true;
+                            }    
+                        }
+                        break;
+                    case "down":
+                        break;
+                    case "right":
+                        if (this.isGrounded)
+                            this.setAnimation("walk");
+                        this.setFlip("right");
+                        this.inSlowDown = false;
+                        this.xVel = this.maxVel;
+                        break;
+                    case "left":
+                        if (this.isGrounded)
+                            this.setAnimation("walk");
+                        this.setFlip("left");
+                        this.inSlowDown = false;
+                        this.xVel = -this.maxVel;
+                        break;
+                }
+                break;
+            case "inputUp":
+                console.log(event.type, event.direction)
+                switch(event.direction){
+                    case "up":
+                        break;
+                    case "down":
+                        break;
+                    case "right":
+                        if ( this.isGrounded ) {
+                            this.setAnimation("stop");
+                            this.xVel = 0;
+                        }
+                        else {
+                            this.inSlowDown = true;
+                        }
+                    case "left":
+                        if ( this.isGrounded ) {
+                            this.setAnimation("stop");
+                            this.xVel = 0;
+                        }
+                        else {
+                            this.inSlowDown = true;
+                        }
+                }
+                break;
+        }
     }
 
 

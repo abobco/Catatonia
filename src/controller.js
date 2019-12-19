@@ -92,76 +92,26 @@ var KBController = function(catPlayer, catBody, gameTicker) {
     document.onkeydown = checkKeyDown;
     document.onkeyup = checkKeyUp;
     function checkKeyDown(e) {
-
         e = e || window.event;
+        let myEvent = {
+          type: "inputDown"};
 
-       //if ( !catPlayer.isHanging ) {
-        if (e.keyCode == '38') {
-          // if (catPlayer.isHanging){
-          //   catPlayer.isHanging = false;
-          //   Matter.Body.setStatic(catBody, false);
-          // }
-            // up arrow
-            // jump from ground
-            if ( catPlayer.isGrounded  ) {
-                Matter.Body.setVelocity(catBody, Matter.Vector.create(catPlayer.xVel, catPlayer.jumpVel) );
-                catPlayer.setAnimation("jump");
-                catPlayer.isGrounded = false;
-                catPlayer.jumpInput = true;
-                catPlayer.inSlide = false;
-            }
-            // jump from wall
-            else if ( catPlayer.inSlide ) {
-                // if right side of cat is in contact with wall
-                if ( catPlayer.flip == "right" ) {
-                    catPlayer.setFlip("left");
-                    catPlayer.xVel = -catPlayer.maxVel * 1.5;
-                    Matter.Body.setVelocity(catBody, Matter.Vector.create(catPlayer.xVel, .85*catPlayer.jumpVel) );
-                    catPlayer.setAnimation("jump");
-                    catPlayer.inSlide = false;
-                    catPlayer.jumpInput = true;
-                }
-                // if left side of cat is in contact with wall
-                else if (catPlayer.flip == "left") {
-                    catPlayer.setFlip("right");
-                    catPlayer.xVel = catPlayer.maxVel * 1.5;
-                    Matter.Body.setVelocity(catBody, Matter.Vector.create(catPlayer.xVel, .85*catPlayer.jumpVel) );
-                    catPlayer.setAnimation("jump");
-                    catPlayer.inSlide = false;
-                    catPlayer.jumpInput = true;
-                }    
-            }
-        }
-        else if (e.keyCode == '40') {
-            // down arrow
-        }
+        if (e.keyCode == '38') 
+          myEvent.direction = "up"
+
+        else if (e.keyCode == '40') 
+          myEvent.direction = "down"; 
+
         else if (e.keyCode == '37' && !this.leftDown ) {
-          // if (catPlayer.isHanging){
-          //   catPlayer.isHanging = false;
-          //   Matter.Body.setStatic(catBody, false);
-          // }
-            // left arrow
-            this.rightDown = false;
-            this.leftDown = true;
-            if (catPlayer.isGrounded)
-                catPlayer.setAnimation("walk");
-            catPlayer.setFlip("left");
-            catPlayer.inSlowDown = false;
-            catPlayer.xVel = -catPlayer.maxVel;
+          myEvent.direction = "left";
+          this.rightDown = false;
+          this.leftDown = true;
         }
+
         else if (e.keyCode == '39' && !this.rightDown ) {
-          // if (catPlayer.isHanging){
-          //   catPlayer.isHanging = false;
-          //   Matter.Body.setStatic(catBody, false);
-          // }
-            // right arrow
-            this.leftDown = false;
-            this.rightDown = true;
-            if (catPlayer.isGrounded)
-                catPlayer.setAnimation("walk");
-            catPlayer.setFlip("right");
-            catPlayer.inSlowDown = false;
-            catPlayer.xVel = catPlayer.maxVel;
+          myEvent.direction = "right";
+          this.leftDown = false;
+          this.rightDown = true;
         }
         // spacebar
         else if (e.keyCode == '32'){
@@ -171,45 +121,37 @@ var KBController = function(catPlayer, catBody, gameTicker) {
         else if (e.keyCode == '88') {
           catPlayer.showDebug  ^= true;
         }
-
-     // }
+        catPlayer.handleEvent(myEvent);
     }
 
         function checkKeyUp(e) {
 
         e = e || window.event;
+        let myEvent = {
+          type: "inputUp"};
 
         if (e.keyCode == '38') {
             // up arrow
+            myEvent.direction = "up"
         }
         else if (e.keyCode == '40') {
             // down arrow
+            myEvent.direction = "down"
         }
         else if (e.keyCode == '37' && this.leftDown) {
+          myEvent.direction = "left"
             this.leftDown = false;
-            // left arrow
-            if ( catPlayer.isGrounded ) {
-                catPlayer.setAnimation("stop");
-                catPlayer.xVel = 0;
-            }
-            else {
-                catPlayer.inSlowDown = true;
-            }
+
         }
         else if (e.keyCode == '39' && this.rightDown) {
             this.rightDown = false;
-            // left arrow
-            if ( catPlayer.isGrounded ) {
-                catPlayer.setAnimation("stop");
-                catPlayer.xVel = 0;
-            }
-            else {
-                catPlayer.inSlowDown = true;
-            }
+            myEvent.direction = "right"
+
         }
         else if (e.keyCode == '32'){
           gameTicker.speed = 1;
         }
+        catPlayer.handleEvent(myEvent);
     }
 }
 

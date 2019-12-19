@@ -106,7 +106,7 @@ class myLoader {
      
         // let texture = resources['sprites/caveTiles.png'].texture;
         
-        for ( let i = 1; i < 15; i++ ) {
+        for ( let i = 1; i < 23; i++ ) {
             const val = i;       
             let texture = PIXI.Texture.from(`caveTile (${val}).png`); 
             //let sprite = new PIXI.Sprite.from( PIXI.Texture.from(`caveTile (${val}).png`) );
@@ -127,7 +127,16 @@ class myLoader {
                         ['BRCorner', sprites[9]],
                         ['Wang', sprites[10]],
                         ['Shaft', sprites[11]],
-                        ['Loner', sprites[13]]
+                        ['Loner', sprites[13]],
+                        ['Spikes', sprites[14]],
+                        ['Moon', sprites[15]],
+                        ['Sky', sprites[16]],
+                        ['Stars-1', sprites[17]],
+                        ['Stars-2', sprites[18]],
+                        ['Stars-3', sprites[19]],
+                        ['Grass-1', sprites[20]],
+                        ['Grass-2', sprites[21]],
+
                     ]);
     }
 }

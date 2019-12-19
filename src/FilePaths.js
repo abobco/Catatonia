@@ -9,7 +9,8 @@ class FilePaths {
             "sprites/catHang.json",
             "sprites/catClimbFull.json",
             "sprites/cathouse_r1.png",
-            "sprites/caveTiles.json",
+            // "sprites/caveTiles.json",
+            "sprites/tileSet2.json",
 
             // shaders
             "shaders/lightFilterVert.GLSL",

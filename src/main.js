@@ -29,11 +29,13 @@
 */
 
 import Matter from 'matter-js/build/matter.min.js';
+import {PixelateFilter} from '@pixi/filter-pixelate';
 
 import {Player} from './player.js';
 import {Controller, KBController} from './controller.js';
 import {myLoader} from './myLoader';
 import {MazeMap, CellularMap} from './mapGen.js';
+import {ShadowMap} from './shadowMap.js'
 
 //============================ Data =========================================//
 
@@ -66,6 +68,7 @@ let catPlayer;
   let playerColliderRenderer = new PIXI.Graphics(),
       lightBulbs = new PIXI.Graphics(), // geometry renderer
       shadowGraphics = new PIXI.Graphics();
+  let shadowGraphics2 = new PIXI.Graphics();
 
 // Physics Engine
   // matterjs engine
@@ -74,6 +77,9 @@ let catPlayer;
 
 // procedural maze
 let myMaze;
+
+// for shadow masking
+let allLights = new PIXI.Container();
 //===========================================================================//
 
 //============================ Setup ========================================//
@@ -94,7 +100,7 @@ function setup() {
 
   // Joystick manager
   if ("ontouchstart" in document.documentElement) {
-    messageContent1 = 'Use the joystick to move';
+   // messageContent1 = 'Use the joystick to move';
     customJoystick = new Controller(catPlayer, catPlayer.body);
   }
 
@@ -140,12 +146,14 @@ function gameLoop(delta){// delta is in ms
   Engine.update(catEngine, app.ticker.deltaMS)
 
   // Move stage origin to simulate camera movement
-  if (catPlayer.cameraSnapped)
+  if (catPlayer.cameraSnapped){
     app.stage.pivot.copyFrom(catPlayer.position);
+  }
   else {
     app.stage.pivot.x += catPlayer.cameraMovement.x;
     app.stage.pivot.y += catPlayer.cameraMovement.y;
   }
+  myMaze.parallaxScroll(app.stage.pivot, 1.2, 1.2);
 }
 
 //===========================================================================//
@@ -160,7 +168,7 @@ function InitPixi() {
       antialias: true, 
       transparent: false, 
       resolution: 1,
-      backgroundColor: 0x3b3836,
+      backgroundColor: 0x000000 ,
       autoDensity: true
     }
   );
@@ -170,6 +178,8 @@ function InitPixi() {
   app.renderer.view.style.display = "block";
   // Add the canvas to the document
   document.getElementById('myCanvas').appendChild(app.view);
+
+  
 }
 
 // Setup Collision Events
@@ -184,22 +194,21 @@ function collisionEventSetup() {
     for (var i = 0; i < pairs.length; i++) {
 
       let pair = pairs[i];
-      let otherBodyTemp;
+      let otherBody;
       // check if the collision involves the cat
       if ( pair.bodyA.id == catPlayer.body.id )
-          otherBodyTemp = pair.bodyB;
+          otherBody = pair.bodyB;
       else if ( pair.bodyB.id == catPlayer.body.id )
-          otherBodyTemp = pair.bodyA;
+          otherBody = pair.bodyA;
 
-      // go to next pair if cat not involved
+      // ignore collision if player not involved
       else continue;
 
       // check if collision with sensors
-      if ( otherBodyTemp.isSensor ) {
-        // if collding with a ledge grab trigger collider
-        if ( otherBodyTemp.isEdgeBox) {
+      if ( otherBody.isSensor ) {
+        // if collding with a ledge climb trigger collider
+        if ( otherBody.isEdgeBox) {
           console.log("edgeBox collision");
-         //if (catPlayer.currentAnimation != 'climb') {
             catPlayer.inSlide = false;
             catPlayer.isGrounded = false;
             catPlayer.isHanging = true;
@@ -208,7 +217,7 @@ function collisionEventSetup() {
                 yOffset = 0,
                 xClimbOffset = -60,
                 yClimbOffset = -48;
-            if ( otherBodyTemp.isRight){
+            if ( otherBody.isRight){
               catPlayer.setFlip("left");
             }  
             else{
@@ -218,27 +227,25 @@ function collisionEventSetup() {
             }
               
             // move the player to grab the ledge
+            let newPosition = new Vector.create(otherBody.position.x + xOffset, otherBody.position.y + yOffset);
             Matter.Body.setStatic(catPlayer.body, true);
             Matter.Body.setVelocity(catPlayer.body, new Vector.create(0, 0) );
-            Matter.Body.setPosition(catPlayer.body, new Vector.create(otherBodyTemp.position.x + xOffset, otherBodyTemp.position.y + yOffset));
-            catPlayer.climbTranslation.set(otherBodyTemp.position.x + xOffset + xClimbOffset, otherBodyTemp.position.y + yOffset + yClimbOffset);
+            Matter.Body.setPosition(catPlayer.body, new Vector.create(otherBody.position.x + xOffset, otherBody.position.y + yOffset));
+            catPlayer.climbTranslation.set(otherBody.position.x + xOffset + xClimbOffset, otherBody.position.y + yOffset + yClimbOffset);
             catPlayer.getClimbDistance(catPlayer.climbTranslation.x, catPlayer.climbTranslation.y);
             catPlayer.cameraSnapped = false;
             return; // the player body will be static for the next few frames, no more collision checks are neccessary
-            
-        // }     
         }
+        // if colliding with a ground trigger collider
         else if (!catPlayer.isHanging)
           inWalkBox = true;
       }
-          
       else // Check if physics collision
           catCollision = true;
     }
     // cat is sliding on a wall case
     if (!inWalkBox && catCollision && !catPlayer.isGrounded ) {
       catPlayer.xVel = 0;
-      //console.log('this triggers');
       catPlayer.inSlide = true;
       if ( catPlayer.flip == "right"){
         var slideAnimation = catPlayer.animations.get("slide");
@@ -284,7 +291,7 @@ function worldInit() {
   // Init rot.js Eller maze
   // myMaze = new MazeMap(15,15, 150, customLoader.lightShader, lightBulbs);
   // rot.js cellular automata map
-  myMaze = new CellularMap(30,30, 150, 6, customLoader.lightShader, lightBulbs, customLoader.tileset);
+  myMaze = new CellularMap(25,25, 150, 6, customLoader.lightShader, lightBulbs, customLoader.tileset);
 
   // Contains player animations, physics bodies, flags, behavior functionsxc
   let playerPos = myMaze.playerSpawn
@@ -332,19 +339,54 @@ function preventScroll() {
 // works like a stack, last element added = top graphics layer
 function initLayers() {
   // tiling sprites
-  app.stage.addChild(myMaze.tileContainer);
+  // myMaze.backgroundContainer.filters = [new PixelateFilter(6)];
+  app.stage.addChild(myMaze.backgroundContainer);
+  app.stage.addChild(myMaze.midContainer);
 
-  // Cat Animations
-  catPlayer.animations.forEach(function(value, key){
+    // Cat Animations
+    catPlayer.animations.forEach(function(value, key){
       app.stage.addChild(value);  // add all animations to world
   });
+
+  app.stage.addChild(myMaze.tileContainer);
+  app.stage.addChild(myMaze.featureContainer);
+
+
   // Shadow renderer
-  app.stage.addChild(shadowGraphics); 
+  // shadowGraphics.beginFill(0x000000, 0.5);
+  // shadowGraphics.drawRect(-500, -500, app.stage.width, app.stage.height);
+  // shadowGraphics.endFill();
+  //  app.stage.addChild(shadowGraphics); 
 
   // light renderers
   app.stage.addChild(lightBulbs);
   myMaze.lights.forEach( (light) => {
-    app.stage.addChild(light.lightContainer);
+    allLights.addChild(light.lightContainer);
   });
+  app.stage.addChild(allLights);
+  
+  // let maskGraphics = new PIXI.Graphics();
+  // maskGraphics.beginFill(1);
+  // maskGraphics.drawRect(-500, -500, app.stage.width, app.stage.height);
+  // maskGraphics.endFill();
+  
+  let shadowMap = new ShadowMap(myMaze.lights, myMaze, app.renderer);
+  // app.stage.addChild(shadowMap.shaper);
+
+  // const bounds = new PIXI.Rectangle(-myMap.tileSize, myMap.tileSize, myMaze.w * myMaze.tileSize + 1000, myMaze.h * myMaze.tileSize + 1000);
+  // const texture = app.renderer.generateTexture(shadowMap.shaper, PIXI.SCALE_MODES.NEAREST, 1, shadowMap.bounds);
+  // const focus = new PIXI.Sprite(texture);
+  // focus.x = -myMaze.tileSize;
+  // focus.y = -myMaze.tileSize;
+
+  // app.stage.addChild(shadowMap.focus);
+  // shadowGraphics.mask = shadowMap.focus;
+
+  app.stage.addChild(shadowMap.focus);
+  app.stage.addChild(shadowMap.mesh);
+
+  app.stage.filters = [new PixelateFilter(3.5)];
+
+  
 
 }
