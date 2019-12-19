@@ -351,13 +351,6 @@ function initLayers() {
   app.stage.addChild(myMaze.tileContainer);
   app.stage.addChild(myMaze.featureContainer);
 
-
-  // Shadow renderer
-  // shadowGraphics.beginFill(0x000000, 0.5);
-  // shadowGraphics.drawRect(-500, -500, app.stage.width, app.stage.height);
-  // shadowGraphics.endFill();
-  //  app.stage.addChild(shadowGraphics); 
-
   // light renderers
   app.stage.addChild(lightBulbs);
   myMaze.lights.forEach( (light) => {
@@ -365,22 +358,8 @@ function initLayers() {
   });
   app.stage.addChild(allLights);
   
-  // let maskGraphics = new PIXI.Graphics();
-  // maskGraphics.beginFill(1);
-  // maskGraphics.drawRect(-500, -500, app.stage.width, app.stage.height);
-  // maskGraphics.endFill();
-  
+  // makes a mask for shadows
   let shadowMap = new ShadowMap(myMaze.lights, myMaze, app.renderer);
-  // app.stage.addChild(shadowMap.shaper);
-
-  // const bounds = new PIXI.Rectangle(-myMap.tileSize, myMap.tileSize, myMaze.w * myMaze.tileSize + 1000, myMaze.h * myMaze.tileSize + 1000);
-  // const texture = app.renderer.generateTexture(shadowMap.shaper, PIXI.SCALE_MODES.NEAREST, 1, shadowMap.bounds);
-  // const focus = new PIXI.Sprite(texture);
-  // focus.x = -myMaze.tileSize;
-  // focus.y = -myMaze.tileSize;
-
-  // app.stage.addChild(shadowMap.focus);
-  // shadowGraphics.mask = shadowMap.focus;
 
   app.stage.addChild(shadowMap.focus);
   app.stage.addChild(shadowMap.mesh);
