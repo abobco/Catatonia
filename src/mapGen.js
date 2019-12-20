@@ -169,7 +169,7 @@ class CellularMap extends MazeMap{
         this.caveWalls(this.tileMap, true, this.tileContainer, this.tileSize);
         
         this.addFeatures(freeCells, this.tileMap, this.featureContainer)  
-        console.log(this.vertices.size);
+        console.log("ray cast vertices: ", this.vertices.size);
 
         // make PointLight objects 
         this.addLights(shaderProgram, lightRenderer);

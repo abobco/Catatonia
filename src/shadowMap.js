@@ -23,7 +23,6 @@ class ShadowMap {
                 let geometry = mesh.geometry;
 
                 let vertices = geometry.getBuffer("aVertexPosition").data;
-                console.log(vertices);
                 
                 shaper.beginFill(0, 1);
                 shaper.moveTo(vertices[0], vertices[1]);

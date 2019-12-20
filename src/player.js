@@ -1,5 +1,7 @@
 import Matter from 'matter-js/build/matter.min.js'; 
+
 import {Boundary} from "./terrain.js";
+import {MyTimer} from "./myTimer.js";
 
 class Player {
     constructor(position, frameMap, debugRenderer) {
@@ -19,11 +21,16 @@ class Player {
         this.cameraSnapped = true;
         this.bouncyBug = 0;
 
+        // collision event timer
+        this.collisionTimer = new MyTimer();
+        this.lateJumpDuration = 300; // how many ms to give the player for a late jump when falling off a ledge
+
+        // physics debugging stuff
         this.showDebug = false;
         this.debugRenderer = debugRenderer;
 
+        // help with ledge climbing
         this.climbTranslation = new PIXI.Point(0,0);
-
         this.cameraMovement = new PIXI.Point(0,0);
 
         // to check sprite flip conveniently
@@ -97,7 +104,6 @@ class Player {
         if ( this.inSlowDown){
             this.slowVelocity();
         }
-            
         
         // change animation speed with timescale
         this.animations.forEach(function (sprite) {
@@ -107,6 +113,20 @@ class Player {
                 sprite.animationSpeed = 0.2;
         })
 
+        let waitTime;
+        if (this.inSlide)
+            waitTime = (this.lateJumpDuration/10) / timescale;
+        else
+            waitTime = this.lateJumpDuration / timescale;
+        
+        if ( !this.isHanging && this.collisionTimer.isRunning && this.collisionTimer.getElapsedTime()  > waitTime ){
+            this.collisionTimer.stop();
+            this.isGrounded = false;
+            this.inSlide = false;
+            this.jumpInput = false; 
+            
+            this.setAnimation("jump", 5);
+        }
     }
 
     // Move all sprites
@@ -257,6 +277,35 @@ class Player {
         this.cameraMovement.y = (y - this.position.y) / (9*5);
     }
 
+    startLedgeClimb(ledgePosition, isRightLedge){
+        let Vector = Matter.Vector;
+        this.inSlide = false;
+        this.isGrounded = false;
+        this.isHanging = true;
+        this.setAnimation("climb"); 
+        let xOffset = 40,   // how far away from the ledge we will anchor the cat
+            yOffset = 0,
+            xClimbOffset = -60,
+            yClimbOffset = -52;
+        if ( isRightLedge){
+          this.setFlip("left");
+        }  
+        else{
+          xOffset *= -1;
+          xClimbOffset *= -1;
+          this.setFlip("right");
+        }
+          
+        // move the player to grab the ledge
+        let hangPosition = new Vector.create(ledgePosition.x + xOffset, ledgePosition.y + yOffset);
+        Matter.Body.setStatic(this.body, true);
+        Matter.Body.setVelocity(this.body, new Vector.create(0, 0) );
+        Matter.Body.setPosition(this.body, hangPosition);
+        this.climbTranslation.set(hangPosition.x + xClimbOffset, hangPosition.y + yClimbOffset);
+        this.getClimbDistance(this.climbTranslation.x, this.climbTranslation.y);
+        this.cameraSnapped = false;
+    }
+
     lockCamera(){
         this.cameraSnapped = true; 
     }
@@ -264,7 +313,7 @@ class Player {
     handleEvent(event){
         switch(event.type){
             case "inputDown":
-                console.log(event.type, event.direction)
+                // console.log(event.type, event.direction)
                 switch(event.direction){
                     case "up":
                         // jump from ground
@@ -316,7 +365,7 @@ class Player {
                 }
                 break;
             case "inputUp":
-                console.log(event.type, event.direction)
+                // console.log(event.type, event.direction)
                 switch(event.direction){
                     case "up":
                         break;

@@ -35,7 +35,8 @@ import {Player} from './player.js';
 import {Controller, KBController} from './controller.js';
 import {myLoader} from './myLoader';
 import {MazeMap, CellularMap} from './mapGen.js';
-import {ShadowMap} from './shadowMap.js'
+import {ShadowMap} from './shadowMap.js';
+import {MyTimer} from './myTimer.js'
 
 //============================ Data =========================================//
 
@@ -45,10 +46,7 @@ import {ShadowMap} from './shadowMap.js'
 
   // matter.js
   let Engine = Matter.Engine,
-      Runner = Matter.Runner,
       World = Matter.World,
-      Bodies = Matter.Bodies,
-      Vector = Matter.Vector,
       Events = Matter.Events;
 
 // Pixi application object
@@ -56,6 +54,7 @@ let app;
 
 // Player Object
 let catPlayer;
+let collisionTimer = new MyTimer();
 
 // Input
   // Joystick object
@@ -66,9 +65,7 @@ let catPlayer;
 // Renderers
   // Geometry
   let playerColliderRenderer = new PIXI.Graphics(),
-      lightBulbs = new PIXI.Graphics(), // geometry renderer
-      shadowGraphics = new PIXI.Graphics();
-  let shadowGraphics2 = new PIXI.Graphics();
+      lightBulbs = new PIXI.Graphics(); // geometry renderer
 
 // Physics Engine
   // matterjs engine
@@ -131,15 +128,9 @@ function setup() {
   app.ticker.add(delta => gameLoop(delta));   
 }
 
-// Updates every 16.66 ms
-function gameLoop(delta){// delta is in ms
-  // clear and redraw light sources
-  lightBulbs.clear();
-  myMaze.lights.forEach( (light) => {
-    light.visionSource.show(lightBulbs);
-  });
-  
-  // move player sprites & physics body from input
+// Should update every 16.66 ms
+function gameLoop(delta){// delta is time in ms
+  // react to player input
   catPlayer.update(app.ticker.speed);
 
   // update physics bodies
@@ -172,14 +163,11 @@ function InitPixi() {
       autoDensity: true
     }
   );
-
   // Fit the canvas to the window
   app.renderer.view.style.position = "absolute";
   app.renderer.view.style.display = "block";
   // Add the canvas to the document
   document.getElementById('myCanvas').appendChild(app.view);
-
-  
 }
 
 // Setup Collision Events
@@ -208,40 +196,18 @@ function collisionEventSetup() {
       if ( otherBody.isSensor ) {
         // if collding with a ledge climb trigger collider
         if ( otherBody.isEdgeBox) {
-          console.log("edgeBox collision");
-            catPlayer.inSlide = false;
-            catPlayer.isGrounded = false;
-            catPlayer.isHanging = true;
-            catPlayer.setAnimation("climb"); 
-            let xOffset = 35,   // how far away from the ledge we will anchor the cat
-                yOffset = 0,
-                xClimbOffset = -60,
-                yClimbOffset = -48;
-            if ( otherBody.isRight){
-              catPlayer.setFlip("left");
-            }  
-            else{
-              xOffset *= -1;
-              xClimbOffset *= -1;
-              catPlayer.setFlip("right");
-            }
-              
-            // move the player to grab the ledge
-            let newPosition = new Vector.create(otherBody.position.x + xOffset, otherBody.position.y + yOffset);
-            Matter.Body.setStatic(catPlayer.body, true);
-            Matter.Body.setVelocity(catPlayer.body, new Vector.create(0, 0) );
-            Matter.Body.setPosition(catPlayer.body, new Vector.create(otherBody.position.x + xOffset, otherBody.position.y + yOffset));
-            catPlayer.climbTranslation.set(otherBody.position.x + xOffset + xClimbOffset, otherBody.position.y + yOffset + yClimbOffset);
-            catPlayer.getClimbDistance(catPlayer.climbTranslation.x, catPlayer.climbTranslation.y);
-            catPlayer.cameraSnapped = false;
-            return; // the player body will be static for the next few frames, no more collision checks are neccessary
+          catPlayer.startLedgeClimb(otherBody.position, otherBody.isRight)
+            return; // skip the rest of the collision checks for this frame; the player will be locked in place
         }
         // if colliding with a ground trigger collider
         else if (!catPlayer.isHanging)
           inWalkBox = true;
       }
-      else // Check if physics collision
-          catCollision = true;
+      else  {// Check if physics collision
+        catPlayer.collisionTimer.stop();
+        catCollision = true;
+      }
+          
     }
     // cat is sliding on a wall case
     if (!inWalkBox && catCollision && !catPlayer.isGrounded ) {
@@ -272,18 +238,25 @@ function collisionEventSetup() {
           catPlayer.setAnimation("walk");
       }
   });
+
+  // start a timer if the player ends a collision with a physics collider
   Events.on(catEngine, 'collisionEnd', function(event) {
-      catPlayer.isGrounded = false;
-      catPlayer.inSlide = false;
-      catPlayer.jumpInput = false;    
+    let pairs = event.pairs;
+    // Iterate through collision pairs
+    for (var i = 0; i < pairs.length; i++) {
+      let pair = pairs[i];
+      let otherBody;
+      // check if the collision involves the cat
+      if ( pair.bodyA.id == catPlayer.body.id )
+          otherBody = pair.bodyB;
+      else if ( pair.bodyB.id == catPlayer.body.id )
+          otherBody = pair.bodyA;
+
+      if (!otherBody.isSensor) {
+        catPlayer.collisionTimer.start();
+      } 
+    }
   });
-  // Events.on(catEngine, 'beforeUpdate', function(event) {
-  //   if ( catPlayer.body.velocity.y == 0 && catPlayer.inSlide ) {
-  //     catPlayer.inSlide = false;
-  //     catPlayer.isGrounded = true;
-  //     catPlayer.setAnimation("stop");
-  //   }
-  // });
 }
 
 // Generate game map, player object and
