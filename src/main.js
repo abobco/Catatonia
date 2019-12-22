@@ -145,6 +145,12 @@ function gameLoop(delta){// delta is time in ms
     app.stage.pivot.y += catPlayer.cameraMovement.y;
   }
   myMaze.parallaxScroll(app.stage.pivot, 1.2, 1.2);
+
+  myMaze.lights.forEach( (light) => {
+    light.lightContainer.children.forEach( ( mesh ) => {
+      mesh.shader.uniforms.time += 0.00005;
+    });
+  });
 }
 
 //===========================================================================//
@@ -264,7 +270,7 @@ function worldInit() {
   // Init rot.js Eller maze
   // myMaze = new MazeMap(15,15, 150, customLoader.lightShader, lightBulbs);
   // rot.js cellular automata map
-  myMaze = new CellularMap(25,25, 150, 6, customLoader.lightShader, lightBulbs, customLoader.tileset);
+  myMaze = new CellularMap(25,25, 150, 6, customLoader.lightShader, lightBulbs, customLoader.tileset, customLoader.torchFrames);
 
   // Contains player animations, physics bodies, flags, behavior functionsxc
   let playerPos = myMaze.playerSpawn
@@ -285,14 +291,23 @@ function worldInit() {
 
 // Re-center camera
 function onWindowResize() {
-    app.renderer.resize(window.innerWidth, window.innerHeight);
-    // Lock the camera to the cat's position 
-    app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
+  // app.resizeTo(window.innerWidth, window.innerHeight);
+
+  // Get canvas parent node
+  const parent = app.view.parentNode;
+  
+  // Resize the renderer
+  app.renderer.resize(parent.clientWidth, parent.clientHeight);
+  //app.renderer.resize(window.innerWidth, window.innerHeight);
+  // Lock the camera to the cat's position 
+  app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
     
    myMaze.lights.forEach( ( light ) => {
      light.update(app.ticker.speed);
      app.stage.addChild(light.lightContainer);
    });
+
+  
 }
 
 // Prevent touch event scrolling on mobile
@@ -306,6 +321,8 @@ function preventScroll() {
   document.getElementById('myCanvas').ontouchstart = (e) => {
     e.preventDefault();
   };
+
+  
 }
 
 // add pixi objects to global renderer, 
@@ -315,6 +332,7 @@ function initLayers() {
   // myMaze.backgroundContainer.filters = [new PixelateFilter(6)];
   app.stage.addChild(myMaze.backgroundContainer);
   app.stage.addChild(myMaze.midContainer);
+  app.stage.addChild(myMaze.torchContainer);
 
     // Cat Animations
     catPlayer.animations.forEach(function(value, key){
@@ -329,6 +347,7 @@ function initLayers() {
   myMaze.lights.forEach( (light) => {
     allLights.addChild(light.lightContainer);
   });
+  
   app.stage.addChild(allLights);
   
   // makes a mask for shadows
@@ -338,7 +357,4 @@ function initLayers() {
   app.stage.addChild(shadowMap.mesh);
 
   app.stage.filters = [new PixelateFilter(3.5)];
-
-  
-
 }

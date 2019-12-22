@@ -11,6 +11,7 @@ class FilePaths {
             "sprites/cathouse_r1.png",
             // "sprites/caveTiles.json",
             "sprites/tileSet2.json",
+            "sprites/torchSprites.json",
 
             // shaders
             "shaders/lightFilterVert.GLSL",

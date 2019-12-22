@@ -35,3 +35,4 @@ void main() {
     lightPos = (projectionMatrix * translationMatrix / 2.0 * vec3(position, 1.0)).xy + vec2(0.5, 0.5);
     lightPos.x *= dimensions.x/dimensions.y;
 }
+

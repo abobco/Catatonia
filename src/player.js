@@ -113,19 +113,24 @@ class Player {
                 sprite.animationSpeed = 0.2;
         })
 
+        let fallAnimationTime = (this.lateJumpDuration/5) / timescale;
         let waitTime;
-        if (this.inSlide)
-            waitTime = (this.lateJumpDuration/10) / timescale;
+        if (this.inSlide){
+            fallAnimationTime = fallAnimationTime / 2;
+            waitTime = fallAnimationTime;
+        }
         else
             waitTime = this.lateJumpDuration / timescale;
+
+        if ( !this.isHanging && this.collisionTimer.isRunning && this.collisionTimer.getElapsedTime()  > fallAnimationTime ){
+            this.setAnimation("jump", 5);
+        }
         
         if ( !this.isHanging && this.collisionTimer.isRunning && this.collisionTimer.getElapsedTime()  > waitTime ){
             this.collisionTimer.stop();
             this.isGrounded = false;
             this.inSlide = false;
-            this.jumpInput = false; 
-            
-            this.setAnimation("jump", 5);
+            this.jumpInput = false;           
         }
     }
 
@@ -153,9 +158,9 @@ class Player {
     }
 
     // change active animation, play at given frame
-    setAnimation(key, frame = 0) {
+    setAnimation(key, frame = 0, override = false) {
         // clear all previous animations
-        if ( key != this.currentAnimation ){
+        if ( key != this.currentAnimation || override ){
             this.currentAnimation = key;
             this.animations.forEach(function (value) {
                 value.visible = false;
@@ -319,7 +324,7 @@ class Player {
                         // jump from ground
                         if ( this.isGrounded  ) {
                             Matter.Body.setVelocity(this.body, Matter.Vector.create(this.xVel, this.jumpVel) );
-                            this.setAnimation("jump");
+                            this.setAnimation("jump", 0, true);
                             this.isGrounded = false;
                             this.jumpInput = true;
                             this.inSlide = false;
@@ -331,7 +336,7 @@ class Player {
                                 this.setFlip("left");
                                 this.xVel = -this.maxVel * 1.5;
                                 Matter.Body.setVelocity(this.body, Matter.Vector.create(this.xVel, .85*this.jumpVel) );
-                                this.setAnimation("jump");
+                                this.setAnimation("jump", 0, true);
                                 this.inSlide = false;
                                 this.jumpInput = true;
                             }
@@ -340,7 +345,7 @@ class Player {
                                 this.setFlip("right");
                                 this.xVel = this.maxVel * 1.5;
                                 Matter.Body.setVelocity(this.body, Matter.Vector.create(this.xVel, .85*this.jumpVel) );
-                                this.setAnimation("jump");
+                                this.setAnimation("jump", 0, true);
                                 this.inSlide = false;
                                 this.jumpInput = true;
                             }    

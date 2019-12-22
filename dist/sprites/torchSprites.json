@@ -1,0 +1,84 @@
+{"frames": {
+
+"torch (1).png":
+{
+	"frame": {"x":0,"y":0,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (2).png":
+{
+	"frame": {"x":0,"y":64,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (3).png":
+{
+	"frame": {"x":0,"y":128,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (4).png":
+{
+	"frame": {"x":0,"y":192,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (5).png":
+{
+	"frame": {"x":0,"y":256,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (6).png":
+{
+	"frame": {"x":0,"y":320,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (7).png":
+{
+	"frame": {"x":0,"y":384,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (8).png":
+{
+	"frame": {"x":0,"y":448,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+},
+"torch (9).png":
+{
+	"frame": {"x":0,"y":512,"w":32,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":64},
+	"sourceSize": {"w":32,"h":64}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "torchSprites.png",
+	"format": "RGBA8888",
+	"size": {"w":32,"h":576},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:d9da27620b630d1eb16b6147b5e48442:02c2d886012d9e4da0efe4dea6d695c1:3b9edd9c11ddc38e8123bbbfc587ce26$"
+}
+}

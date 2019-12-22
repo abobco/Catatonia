@@ -14,9 +14,9 @@ class RaySource {
         this.segments = segments; // all terrain line segments
         this.tris = [];
         this.shaderProgram = shaderProgram;
-        this.color = [0.933, 0.867, 0.51,
-                      0.933, 0.867, 0.51,
-                      0.933, 0.867, 0.51,]
+        this.color = [1, 0.831, 0.322,
+                      1, 0.831, 0.322,
+                      1, 0.831, 0.322,]
 
         // init all main rays
         for ( let endpoint of endpoints ) {
@@ -27,9 +27,12 @@ class RaySource {
             
             this.rays.push(newRay);
         }
+        this.renderer = PIXI.autoDetectRenderer();
         this.uniforms = {
             dimensions:    [window.innerWidth, window.innerHeight],
-            position: [this.pos.x, this.pos.y] 
+            // dimensions: [this.renderer.width, this.renderer.height],
+            position: [this.pos.x, this.pos.y] ,
+            time : Math.random()
           };
                 
         this.shader = new PIXI.Shader.from(shaderProgram.vert, shaderProgram.frag, this.uniforms);
@@ -48,11 +51,15 @@ class RaySource {
         this.pos.x = x;
         this.pos.y = y;
 
-        this.rays = [];   
+        this.rays = []; 
+        
+     
 
         this.uniforms = {
             dimensions:    [window.innerWidth, window.innerHeight],
-            position: [x, y] 
+            // dimensions: [this.renderer.width, this.renderer.height],
+            position: [x, y],
+            time: Math.random()
           };
 
         this.shader = new PIXI.Shader.from(this.shaderProgram.vert, this.shaderProgram.frag, this.uniforms);

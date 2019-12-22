@@ -28,6 +28,8 @@ class myLoader {
 
        this.tileset = this.loadTiles();
 
+       this.torchFrames = this.loadTorch();
+
        this.doneLoading = true;
 
        // this.checkLoad();
@@ -100,6 +102,16 @@ class myLoader {
                                   ['climb', climbFrames]]);
         return frameMap;
     }
+
+    loadTorch(){
+        let frames = [];
+        for ( let i = 1; i < 10; i++){
+            const val = i;
+            frames.push(PIXI.Texture.from(`torch (${val}).png`));
+        }
+        return frames;
+    }
+
     loadTiles(){
         let tileSize = 150;
         let sprites = []

@@ -3,7 +3,7 @@ import {Boundary} from './terrain.js'
 import {PointLight} from './PointLight'
 
 class MazeMap{
-    constructor(w,h,tileSize, numLights, shaderProgram, lightRenderer, tileset){
+    constructor(w,h,tileSize, numLights, shaderProgram, lightRenderer, tileset, torchFrames){
         this.w = w;
         this.h = h;
         this.tileSize = tileSize;
@@ -18,6 +18,10 @@ class MazeMap{
         this.vertices = new Set();
           
         let freeCells = [];
+        
+        // light animation sprites
+        this.torchContainer = new PIXI.Container();
+        this.torchFrames = torchFrames;
 
         // callback function for maze creation
         this.ellerMaze.create( (x, y, value) => {
@@ -75,6 +79,7 @@ class MazeMap{
                 
                 // push vertices to set of vertices
                 let verts = newTile.Collider.vertices;
+                
                 verts.forEach( (vertex) => {
                     this.vertices.add(vertex);
                 })
@@ -96,14 +101,18 @@ class MazeMap{
                 let x = parseInt(parts[0]);
                 let y = parseInt(parts[1]);
 
-                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, shaderProgram, lightRenderer))
+                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, shaderProgram, lightRenderer, this.torchFrames))
             }
         }
+
+        this.lights.forEach( (light) =>{
+            this.torchContainer.addChild(light.torch.animation)
+        })
     }
 }
 
 class CellularMap extends MazeMap{
-    constructor(w,h,tileSize, numLights, shaderProgram, lightRenderer, tileset){
+    constructor(w,h,tileSize, numLights, shaderProgram, lightRenderer, tileset, torchFrames){
         super(0,0,0,shaderProgram, lightRenderer, tileset);
         this.w = w;
         this.h = h;
@@ -127,6 +136,10 @@ class CellularMap extends MazeMap{
         this.tileContainer = new PIXI.Container();
         this.backgroundContainer = new PIXI.Container();
         this.midContainer = new PIXI.Container();
+
+        // light animation sprites
+        this.torchContainer = new PIXI.Container();
+        this.torchFrames = torchFrames;
         
         // holds cells with no walls
         let freeCells = [];

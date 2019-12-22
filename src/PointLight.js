@@ -5,7 +5,7 @@ import {RaySource} from './raySource.js';
 
 class PointLight {
 
-  constructor(x,y, castSegments, endpoints, shaderProgram, baseRenderer) {
+  constructor(x,y, castSegments, endpoints, shaderProgram, baseRenderer, torchFrames) {
     this.pos = Matter.Vector.create(x,y);
     this.castSegments = castSegments;
 
@@ -16,6 +16,8 @@ class PointLight {
     this.visionSource.auxLook();
     this.lightContainer = new PIXI.Container();
     this.baseRenderer = baseRenderer;
+
+    this.torch = new TorchAnimation(x,y,torchFrames);
   }
 
   update(timescale) {
@@ -28,6 +30,17 @@ class PointLight {
       this.lightContainer.addChild(this.visionSource.tris[i]);
     }
     this.visionSource.show(this.baseRenderer);
+  }
+}
+
+class TorchAnimation {
+  constructor(x,y, frames){
+    this.animation = new PIXI.AnimatedSprite(frames);
+    this.animation.position.set(x,y);
+    this.animation.anchor.set(0.5);
+    this.animation.scale.set(1.5,1.5);
+    this.animation.animationSpeed = 0.2;
+    this.animation.gotoAndPlay(Math.random() * 9);
   }
 }
 

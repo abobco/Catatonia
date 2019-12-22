@@ -1,0 +1,15 @@
+{
+    "short_name": "Catatonia",
+    "name": "Catatonia roguelike",
+    "icons": [
+      {
+        "src": "/Home_Icon.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ],
+    "start_url": "/index.html",
+    "display": "standalone",
+    "orientation": "landscape"
+  }
+  
