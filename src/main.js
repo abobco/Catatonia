@@ -42,40 +42,35 @@ import {MyTimer} from './myTimer.js'
 
 // Aliases
   // pixi.js 
-  let Application = PIXI.Application;
-
+let Application = PIXI.Application;
   // matter.js
-  let Engine = Matter.Engine,
-      World = Matter.World,
-      Events = Matter.Events;
+let Engine = Matter.Engine,
+    World = Matter.World,
+    Events = Matter.Events;
 
-// Pixi application object
+// pixi application object
 let app;
 
-// Player Object
+// player Object
 let catPlayer;
 let collisionTimer = new MyTimer();
 
-// Input
-  // Joystick object
-  let customJoystick;
-  // Keyboard Controller
-  let KBInput;
+// joystick input
+let customJoystick;
+// keyboard input
+let KBInput;
 
-// Renderers
-  // Geometry
-  let playerColliderRenderer = new PIXI.Graphics(),
-      lightBulbs = new PIXI.Graphics(); // geometry renderer
+// physics debugging renderers
+let playerColliderRenderer = new PIXI.Graphics(),
+    lightBulbs = new PIXI.Graphics(); // geometry renderer
 
-// Physics Engine
-  // matterjs engine
-  let catEngine = Engine.create(),
-      catWorld = catEngine.world;
-  let prevDelta;
-  let UpdateIncrement = 0;
+// physics Engine
+let catEngine = Engine.create(),
+    catWorld = catEngine.world;
+let UpdateIncrement = 0;
 
-// procedural maze
-let myMaze;
+// procedurally generated map
+let tileMap;
 
 // for shadow masking
 let allLights = new PIXI.Container();
@@ -115,7 +110,7 @@ function setup() {
   app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
   
   // draw the static light
-  myMaze.lights.forEach( (light) => {
+  tileMap.lights.forEach( (light) => {
     light.update(app.ticker.speed);
   });
 
@@ -131,12 +126,6 @@ function setup() {
 
 // Should update every 16.666 ms
 function gameLoop(delta){// delta is time in ms
-  //console.log(app.ticker.deltaMS)
-  let correction = app.ticker.deltaMS / prevDelta;
-  //console.log(correction);
-  prevDelta = app.ticker.deltaMS;
-
-
   // update physics bodies
   // correct for frame rates other than 60 fps
   UpdateIncrement += app.ticker.deltaMS;
@@ -147,7 +136,6 @@ function gameLoop(delta){// delta is time in ms
     UpdateIncrement -= 16.666
   }
     
-
   // Move stage origin to simulate camera movement
   if (catPlayer.cameraSnapped){
     app.stage.pivot.copyFrom(catPlayer.position);
@@ -156,9 +144,9 @@ function gameLoop(delta){// delta is time in ms
     app.stage.pivot.x += catPlayer.cameraMovement.x;
     app.stage.pivot.y += catPlayer.cameraMovement.y;
   }
-  myMaze.parallaxScroll(app.stage.pivot, 1.2, 1.2);
+  tileMap.parallaxScroll(app.stage.pivot, 1.2, 1.2);
 
-  myMaze.lights.forEach( (light) => {
+  tileMap.lights.forEach( (light) => {
     light.lightContainer.children.forEach( ( mesh ) => {
       mesh.shader.uniforms.time += 0.00003;
     });
@@ -283,19 +271,19 @@ function collisionEventSetup() {
 // Generate game map, player object and
 function worldInit() {
   // Init rot.js Eller maze
-  // myMaze = new MazeMap(15,15, 150, customLoader.lightShader, lightBulbs);
+  // tileMap = new MazeMap(15,15, 150, customLoader.lightShader, lightBulbs);
   // rot.js cellular automata map
-  myMaze = new CellularMap(25,25, 150, 6, customLoader.lightShader, lightBulbs, customLoader.tileset, customLoader.torchFrames);
+  tileMap = new CellularMap(25,25, 150, 6, customLoader.lightShader, lightBulbs, customLoader.tileset, customLoader.torchFrames);
 
   // Contains player animations, physics bodies, flags, behavior functionsxc
-  let playerPos = myMaze.playerSpawn
+  let playerPos = tileMap.playerSpawn
   catPlayer = new Player(playerPos, customLoader.catFrameMap, playerColliderRenderer, app.ticker.maxFPS);
 
   // Add player's rigidbody to matterjs world
   World.add(catWorld, catPlayer.body);
   
   // Add tile colliders to matterjs engine
-  myMaze.terrain.forEach(function(element) {
+  tileMap.terrain.forEach(function(element) {
       World.add(catWorld, element.Collider);
       if ( element.walkBox)
         World.add(catWorld, element.walkBox);
@@ -317,7 +305,7 @@ function onWindowResize() {
   // Lock the camera to the cat's position 
   app.stage.position.set(app.screen.width/2, app.screen.height/2);﻿﻿
     
-   myMaze.lights.forEach( ( light ) => {
+   tileMap.lights.forEach( ( light ) => {
      light.update(app.ticker.speed);
      app.stage.addChild(light.lightContainer);
    });
@@ -344,29 +332,29 @@ function preventScroll() {
 // works like a stack, last element added = top graphics layer
 function initLayers() {
   // tiling sprites
-  // myMaze.backgroundContainer.filters = [new PixelateFilter(6)];
-  app.stage.addChild(myMaze.backgroundContainer);
-  app.stage.addChild(myMaze.midContainer);
-  app.stage.addChild(myMaze.torchContainer);
+  // tileMap.backgroundContainer.filters = [new PixelateFilter(6)];
+  app.stage.addChild(tileMap.backgroundContainer);
+  app.stage.addChild(tileMap.midContainer);
+  app.stage.addChild(tileMap.torchContainer);
 
     // Cat Animations
     catPlayer.animations.forEach(function(value, key){
       app.stage.addChild(value);  // add all animations to world
   });
 
-  app.stage.addChild(myMaze.tileContainer);
-  app.stage.addChild(myMaze.featureContainer);
+  app.stage.addChild(tileMap.tileContainer);
+  app.stage.addChild(tileMap.featureContainer);
 
   // light renderers
   app.stage.addChild(lightBulbs);
-  myMaze.lights.forEach( (light) => {
+  tileMap.lights.forEach( (light) => {
     allLights.addChild(light.lightContainer);
   });
   
   app.stage.addChild(allLights);
   
   // makes a mask for shadows
-  let shadowMap = new ShadowMap(myMaze.lights, myMaze, app.renderer);
+  let shadowMap = new ShadowMap(tileMap.lights, tileMap, app.renderer);
 
   app.stage.addChild(shadowMap.focus);
   app.stage.addChild(shadowMap.mesh);
