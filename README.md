@@ -14,9 +14,9 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
  ```
  Then, host the `dist` folder with an http server and navigate to the `index.html` file in a browser to test your local build of the game. 
  
- If you don't know how to do this, I recommend using the [http-server](https://github.com/http-party/http-server) node package. Install it with:
+ If you don't know how to do this, I recommend using the [http-server](https://github.com/http-party/http-server) node package. Install it globally with:
  ```
- npm install http-server
+ npm install http-server -g
  ```
 Then, open a new terminal in `path/to/your/clone/dist` and run the command:
 ```
