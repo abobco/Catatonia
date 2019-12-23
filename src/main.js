@@ -71,6 +71,8 @@ let collisionTimer = new MyTimer();
   // matterjs engine
   let catEngine = Engine.create(),
       catWorld = catEngine.world;
+  let prevDelta;
+  let UpdateIncrement = 0;
 
 // procedural maze
 let myMaze;
@@ -120,21 +122,30 @@ function setup() {
   // Add objects to pixi stage
   initLayers();
 
-  // lock frame rate at 60 fps max
-  app.ticker.maxFPS = 60;
   app.stage.scale.set(0.5)
 
   // Start the game loop 
   app.ticker.add(delta => gameLoop(delta));   
+  prevDelta = app.ticker.deltaMS;
 }
 
-// Should update every 16.66 ms
+// Should update every 16.666 ms
 function gameLoop(delta){// delta is time in ms
+  //console.log(app.ticker.deltaMS)
+  let correction = app.ticker.deltaMS / prevDelta;
+  //console.log(correction);
+  prevDelta = app.ticker.deltaMS;
   // react to player input
-  catPlayer.update(app.ticker.speed);
+  catPlayer.update(app.ticker.speed, delta, app.ticker.deltaMS);
 
   // update physics bodies
-  Engine.update(catEngine, app.ticker.deltaMS)
+  // correct for frame rates other than 60 fps
+  UpdateIncrement += app.ticker.deltaMS;
+  while ( UpdateIncrement > 16.666 ){
+    Engine.update(catEngine)
+    UpdateIncrement -= 16.666
+  }
+    
 
   // Move stage origin to simulate camera movement
   if (catPlayer.cameraSnapped){
@@ -148,7 +159,7 @@ function gameLoop(delta){// delta is time in ms
 
   myMaze.lights.forEach( (light) => {
     light.lightContainer.children.forEach( ( mesh ) => {
-      mesh.shader.uniforms.time += 0.00005;
+      mesh.shader.uniforms.time += 0.00003;
     });
   });
 }
@@ -174,6 +185,9 @@ function InitPixi() {
   app.renderer.view.style.display = "block";
   // Add the canvas to the document
   document.getElementById('myCanvas').appendChild(app.view);
+
+    // lock frame rate 
+    app.ticker.maxFPS =60;
 }
 
 // Setup Collision Events
@@ -274,7 +288,7 @@ function worldInit() {
 
   // Contains player animations, physics bodies, flags, behavior functionsxc
   let playerPos = myMaze.playerSpawn
-  catPlayer = new Player(playerPos, customLoader.catFrameMap, playerColliderRenderer);
+  catPlayer = new Player(playerPos, customLoader.catFrameMap, playerColliderRenderer, app.ticker.maxFPS);
 
   // Add player's rigidbody to matterjs world
   World.add(catWorld, catPlayer.body);

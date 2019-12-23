@@ -4,12 +4,15 @@ import {Boundary} from "./terrain.js";
 import {MyTimer} from "./myTimer.js";
 
 class Player {
-    constructor(position, frameMap, debugRenderer) {
+    constructor(position, frameMap, debugRenderer, frameRate) {
         // physics variables
         this.position = new PIXI.Point(position.x, position.y);
         this.scale = 3.5;
-        this.maxVel = 4;
+        this.maxVel = 5;
         this.jumpVel = -25;
+        // make the jump go the same height for all frame rates
+       // this.jumpVel += this.jumpVel -  this.jumpVel*(frameRate/60);
+        this.unScaledJumpVel = -25
         this.xVel = 0;
 
         // action flags
@@ -64,7 +67,12 @@ class Player {
                     }); 
     }
 
-    update(timescale){
+    update(timescale, delta, deltaMS){
+        // scale jump speed to delta time
+       // console.log(deltaMS);
+      // this.jumpVel = this.unScaledJumpVel*deltaMS/16;
+       // this.jumpVel = -25 + 25 - 25*
+
         // Apply velocity from user inputs        
         if ( this.currentAnimation == "climb"){
             if (!this.animations.get("climb").playing) {
@@ -96,7 +104,10 @@ class Player {
             
         }
         else // apply velocity from input
+        {
             Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel*timescale, this.body.velocity.y) );
+        }
+
         // Move the sprites to follow their physicis body
         this.setPosition(this.body.position.x, this.body.position.y);
 
@@ -324,6 +335,7 @@ class Player {
                         // jump from ground
                         if ( this.isGrounded  ) {
                             Matter.Body.setVelocity(this.body, Matter.Vector.create(this.xVel, this.jumpVel) );
+                            //Matter.Body.applyForce(this.body, {x: this.position.x, y: this.position.y}, {x: 0.0, y: -0.1})
                             this.setAnimation("jump", 0, true);
                             this.isGrounded = false;
                             this.jumpInput = true;
