@@ -26,7 +26,8 @@ class Player {
 
         // collision event timer
         this.collisionTimer = new MyTimer();
-        this.lateJumpDuration = 300; // how many ms to give the player for a late jump when falling off a ledge
+        this.lateJumpDuration = 225; // how many ms to give the player for a late jump when falling off a ledge
+        // console.log(this.lateJumpDuration);
 
         // physics debugging stuff
         this.showDebug = false;
@@ -105,7 +106,7 @@ class Player {
         }
         else // apply velocity from input
         {
-            Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel*timescale, this.body.velocity.y) );
+            Matter.Body.setVelocity(this.body, new Matter.Vector.create(this.xVel, this.body.velocity.y) );
         }
 
         // Move the sprites to follow their physicis body
