@@ -135,13 +135,14 @@ function gameLoop(delta){// delta is time in ms
   let correction = app.ticker.deltaMS / prevDelta;
   //console.log(correction);
   prevDelta = app.ticker.deltaMS;
-  // react to player input
-  catPlayer.update(app.ticker.speed, delta, app.ticker.deltaMS);
+
 
   // update physics bodies
   // correct for frame rates other than 60 fps
   UpdateIncrement += app.ticker.deltaMS;
-  while ( UpdateIncrement > 16.666 ){
+  while ( UpdateIncrement >= 16.666 ){
+    // react to player input
+    catPlayer.update(app.ticker.speed, delta, app.ticker.deltaMS);
     Engine.update(catEngine)
     UpdateIncrement -= 16.666
   }
@@ -187,7 +188,7 @@ function InitPixi() {
   document.getElementById('myCanvas').appendChild(app.view);
 
     // lock frame rate 
-    app.ticker.maxFPS =60;
+   // app.ticker.maxFPS =30;
 }
 
 // Setup Collision Events
