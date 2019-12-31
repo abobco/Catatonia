@@ -1,6 +1,6 @@
 # Catatonia
  
-Work in progress 2D stealth/platformer browser game. Made with [node.js](https://nodejs.org/en/).
+Work in progress 2D roguelike platformer browser game. Made with [node.js](https://nodejs.org/en/).
 
 Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
 
