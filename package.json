@@ -10,6 +10,7 @@
     "matter-js": "^0.14.2",
     "nipplejs": "^0.8.1",
     "npm": "^6.13.4",
+    "open-simplex-noise": "^2.2.0",
     "pixi.js": "^5.2.0",
     "rot-js": "^2.1.1",
     "webpack": "^4.41.2",

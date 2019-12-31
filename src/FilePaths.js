@@ -4,6 +4,7 @@ class FilePaths {
             // sprites
             "sprites/catWalk1.json",
             "sprites/catStop.json",
+            "sprites/catIdle.json",
             "sprites/catJump.json",
             "sprites/wallSlide.json",
             "sprites/catHang.json",
@@ -12,6 +13,7 @@ class FilePaths {
             // "sprites/caveTiles.json",
             "sprites/tileSet2.json",
             "sprites/torchSprites.json",
+            "sprites/catFall.json",
 
             // shaders
             "shaders/lightFilterVert.GLSL",

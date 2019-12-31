@@ -10,11 +10,11 @@ class MyTimer{
     }
 
     start(){
-        if ( ! this.isRunning){
+       // if ( ! this.isRunning){
             this.isRunning = true;
             let clock = new Date();
             this.startTime = clock.getTime();
-        }
+      //  }
     }
 
     stop(){

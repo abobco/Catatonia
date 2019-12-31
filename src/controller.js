@@ -28,9 +28,9 @@ class Controller{
                 catPlayer.setAnimation("walk");
               catPlayer.setFlip("right");
               catPlayer.inSlowDown = false;
-              if (catPlayer.cameraSnapped)
-                catPlayer.xVel = catPlayer.maxVel;
+              catPlayer.xVel = catPlayer.maxVel;
             }
+            catPlayer.lastInput = "right";
           });
           // walk left
           nipple.on('dir:left', function (evt) { 
@@ -39,9 +39,9 @@ class Controller{
                 catPlayer.setAnimation("walk");
               catPlayer.setFlip("left");
               catPlayer.inSlowDown = false;
-              if (catPlayer.cameraSnapped)
-                catPlayer.xVel = -catPlayer.maxVel;
+              catPlayer.xVel = -catPlayer.maxVel;
             }
+            catPlayer.lastInput = "left";
           });
           // jump 
           nipple.on('dir:up', function(evt) {
@@ -78,7 +78,7 @@ class Controller{
             }
           });
           nipple.on('end', function(evt) {
-            
+              catPlayer.lastInput = "end";
               if ( catPlayer.isGrounded ) {
                 catPlayer.setAnimation("stop");
                 catPlayer.xVel = 0;
@@ -93,7 +93,7 @@ class Controller{
 } 
 
 // using old syntax for now
-var KBController = function(catPlayer, catBody, gameTicker) {
+var KBController = function(catPlayer, catBody, gameTicker, camera) {
     // keyboard controls
     this.rightDown = false;
     this.leftDown = false;
@@ -128,6 +128,9 @@ var KBController = function(catPlayer, catBody, gameTicker) {
         // 'x' key
         else if (e.keyCode == '88') {
           catPlayer.showDebug  ^= true;
+        }
+        else if (e.keyCode == '70') {
+          camera.addTrauma();
         }
         catPlayer.handleEvent(myEvent);
     }

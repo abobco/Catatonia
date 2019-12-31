@@ -63,10 +63,12 @@ class myLoader {
         // Init the anmiation objects
         let walkFrames = [],
             stopFrames = [],
+            idleFrames = [],
             jumpFrames = [],
             slideFrames = [],
             hangFrames = [],
-            climbFrames = [];
+            climbFrames = [],
+            fallFrames = [];
         // load all them animation frames
         // frame counts are hardcoded cuz idk how to get that info from the loader
         for ( let i = 1; i < 11; i++ ) {
@@ -93,13 +95,23 @@ class myLoader {
           const val = i;
           climbFrames.push(PIXI.Texture.from(`climb00${val}.png`));
         }
+        for ( let i = 1; i < 7; i++) {
+          const val = i;
+          fallFrames.push(PIXI.Texture.from(`fall (${val}).png`));
+        }
+        for ( let i = 1; i < 10; i++) {
+            const val = i;
+            idleFrames.push(PIXI.Texture.from(`idle (${val}).png`));
+          }
     
         let frameMap = new Map ([['walk', walkFrames],
                                   ['stop', stopFrames],
+                                  ['idle', idleFrames],
                                   ['jump', jumpFrames],
                                   ['slide',slideFrames],
                                   ['hang', hangFrames],
-                                  ['climb', climbFrames]]);
+                                  ['climb', climbFrames],
+                                  ['fall', fallFrames]]);
         return frameMap;
     }
 

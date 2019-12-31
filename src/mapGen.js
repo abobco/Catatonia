@@ -3,7 +3,7 @@ import {Boundary} from './terrain.js'
 import {PointLight} from './PointLight'
 
 class MazeMap{
-    constructor(w,h,tileSize, numLights, shaderProgram, lightRenderer, tileset, torchFrames){
+    constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames){
         this.w = w;
         this.h = h;
         this.tileSize = tileSize;
@@ -39,7 +39,7 @@ class MazeMap{
         this.addWalls();
 
         // make PointLight objects 
-        this.addLights(shaderProgram, lightRenderer);
+        this.addLights(shaderProgram);
     }
 
     generateLights(freeCells, numLights){
@@ -94,14 +94,14 @@ class MazeMap{
         }
     }
 
-    addLights(shaderProgram, lightRenderer){
+    addLights(shaderProgram){
         for (let key in this.tileMap){
             if (this.tileMap[key] == '*'){
                 let parts = key.split(",");
                 let x = parseInt(parts[0]);
                 let y = parseInt(parts[1]);
 
-                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, shaderProgram, lightRenderer, this.torchFrames))
+                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, shaderProgram, this.torchFrames))
             }
         }
 
@@ -112,8 +112,8 @@ class MazeMap{
 }
 
 class CellularMap extends MazeMap{
-    constructor(w,h,tileSize, numLights, shaderProgram, lightRenderer, tileset, torchFrames){
-        super(0,0,0,shaderProgram, lightRenderer, tileset);
+    constructor(w,h,tileSize, numLights, shaderProgram,  tileset, torchFrames){
+        super(0,0,0,shaderProgram, tileset);
         this.w = w;
         this.h = h;
         this.tileSize = tileSize;
@@ -185,7 +185,7 @@ class CellularMap extends MazeMap{
         console.log("ray cast vertices: ", this.vertices.size);
 
         // make PointLight objects 
-        this.addLights(shaderProgram, lightRenderer);
+        this.addLights(shaderProgram);
 
         let index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
         let key = freeCells.splice(index, 1)[0];

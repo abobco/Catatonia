@@ -4,7 +4,10 @@ import {Boundary} from "./terrain.js";
 import {MyTimer} from "./myTimer.js";
 
 class Player {
-    constructor(position, frameMap, debugRenderer, frameRate) {
+    constructor(position, frameMap) {
+        // store most recent input for ledge climbing logic
+        this.lastInput = null;
+
         // physics variables
         this.position = new PIXI.Point(position.x, position.y);
         this.scale = 3.5;
@@ -26,12 +29,12 @@ class Player {
 
         // collision event timer
         this.collisionTimer = new MyTimer();
+        this.fallDamageTimer = new MyTimer();
         this.lateJumpDuration = 225; // how many ms to give the player for a late jump when falling off a ledge
+        this.fallDamageMS = 1500;
+        this.idleFrameCount = 0;
+        this.maxIdleFrames = 60;
         // console.log(this.lateJumpDuration);
-
-        // physics debugging stuff
-        this.showDebug = false;
-        this.debugRenderer = debugRenderer;
 
         // help with ledge climbing
         this.climbTranslation = new PIXI.Point(0,0);
@@ -68,29 +71,42 @@ class Player {
                     }); 
     }
 
-    update(timescale, delta, deltaMS){
-        // scale jump speed to delta time
-       // console.log(deltaMS);
-      // this.jumpVel = this.unScaledJumpVel*deltaMS/16;
-       // this.jumpVel = -25 + 25 - 25*
-
-        // Apply velocity from user inputs        
+    update(timescale, delta, deltaMS){  
+        // transition into looping falling animation
+        if ( this.currentAnimation == "stop" && !this.animations.get("stop").playing){
+            this.setAnimation("idle");
+        }
+        else if ( this.currentAnimation == 'idle' && !this.animations.get("idle").playing){
+            this.idleFrameCount++;
+            if ( this.idleFrameCount > this.maxIdleFrames ){
+                this.idleFrameCount = 0;
+                this.setAnimation("idle", 0, true);
+                this.maxIdleFrames = Math.random() * 200;
+            }
+        }    
+    
+        // transition from end of climb
         if ( this.currentAnimation == "climb"){
-            if (!this.animations.get("climb").playing) {
-
-                
+            if (!this.animations.get("climb").playing) {            
                 Matter.Body.setPosition(this.body, new Matter.Vector.create(this.climbTranslation.x, this.climbTranslation.y));
                 Matter.Body.setVelocity(this.body, new Matter.Vector.create(0,0));
-                if (this.xVel == this.maxVel){
-                    this.setAnimation("walk");
-                    this.inSlowDown = false;
-                }     
-                else {
-                    this.setAnimation("stop");
-                    this.inSlowDown = true;
-                }
-                    
-                    
+
+                switch (this.lastInput){
+                    case "right":
+                        this.setAnimation("walk");
+                        this.xVel = this.maxVel;
+                        this.inSlowDown = false;
+                        break;
+                    case "left":
+                        this.setAnimation("walk");
+                        this.xVel = -this.maxVel;
+                        this.inSlowDown = false;
+                        break;
+                    default:
+                        this.setAnimation("stop");
+                        this.inSlowDown = true;
+                        break;
+                }                
                 this.lockCamera();
 
                 if (!this.bouncyBug)
@@ -118,13 +134,13 @@ class Player {
         }
         
         // change animation speed with timescale
-        this.animations.forEach(function (sprite) {
-            if (timescale == 0.5)
-                sprite.animationSpeed = 0.1;
-            else
-                sprite.animationSpeed = 0.2;
-        })
-
+        // this.animations.forEach(function (sprite) {
+        //     if (timescale == 0.5)
+        //         sprite.animationSpeed = 0.1;
+        //     else
+        //         sprite.animationSpeed = 0.2;
+        // })
+        // late jummp system
         let fallAnimationTime = (this.lateJumpDuration/5) / timescale;
         let waitTime;
         if (this.inSlide){
@@ -136,14 +152,15 @@ class Player {
 
         if ( !this.isHanging && this.collisionTimer.isRunning && this.collisionTimer.getElapsedTime()  > fallAnimationTime ){
             this.setAnimation("jump", 5);
-        }
-        
+        }     
         if ( !this.isHanging && this.collisionTimer.isRunning && this.collisionTimer.getElapsedTime()  > waitTime ){
             this.collisionTimer.stop();
             this.isGrounded = false;
             this.inSlide = false;
             this.jumpInput = false;           
         }
+
+
     }
 
     // Move all sprites
@@ -228,10 +245,12 @@ class Player {
         
         let walkAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("walk"))),
             stopAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("stop"))),
+            idleAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("idle"))),
             jumpAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("jump"))),
             slideAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("slide"))),
             hangAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("hang"))),
-            climbAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("climb")));
+            climbAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("climb"))),
+            fallAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("fall")));
         
         // setup the unique properties of each animation
         slideAnim.anchor.y = 0.3;
@@ -240,27 +259,35 @@ class Player {
         climbAnim.anchor.y = 0.65;
         climbAnim.anchor.x = 0.85;
 
+        idleAnim.animationSpeed = 0.15;
+
         stopAnim.loop = false;  // the game currently starts with the cat falling
         jumpAnim.loop = false;
         slideAnim.loop = false;
         hangAnim.loop = false;
         climbAnim.loop = false;
+        idleAnim.loop = false;
         jumpAnim.play();
         walkAnim.visible = false;
         stopAnim.visible = false;
         slideAnim.visible = false;
         hangAnim.visible = false;
         climbAnim.visible = false;
+        fallAnim.visible = false;
+        idleAnim.visible = false;
+        //jumpAnim.visible = false;
 
         // animation event methods
        // hangAnim.onComplete = this.lockCamera.apply(this);
 
         let animationMap = new Map([['walk', walkAnim],
                                     ['stop', stopAnim],
+                                    ['idle', idleAnim],
                                     ['jump', jumpAnim],
                                     ['slide',slideAnim],
                                     ['hang', hangAnim],
-                                    ['climb', climbAnim]]);
+                                    ['climb', climbAnim],
+                                    ['fall', fallAnim]]);
         return animationMap;
 
     }
@@ -372,6 +399,7 @@ class Player {
                         this.setFlip("right");
                         this.inSlowDown = false;
                         this.xVel = this.maxVel;
+                        this.lastInput = "right";
                         break;
                     case "left":
                         if (this.isGrounded)
@@ -379,6 +407,7 @@ class Player {
                         this.setFlip("left");
                         this.inSlowDown = false;
                         this.xVel = -this.maxVel;
+                        this.lastInput = "left"
                         break;
                 }
                 break;
@@ -390,6 +419,7 @@ class Player {
                     case "down":
                         break;
                     case "right":
+                        this.lastInput = "end"
                         if ( this.isGrounded ) {
                             this.setAnimation("stop");
                             this.xVel = 0;
@@ -397,7 +427,9 @@ class Player {
                         else {
                             this.inSlowDown = true;
                         }
+                        break;
                     case "left":
+                        this.lastInput = "end";
                         if ( this.isGrounded ) {
                             this.setAnimation("stop");
                             this.xVel = 0;
@@ -405,12 +437,11 @@ class Player {
                         else {
                             this.inSlowDown = true;
                         }
+                        break;
                 }
                 break;
         }
     }
-
-
 };
 
 export { Player };
