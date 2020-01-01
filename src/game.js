@@ -27,7 +27,7 @@ class Game {
 
         // Contains player animations, physics bodies, flags, behavior functionsxc
         let playerPos = this.tileMap.playerSpawn;
-        this.player = new Player(playerPos, loader.catFrameMap);
+        this.player = new Player(playerPos, loader.catAnimations);
 
         // camera movement control
         this.camera = new MyCamera(playerPos);
@@ -84,17 +84,14 @@ class Game {
             this.player.update(this.app.ticker.speed, delta, this.app.ticker.deltaMS);
             Engine.update(this.engine);
             if ( this.player.cameraSnapped)
-                this.camera.update(this.player.position);
+                this.camera.update(this.player.position, this.app.ticker.speed);
             else
-                this.camera.update(this.player.climbTranslation);
+                this.camera.update(this.player.climbTranslation, this.app.ticker.speed);
 
             // increase gravity if player is falling
             if (!this.player.isGrounded && !this.player.inSlide && !this.player.isHanging && this.player.body.velocity.y > 0){
-                const fallTime = this.player.fallDamageTimer.getElapsedTime();
-                if ( this.world.gravity.y < 2.5 )
-                    this.world.gravity.y += 0.02
-                if (!this.player.fallDamageTimer.isRunning)
-                    this.player.fallDamageTimer.start();
+                if ( this.world.gravity.y < 3.5 )
+                  this.world.gravity.y += 0.015;
             }
             else {
                 this.world.gravity.y = 1;
@@ -175,11 +172,9 @@ class Game {
               // if collding with a ledge climb trigger collider
               if ( otherBody.isEdgeBox) {
                 this.world.gravity.y = 1;
-                const fallTime = this.player.fallDamageTimer.getElapsedTime();
-                //console.log(fallTime);
-                if (fallTime > this.player.fallDamageMS) 
-                  this.camera.addTrauma(fallTime / 3000);
-                  this.player.fallDamageTimer.stop();
+                const impactVel = this.player.prevVel;
+                if (impactVel > this.player.fallDamageVel) 
+                  this.camera.addTrauma(impactVel / (this.player.fallDamageVel * 2));
                 this.player.startLedgeClimb(otherBody.position, otherBody.isRight)
                   return; // skip the rest of the collision checks for this frame; the player will be locked in place
               }
@@ -189,14 +184,13 @@ class Game {
             }
             else  {// if physics collision
               this.player.collisionTimer.stop();
-              // this.player.fallDamageTimer.stop();
               catCollision = true;
             }
                 
           }
           // cat is sliding on a wall case
           if (!inWalkBox && catCollision && !this.player.isGrounded ) {
-            this.player.fallDamageTimer.start();
+            this.player.wallJumpTimer.stop();
             this.player.xVel = 0;
             this.player.inSlide = true;
             if ( this.player.flip == "right"){
@@ -217,11 +211,10 @@ class Game {
           // if landing   
           else if ( !this.player.isGrounded && inWalkBox && catCollision )  {  
             this.world.gravity.y = 1;
-            const fallTime = this.player.fallDamageTimer.getElapsedTime();
-            //console.log(fallTime);
-            if (fallTime > this.player.fallDamageMS) 
-              this.camera.addTrauma(fallTime / 3000);
-            this.player.fallDamageTimer.stop();
+            const impactVel = this.player.prevVel;
+            if (impactVel > this.player.fallDamageVel) 
+              this.camera.addTrauma(impactVel / (this.player.fallDamageVel * 2));
+            this.player.prevVel = 0.0;
             this.player.isGrounded = true;
             this.player.inSlide = false;
             if ( this.player.xVel == 0 || this.player.inSlowDown )

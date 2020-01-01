@@ -1,6 +1,6 @@
 {"frames": {
 
-"catHang000.png":
+"hang (1).png":
 {
 	"frame": {"x":0,"y":0,"w":18,"h":24},
 	"rotated": false,
@@ -8,7 +8,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":18,"h":24},
 	"sourceSize": {"w":18,"h":24}
 },
-"catHang001.png":
+"hang (2).png":
 {
 	"frame": {"x":18,"y":0,"w":18,"h":24},
 	"rotated": false,
@@ -16,7 +16,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":18,"h":24},
 	"sourceSize": {"w":18,"h":24}
 },
-"catHang002.png":
+"hang (3).png":
 {
 	"frame": {"x":36,"y":0,"w":18,"h":24},
 	"rotated": false,
@@ -25,7 +25,7 @@
 	"sourceSize": {"w":18,"h":24}
 }},
 "animations": {
-	"catHang": ["catHang000.png","catHang001.png","catHang002.png"]
+	"catHang": ["hang (1).png","hang (2).png","hang (3).png"]
 },
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",

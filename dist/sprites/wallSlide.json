@@ -1,6 +1,6 @@
 {"frames": {
 
-"wallSlide000.png":
+"slide (1).png":
 {
 	"frame": {"x":0,"y":0,"w":16,"h":18},
 	"rotated": false,
@@ -8,7 +8,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":18},
 	"sourceSize": {"w":16,"h":18}
 },
-"wallSlide001.png":
+"slide (2).png":
 {
 	"frame": {"x":0,"y":18,"w":16,"h":18},
 	"rotated": false,
@@ -16,7 +16,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":18},
 	"sourceSize": {"w":16,"h":18}
 },
-"wallSlide002.png":
+"slide (3).png":
 {
 	"frame": {"x":0,"y":36,"w":16,"h":18},
 	"rotated": false,
@@ -24,7 +24,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":18},
 	"sourceSize": {"w":16,"h":18}
 },
-"wallSlide003.png":
+"slide (4).png":
 {
 	"frame": {"x":0,"y":54,"w":16,"h":18},
 	"rotated": false,
@@ -33,7 +33,7 @@
 	"sourceSize": {"w":16,"h":18}
 }},
 "animations": {
-	"wallSlide": ["wallSlide000.png","wallSlide001.png","wallSlide002.png","wallSlide003.png"]
+	"wallSlide": ["slide (1).png","slide (2).png","slide (3).png","slide (4).png"]
 },
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",

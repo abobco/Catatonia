@@ -57,6 +57,7 @@ class Controller{
               // jump from wall
               else if ( catPlayer.inSlide && catPlayer.cameraSnapped ) {
                 // if right side of cat is in contact with wall
+                catPlayer.wallJumpTimer.start();
                 if ( catPlayer.flip == "right" ) {
                   catPlayer.setFlip("left");
                   catPlayer.xVel = -catPlayer.maxVel * 1.5;

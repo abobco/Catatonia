@@ -7,7 +7,7 @@ class MyCamera {
         this.offset = new PIXI.Point(0.0,0.0);
         this.angleOffset = 0.0;
         this.maxOffset = 250;
-        this.maxAngleOffset = 25;
+        this.maxAngleOffset = 10;
         
         this.shake = 0.0;
         this.trauma = 0.0;
@@ -21,9 +21,10 @@ class MyCamera {
         this.noiseIncrement = 0;
     }
 
-    update(playerPosition){
-        this.noiseIncrement++;
-        this.trauma -= 0.015;
+    update(playerPosition, timescale){
+        this.noiseIncrement += timescale;
+        this.trauma -= 0.015 * timescale;
+        
         if ( this.trauma < 0)
             this.trauma = 0;
         this.shake = Math.pow(this.trauma, 2);
@@ -40,6 +41,7 @@ class MyCamera {
 
     addTrauma(trauma){
         this.trauma += trauma;
+        console.log("trauma += ", trauma);
     }
 
     randomShake(){

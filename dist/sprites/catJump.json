@@ -1,6 +1,6 @@
 {"frames": {
 
-"Jump000.png":
+"jump (1).png":
 {
 	"frame": {"x":0,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -8,7 +8,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":24},
 	"sourceSize": {"w":24,"h":24}
 },
-"Jump001.png":
+"jump (2).png":
 {
 	"frame": {"x":24,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -16,7 +16,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":24},
 	"sourceSize": {"w":24,"h":24}
 },
-"Jump002.png":
+"jump (3).png":
 {
 	"frame": {"x":48,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -24,7 +24,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":24},
 	"sourceSize": {"w":24,"h":24}
 },
-"Jump003.png":
+"jump (4).png":
 {
 	"frame": {"x":72,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -32,7 +32,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":24},
 	"sourceSize": {"w":24,"h":24}
 },
-"Jump004.png":
+"jump (5).png":
 {
 	"frame": {"x":96,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -40,7 +40,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":24},
 	"sourceSize": {"w":24,"h":24}
 },
-"Jump005.png":
+"jump (6).png":
 {
 	"frame": {"x":120,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -48,7 +48,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":24},
 	"sourceSize": {"w":24,"h":24}
 },
-"Jump006.png":
+"jump (7).png":
 {
 	"frame": {"x":144,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -56,7 +56,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":24},
 	"sourceSize": {"w":24,"h":24}
 },
-"Jump007.png":
+"jump (8).png":
 {
 	"frame": {"x":168,"y":0,"w":24,"h":24},
 	"rotated": false,
@@ -65,7 +65,7 @@
 	"sourceSize": {"w":24,"h":24}
 }},
 "animations": {
-	"Jump": ["Jump000.png","Jump001.png","Jump002.png","Jump003.png","Jump004.png","Jump005.png","Jump006.png","Jump007.png"]
+	"Jump": ["jump (1).png","jump (2).png","jump (3).png","jump (4).png","jump (5).png","jump (6).png","jump (7).png","jump (8).png"]
 },
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",

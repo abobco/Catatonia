@@ -1,6 +1,6 @@
 {"frames": {
 
-"stop000.png":
+"stop (1).png":
 {
 	"frame": {"x":0,"y":0,"w":24,"h":16},
 	"rotated": false,
@@ -8,7 +8,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
 	"sourceSize": {"w":24,"h":16}
 },
-"stop001.png":
+"stop (2).png":
 {
 	"frame": {"x":24,"y":0,"w":24,"h":16},
 	"rotated": false,
@@ -16,7 +16,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
 	"sourceSize": {"w":24,"h":16}
 },
-"stop002.png":
+"stop (3).png":
 {
 	"frame": {"x":48,"y":0,"w":24,"h":16},
 	"rotated": false,
@@ -24,7 +24,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
 	"sourceSize": {"w":24,"h":16}
 },
-"stop003.png":
+"stop (4).png":
 {
 	"frame": {"x":72,"y":0,"w":24,"h":16},
 	"rotated": false,
@@ -32,7 +32,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":24,"h":16},
 	"sourceSize": {"w":24,"h":16}
 },
-"stop004.png":
+"stop (5).png":
 {
 	"frame": {"x":96,"y":0,"w":24,"h":16},
 	"rotated": false,
@@ -41,7 +41,7 @@
 	"sourceSize": {"w":24,"h":16}
 }},
 "animations": {
-	"tile": ["stop000.png","stop001.png","stop002.png","stop003.png","stop004.png"]
+	"tile": ["stop (1).png","stop (2).png","stop (3).png","stop (4).png","stop (5).png"]
 },
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",

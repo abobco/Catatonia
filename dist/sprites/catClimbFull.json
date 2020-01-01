@@ -1,6 +1,6 @@
 {"frames": {
 
-"climb000.png":
+"climb (1).png":
 {
 	"frame": {"x":0,"y":0,"w":32,"h":48},
 	"rotated": false,
@@ -8,7 +8,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb001.png":
+"climb (2).png":
 {
 	"frame": {"x":0,"y":48,"w":32,"h":48},
 	"rotated": false,
@@ -16,7 +16,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb002.png":
+"climb (3).png":
 {
 	"frame": {"x":0,"y":96,"w":32,"h":48},
 	"rotated": false,
@@ -24,7 +24,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb003.png":
+"climb (4).png":
 {
 	"frame": {"x":0,"y":144,"w":32,"h":48},
 	"rotated": false,
@@ -32,7 +32,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb004.png":
+"climb (5).png":
 {
 	"frame": {"x":0,"y":192,"w":32,"h":48},
 	"rotated": false,
@@ -40,7 +40,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb005.png":
+"climb (6).png":
 {
 	"frame": {"x":0,"y":240,"w":32,"h":48},
 	"rotated": false,
@@ -48,7 +48,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb006.png":
+"climb (7).png":
 {
 	"frame": {"x":0,"y":288,"w":32,"h":48},
 	"rotated": false,
@@ -56,7 +56,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb007.png":
+"climb (8).png":
 {
 	"frame": {"x":0,"y":336,"w":32,"h":48},
 	"rotated": false,
@@ -64,7 +64,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":48},
 	"sourceSize": {"w":32,"h":48}
 },
-"climb008.png":
+"climb (9).png":
 {
 	"frame": {"x":0,"y":384,"w":32,"h":48},
 	"rotated": false,
@@ -73,7 +73,7 @@
 	"sourceSize": {"w":32,"h":48}
 }},
 "animations": {
-	"climb": ["climb000.png","climb001.png","climb002.png","climb003.png","climb004.png","climb005.png","climb006.png","climb007.png","climb008.png"]
+	"climb": ["climb (1).png","climb (2).png","climb (3).png","climb (4).png","climb (5).png","climb (6).png","climb (7).png","climb (8).png","climb (9).png"]
 },
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",

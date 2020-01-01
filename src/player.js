@@ -4,9 +4,11 @@ import {Boundary} from "./terrain.js";
 import {MyTimer} from "./myTimer.js";
 
 class Player {
-    constructor(position, frameMap) {
+    constructor(position, animationMap) {
         // store most recent input for ledge climbing logic
         this.lastInput = null;
+        this.prevTimeScale = 1.0;
+        this.prevVel = 0.0
 
         // physics variables
         this.position = new PIXI.Point(position.x, position.y);
@@ -29,9 +31,12 @@ class Player {
 
         // collision event timer
         this.collisionTimer = new MyTimer();
-        this.fallDamageTimer = new MyTimer();
+        this.wallJumpTimer = new MyTimer();
         this.lateJumpDuration = 225; // how many ms to give the player for a late jump when falling off a ledge
         this.fallDamageMS = 1500;
+        this.grappleMS = 125;   
+        // acceleration linearly increases from 1.0 to 2.5 over the first 75 updates of falling
+        this.fallDamageVel = 10; 
         this.idleFrameCount = 0;
         this.maxIdleFrames = 60;
         // console.log(this.lateJumpDuration);
@@ -44,7 +49,7 @@ class Player {
         this.flip = "left";
 
         // Key-value pairs of strings and animations
-        this.animations = this.animationsInit(frameMap);
+        this.animations = animationMap;
         this.currentAnimation = "none";
 
         // collider dimensions, set to the dimensions of the walk animation for now
@@ -72,7 +77,16 @@ class Player {
     }
 
     update(timescale, delta, deltaMS){  
-        // transition into looping falling animation
+        if ( !this.isGrounded && this.body.velocity.y > 1 ){
+            this.prevVel = this.body.velocity.y;
+        }
+        if ( this.wallJumpTimer.isRunning && this.wallJumpTimer.getElapsedTime() > this.grappleMS )  {
+            console.log( this.lastInput);
+            this.handleEvent({ type: "inputDown",
+                               direction: this.lastInput });
+            this.wallJumpTimer.stop();
+        }     
+
         if ( this.currentAnimation == "stop" && !this.animations.get("stop").playing){
             this.setAnimation("idle");
         }
@@ -134,12 +148,16 @@ class Player {
         }
         
         // change animation speed with timescale
-        // this.animations.forEach(function (sprite) {
-        //     if (timescale == 0.5)
-        //         sprite.animationSpeed = 0.1;
-        //     else
-        //         sprite.animationSpeed = 0.2;
-        // })
+        if (timescale != this.prevTimeScale){
+            this.animations.forEach(function (sprite) {
+                if (timescale == 0.5)
+                    sprite.animationSpeed *= 0.5;
+                else
+                    sprite.animationSpeed *= 2;
+            })
+            this.prevTimeScale = timescale;
+        }
+
         // late jummp system
         let fallAnimationTime = (this.lateJumpDuration/5) / timescale;
         let waitTime;
@@ -240,70 +258,6 @@ class Player {
         }
     }
 
-    animationsInit(frameMap){
-        // init all the animation objects 
-        
-        let walkAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("walk"))),
-            stopAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("stop"))),
-            idleAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("idle"))),
-            jumpAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("jump"))),
-            slideAnim =  this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("slide"))),
-            hangAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("hang"))),
-            climbAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("climb"))),
-            fallAnim = this.spriteInit(new PIXI.AnimatedSprite(frameMap.get("fall")));
-        
-        // setup the unique properties of each animation
-        slideAnim.anchor.y = 0.3;
-        hangAnim.anchor.y = 0.3;
-
-        climbAnim.anchor.y = 0.65;
-        climbAnim.anchor.x = 0.85;
-
-        idleAnim.animationSpeed = 0.15;
-
-        stopAnim.loop = false;  // the game currently starts with the cat falling
-        jumpAnim.loop = false;
-        slideAnim.loop = false;
-        hangAnim.loop = false;
-        climbAnim.loop = false;
-        idleAnim.loop = false;
-        jumpAnim.play();
-        walkAnim.visible = false;
-        stopAnim.visible = false;
-        slideAnim.visible = false;
-        hangAnim.visible = false;
-        climbAnim.visible = false;
-        fallAnim.visible = false;
-        idleAnim.visible = false;
-        //jumpAnim.visible = false;
-
-        // animation event methods
-       // hangAnim.onComplete = this.lockCamera.apply(this);
-
-        let animationMap = new Map([['walk', walkAnim],
-                                    ['stop', stopAnim],
-                                    ['idle', idleAnim],
-                                    ['jump', jumpAnim],
-                                    ['slide',slideAnim],
-                                    ['hang', hangAnim],
-                                    ['climb', climbAnim],
-                                    ['fall', fallAnim]]);
-        return animationMap;
-
-    }
-
-    // resize and set anchor points for new sprites
-    spriteInit(newSprite){
-        newSprite.x = window.innerWidth / 2;
-        newSprite.y = window.innerHeight / 2;
-        newSprite.vx = 0;
-        newSprite.vy = 0;
-        newSprite.scale.set(this.scale,this.scale);
-        newSprite.anchor.set(0.5);
-        newSprite.animationSpeed = 0.2;
-        return newSprite;
-    }
-
     drawCollider(renderer){
         renderer.clear();
         renderer.beginFill(0xfc8803, 0.5);
@@ -371,6 +325,7 @@ class Player {
                         }
                         // jump from wall
                         else if ( this.inSlide ) {
+                            this.wallJumpTimer.start();
                             // if right side of cat is in contact with wall
                             if ( this.flip == "right" ) {
                                 this.setFlip("left");
