@@ -100,8 +100,7 @@ class myLoader {
         let frames = [];
         for ( let i = 1; i < (frameCount+1); i++ ) {
             const val = i;
-            const conKey = key;
-            const keyString = `${conKey} (${val}).png`;
+            const keyString = `${key} (${val}).png`;
             frames.push(PIXI.Texture.from(keyString));
         }
 
@@ -129,17 +128,11 @@ class myLoader {
     }
 
     loadTiles(){
-        let tileSize = 150;
-        let sprites = []
-     
-        // let texture = resources['sprites/caveTiles.png'].texture;
+        let sprites = [];
         
         for ( let i = 1; i < 23; i++ ) {
             const val = i;       
             let texture = PIXI.Texture.from(`caveTile (${val}).png`); 
-            //let sprite = new PIXI.Sprite.from( PIXI.Texture.from(`caveTile (${val}).png`) );
-            //sprite.width = sprite.height = tileSize
-            //let sprite = new PIXI.TilingSprite( texture, tileSize, tileSize );
             sprites.push( texture );
         }
         
