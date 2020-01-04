@@ -403,10 +403,7 @@ class CellularMap extends MazeMap{
                     }                    
                 }
             }
-            
-
         }
- 
     }
 
     tileSpriteInit(x,y,texture, tileContainer){

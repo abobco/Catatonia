@@ -152,6 +152,7 @@ class Game {
           var inWalkBox = false;
           var catCollision = false;
           var pairs = event.pairs;
+          var physicsCollisions = 0;
         
           // Iterate through collision pairs
           for (var i = 0; i < pairs.length; i++) {
@@ -170,21 +171,31 @@ class Game {
             // check if collision with sensors
             if ( otherBody.isSensor ) {
               // if collding with a ledge climb trigger collider
-              if ( otherBody.isEdgeBox) {
-                this.world.gravity.y = 1;
-                const impactVel = this.player.prevVel;
-                if (impactVel > this.player.fallDamageVel) 
-                  this.camera.addTrauma(impactVel / (this.player.fallDamageVel * 2));
-                this.player.startLedgeClimb(otherBody.position, otherBody.isRight)
+              if ( otherBody.isEdgeBox ) {
+                if ((this.player.lastInput == "right" && !otherBody.isRight) || this.player.lastInput == "left" && otherBody.isRight){
+                  this.world.gravity.y = 1;
+                  const impactVel = this.player.prevVel;
+                  if (impactVel > this.player.fallDamageVel) 
+                    this.camera.addTrauma(impactVel / (this.player.fallDamageVel * 2));
+                  this.player.startLedgeClimb(otherBody.position, otherBody.isRight)
                   return; // skip the rest of the collision checks for this frame; the player will be locked in place
+                }
+                else {
+                  inWalkBox = false;
+                  this.player.isGrounded = false;
+                  this.player.inSlide = true;
+                }
               }
               // if colliding with a ground trigger collider
               else if (!this.player.isHanging)
                 inWalkBox = true;
+                
             }
             else  {// if physics collision
               this.player.collisionTimer.stop();
               catCollision = true;
+              physicsCollisions++;
+              console.log(physicsCollisions);
             }
                 
           }
@@ -209,7 +220,7 @@ class Game {
           }
           
           // if landing   
-          else if ( !this.player.isGrounded && inWalkBox && catCollision )  {  
+          else if ( !this.player.isGrounded && ( (inWalkBox && catCollision && !this.player.inSlide) || (physicsCollisions >= 2 && inWalkBox ) ) )  {  
             this.world.gravity.y = 1;
             const impactVel = this.player.prevVel;
             if (impactVel > this.player.fallDamageVel) 
@@ -239,6 +250,13 @@ class Game {
       
             if (!otherBody.isSensor) {
               this.player.collisionTimer.start();
+              if (this.player.body.velocity.y < 0){
+                this.player.setAnimation("jump", 5);
+                this.player.collisionTimer.stop();
+                this.player.isGrounded = false;
+                this.player.inSlide = false;
+                this.player.jumpInput = false;    
+              }
             } 
           }
         });

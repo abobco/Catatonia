@@ -57,16 +57,18 @@ class myLoader {
                 "frag": frag,
                };
     }
-
-    // Init animated sprite objects, load into a hashmap
-    //
-    // The texture atlas must have keys of the form :
-    //
-    //      `{key} ({frameNumber}).png` 
-    //
-    // where the {key} for each animation matches the strings that we provide in this function as keys to each animation of the map
-    //
-    // The {frameNumber} must start at 1, this is only because that's how batch renaming works in windows by default.
+    
+    /*
+        Init animated sprite objects, load into a hashmap
+        
+        The texture atlas must have keys of the form :
+        
+            `{key} ({frameNumber}).png` 
+        
+        where the {key} for each animation matches the strings that we provide in this function as keys to each animation of the map
+        
+        The {frameNumber} must start at 1, this is only because that's how batch renaming works in windows by default.
+    */
     animationsInit(){
         let animationMap = new Map([['walk', this.loadSprite("walk", 10, true)],
                                     ['stop', this.loadSprite("stop", 4, false)],

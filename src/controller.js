@@ -130,8 +130,9 @@ var KBController = function(catPlayer, catBody, gameTicker, camera) {
         else if (e.keyCode == '88') {
           catPlayer.showDebug  ^= true;
         }
+        // 'f' key
         else if (e.keyCode == '70') {
-          camera.addTrauma();
+          camera.addTrauma(1);
         }
         catPlayer.handleEvent(myEvent);
     }

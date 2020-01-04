@@ -81,7 +81,7 @@ class Player {
             this.prevVel = this.body.velocity.y;
         }
         if ( this.wallJumpTimer.isRunning && this.wallJumpTimer.getElapsedTime() > this.grappleMS )  {
-            console.log( this.lastInput);
+            // console.log( this.lastInput);
             this.handleEvent({ type: "inputDown",
                                direction: this.lastInput });
             this.wallJumpTimer.stop();
@@ -101,9 +101,25 @@ class Player {
     
         // transition from end of climb
         if ( this.currentAnimation == "climb"){
-            if (!this.animations.get("climb").playing) {            
+            if (this.lastInput != "end" && this.lastInput != this.flip && this.animations.get("climb").currentFrame < 4 ){
+                console.log("climb cancel", this.lastInput);
+                this.setAnimation("jump", 5);
+                this.setFlip(this.lastInput);
+                this.isGrounded = false;
+                this.inSlide = false;
+                this.jumpInput = false;     
+                this.cameraSnapped = true;             
+                Matter.Body.setStatic(this.body, false);  
+                this.isHanging = false;
+
+            }
+
+            else if (!this.animations.get("climb").playing) {            
                 Matter.Body.setPosition(this.body, new Matter.Vector.create(this.climbTranslation.x, this.climbTranslation.y));
                 Matter.Body.setVelocity(this.body, new Matter.Vector.create(0,0));
+                if (this.lastInput != this.flip){
+                    this.lastInput = "end";
+                }
 
                 switch (this.lastInput){
                     case "right":
