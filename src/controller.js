@@ -94,7 +94,7 @@ class Controller{
 } 
 
 // using old syntax for now
-var KBController = function(catPlayer, catBody, gameTicker, camera) {
+var KBController = function(catPlayer, catBody, gameTicker, camera, pauseMenu) {
     // keyboard controls
     this.rightDown = false;
     this.leftDown = false;
@@ -133,6 +133,10 @@ var KBController = function(catPlayer, catBody, gameTicker, camera) {
         // 'f' key
         else if (e.keyCode == '70') {
           camera.addTrauma(1);
+        }
+        // esc key
+        else if (e.keyCode == '27'){
+          pauseMenu.onClick(gameTicker);
         }
         catPlayer.handleEvent(myEvent);
     }

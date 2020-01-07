@@ -8,6 +8,7 @@ class MyCamera {
         this.angleOffset = 0.0;
         this.maxOffset = 250;
         this.maxAngleOffset = 10;
+        this.flipOffset = 75;
         
         this.shake = 0.0;
         this.trauma = 0.0;
@@ -21,7 +22,7 @@ class MyCamera {
         this.noiseIncrement = 0;
     }
 
-    update(playerPosition, timescale){
+    update(playerPosition, flip, timescale){
         this.noiseIncrement += timescale;
         this.trauma -= 0.015 * timescale;
         
@@ -30,10 +31,16 @@ class MyCamera {
         this.shake = Math.pow(this.trauma, 2);
 
         this.simplexShake();
+        let targetPosition = new PIXI.Point();
+        targetPosition.copyFrom(playerPosition);
+        if ( flip == "right")
+            targetPosition.x += this.flipOffset;
+        else
+            targetPosition.x -= this.flipOffset;
 
         // this.position.copyFrom(playerPosition);
 
-        this.asymptoticAverage(playerPosition, 0.05);
+        this.asymptoticAverage(targetPosition, 0.05);
 
         this.position.x += this.offset.x;
         this.position.y += this.offset.y;

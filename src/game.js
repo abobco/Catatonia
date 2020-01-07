@@ -5,7 +5,9 @@ import { CellularMap } from "./mapGen";
 import {Player} from './player.js';
 import {Controller, KBController} from './controller.js';
 import {ShadowMap} from './shadowMap.js';
-import {MyCamera} from './myCamera.js'
+import {MyCamera} from './myCamera.js';
+import { PlayerButton, ButtonController} from './buttons.js';
+import {PauseMenu} from './myMenu.js';
 
 // Aliases
 let Engine = Matter.Engine,
@@ -14,8 +16,14 @@ Events = Matter.Events;
 
 class Game {  
     constructor(loader, app){
+      
         this.app = app;
+        // every display object in the game world
+        this.worldContainer = new PIXI.Container();
 
+        // every animated sprite in the game
+        this.animationContainer = new PIXI.Container();
+        
         // physics Engine
         this.engine = Engine.create();
         this.world = this.engine.world;
@@ -28,6 +36,21 @@ class Game {
         // Contains player animations, physics bodies, flags, behavior functionsxc
         let playerPos = this.tileMap.playerSpawn;
         this.player = new Player(playerPos, loader.catAnimations);
+
+        // fill the animation container
+        this.tileMap.torchContainer.children.forEach( (animation) => {
+          this.animationContainer.addChild(animation); // add torches
+        })
+        this.player.animations.forEach((value) => {
+          this.animationContainer.addChild(value);  // add player animations 
+        });
+
+        this.buttonController = null;
+        if ( "ontouchstart" in document.documentElement )
+          this.buttonController = new ButtonController(loader.buttonFrames, playerPos, this.player.handleEvent.bind(this.player));
+
+        // pass the ticker and animation container to pause the game loop
+        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.buttonController, this.animationContainer);
 
         // camera movement control
         this.camera = new MyCamera(playerPos);
@@ -47,11 +70,11 @@ class Game {
 
         // Input handlers
             // virtual joystick
-        if ("ontouchstart" in document.documentElement) {
-            this.customJoystick = new Controller(this.player, this.player.body);
-        }
+        // if ("ontouchstart" in document.documentElement) {
+        //     this.customJoystick = new Controller(this.player, this.player.body);
+        // }
             // keyboard
-        this.KBInput = new KBController(this.player, this.player.body, this.app.ticker, this.camera);
+        this.KBInput = new KBController(this.player, this.player.body, this.app.ticker, this.camera, this.pauseMenu);
 
         // resize canvas on window resize
         window.addEventListener( 'resize', this.onWindowResize.bind(this), false );
@@ -84,10 +107,13 @@ class Game {
             this.player.update(this.app.ticker.speed, delta, this.app.ticker.deltaMS);
             Engine.update(this.engine);
             if ( this.player.cameraSnapped)
-                this.camera.update(this.player.position, this.app.ticker.speed);
-            else
-                this.camera.update(this.player.climbTranslation, this.app.ticker.speed);
-
+                this.camera.update(this.player.position, this.player.flip, this.app.ticker.speed);
+            else {
+                  console.log(this.player.flip);
+                  console.log(this.player.climbTranslation);
+                  console.log(this.player.position);
+                  this.camera.update(this.player.climbTranslation, this.player.flip, this.app.ticker.speed);                
+            }
             // increase gravity if player is falling
             if (!this.player.isGrounded && !this.player.inSlide && !this.player.isHanging && this.player.body.velocity.y > 0){
                 if ( this.world.gravity.y < 3.5 )
@@ -98,7 +124,14 @@ class Game {
             }
             // move forward one time step
             this.updateLag -= 16.666
+            this.tileMap.lights.forEach( (light) => {
+              light.lightContainer.children.forEach( ( mesh ) => {
+              mesh.shader.uniforms.time += 0.00003;
+              });
+          });
         }
+
+        this.pauseMenu.moveButtons(this.camera.position);
             
         // adjust stage for camera movement
         this.app.stage.pivot.copyFrom(this.camera.position);
@@ -106,44 +139,44 @@ class Game {
 
         this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
 
-        this.tileMap.lights.forEach( (light) => {
-            light.lightContainer.children.forEach( ( mesh ) => {
-            mesh.shader.uniforms.time += 0.00003;
-            });
-        });
+ 
     }
 
     // add pixi objects to global renderer, 
     // works like a stack, last element added = top graphics layer
     initLayers() {
         // background / uninteractable tiles
-        this.app.stage.addChild(this.tileMap.backgroundContainer);
-        this.app.stage.addChild(this.tileMap.midContainer);
-        this.app.stage.addChild(this.tileMap.torchContainer);
-      
-        // Cat Animations
-        this.player.animations.forEach((value, key) => {
-            this.app.stage.addChild(value);  // add all animations to world
-        });
+        this.worldContainer.addChild(this.tileMap.backgroundContainer);
+        this.worldContainer.addChild(this.tileMap.midContainer);
+        
+        // add animations
+        this.worldContainer.addChild(this.animationContainer);
         
         // add terrain tiles
-        this.app.stage.addChild(this.tileMap.tileContainer);
-        this.app.stage.addChild(this.tileMap.featureContainer);
+        this.worldContainer.addChild(this.tileMap.tileContainer);
+        this.worldContainer.addChild(this.tileMap.featureContainer);
       
         this.tileMap.lights.forEach( (light) => {
           this.allLights.addChild(light.lightContainer);
         });
         
-        this.app.stage.addChild(this.allLights);
+        this.worldContainer.addChild(this.allLights);
         
         // makes a mask for shadows
         let shadowMap = new ShadowMap(this.tileMap.lights, this.tileMap, this.app.renderer);
       
-        this.app.stage.addChild(shadowMap.focus);
-        this.app.stage.addChild(shadowMap.mesh);
+        this.worldContainer.addChild(shadowMap.focus);
+        this.worldContainer.addChild(shadowMap.mesh);
+
+ 
+
+        this.app.stage.addChild(this.worldContainer);
+
+        // add ui buttons to the top layer
+        this.app.stage.addChild(this.pauseMenu.buttonContainer);
         
         // apply filters
-        this.app.stage.filters = [new PixelateFilter(3.5)];
+        this.worldContainer.filters = [new PixelateFilter(3)];
       }
 
     // NSFW Spaghetti code
@@ -195,7 +228,7 @@ class Game {
               this.player.collisionTimer.stop();
               catCollision = true;
               physicsCollisions++;
-              console.log(physicsCollisions);
+              // console.log(physicsCollisions);
             }
                 
           }
@@ -275,8 +308,10 @@ class Game {
           
         this.tileMap.lights.forEach( ( light ) => {
            light.update(this.app.ticker.speed);
-           this.app.stage.addChild(light.lightContainer);
+           this.worldContainer.addChild(light.lightContainer);
          });       
+
+        this.pauseMenu.onResize();
     }
 }
 

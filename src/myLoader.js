@@ -14,6 +14,8 @@ class myLoader {
 
         let loaderFiles = new FilePaths();
 
+        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+
         loader
             .add(loaderFiles.array())
             .load(this.onLoad.bind(this, setupFunction));  
@@ -32,6 +34,10 @@ class myLoader {
        this.torchFrames = this.loadTorch();
 
        this.doneLoading = true;
+
+       this.buttonFrames = this.loadButtons();
+
+       this.menuButtons = this.loadMenu();
 
        // this.checkLoad();
 
@@ -161,6 +167,22 @@ class myLoader {
                         ['Grass-2', sprites[21]],
 
                     ]);
+    }
+
+    loadButtons(){
+        console.log(PIXI.Texture.from('right-key (1).png'))
+        let buttonFrames = new Map([['right', [PIXI.Texture.from('right-key (1).png'), PIXI.Texture.from('right-key (2).png')]],
+                                    ['left', [PIXI.Texture.from('left-key (1).png'), PIXI.Texture.from('left-key (2).png')]],
+                                    ['up', [PIXI.Texture.from('a-key (1).png'), PIXI.Texture.from('a-key (2).png')]],]);
+        return buttonFrames;
+    }
+
+    loadMenu(){
+        let buttonFrames = new Map([['pause', PIXI.Texture.from("pause.png")],
+                                    ['paused-text', PIXI.Texture.from("paused-text.png")]
+                                   ]);
+
+        return buttonFrames;
     }
 }
 
