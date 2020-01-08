@@ -2,52 +2,114 @@ import {TileCollider} from './tiles.js'
 import {Boundary} from './terrain.js'
 import {PointLight} from './PointLight'
 
-class MazeMap{
-    constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames){
-        this.w = w;
-        this.h = h;
-        this.tileSize = tileSize;
-        this.ellerMaze = new ROT.Map.EllerMaze(w, h);
-        this.tileMap = {};
-        this.tileset = tileset;  
-        
-        this.terrain = [];
-        this.lights = [];
+
+// parent of all other procedural generation map classes
+class AbstractMap{
+    constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames) {
+        this.w = w;                             // width of map in tiles
+        this.h = h;                             // height of map in tiles
+        this.tileSize = tileSize;               // edge length of tiles in pixels
+
+        this.tileMap = {}                       // hashmap of characters representing map features
+        this.tileset = tileset;                 // hashmap of textures
+        this.numLights = numLights;             // number of lights to randomly place in map
+        this.freeCells = [];                    // indices of empty map tiles
+
+        this.terrain = [];                      // box colliders for walls
+        this.lights = [];                       // light shading meshes 
+        this.torchFrames = torchFrames;         // torch animation textures
+        this.torchSprites = [];                 // torch animated sprites
+        this.shaderProgram = shaderProgram;     // light mesh webgl shader 
+
+        // containers for display objects
+        this.tileContainer = new PIXI.Container();
+        this.backgroundContainer = new PIXI.Container();
+        this.torchContainer = new PIXI.Container();
+
         // using sets here to filter out duplicate edges/vertices
+        // feed these into raycasting functions
         this.edges = new Set();
         this.vertices = new Set();
-          
-        let freeCells = [];
-        
-        // light animation sprites
-        this.torchSprites = [];
-        this.torchFrames = torchFrames;
 
-        // callback function for maze creation
-        this.ellerMaze.create( (x, y, value) => {
-            let key = x+","+y;
-            this.tileMap[key] = value;
-            if (!value) {
-                freeCells.push(key);
-            }
-        });
-
-        // randomly place lights in empty cells
-        this.generateLights(freeCells, numLights);
-        
-        // make wall cells
-        this.addWalls();
-
-        // make PointLight objects 
-        this.addLights(shaderProgram);
     }
 
+    // replace random open cells with lights in the feature hashmap
     generateLights(freeCells, numLights){
         for (let i=0;i<numLights;i++) {
             let index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
             let key = freeCells.splice(index, 1)[0];
             this.tileMap[key] = "*";
         }
+    }
+
+    // Make webgl meshes from the light shader & raycasting data
+    addLights(shaderProgram){
+        for (let key in this.tileMap){
+            if (this.tileMap[key] == '*'){
+                let parts = key.split(",");
+                let x = parseInt(parts[0]);
+                let y = parseInt(parts[1]);
+
+                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, shaderProgram, this.torchFrames))
+            }
+        }
+
+        this.lights.forEach( (light) =>{
+            this.torchSprites.push(light.torch.animation);
+        })
+    }
+
+    parallaxScroll(cameraCenter, xSpeed, ySpeed){
+        // this.backgroundContainer.pivot.copyFrom(cameraCenter);
+        this.backgroundContainer.x = cameraCenter.x / xSpeed; //- (this.w * this.tileSize ) / 2;
+        this.backgroundContainer.y = cameraCenter.y / ySpeed; //- (this.h * this.tileSize ) / 2;
+    }
+    
+    tileSpriteInit(x,y,texture){
+        let sprite = new PIXI.Sprite.from(texture);
+        sprite.width = this.tileSize -6;
+        sprite.height = this.tileSize;
+        sprite.anchor.set(0.5);
+        sprite.position.x = x*this.tileSize;
+        sprite.position.y = y*this.tileSize;  
+
+        this.tileContainer.addChild(sprite);
+    }
+}
+
+/// Eller maze map
+// this doesnt have any textures currently
+class MazeMap extends AbstractMap {
+    constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames){
+        super(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames)
+
+        this.ellerMaze = new ROT.Map.EllerMaze(w, h);
+        this.debugGraphics = new PIXI.Graphics();
+        this.tileContainer.addChild(this.debugGraphics);
+
+        // callback function for maze creation
+        this.ellerMaze.create( (x, y, value) => {
+            let key = x+","+y;
+            this.tileMap[key] = value;
+            if (!value) {
+                this.freeCells.push(key);
+            }
+        });
+
+        // randomly place lights in empty cells
+        this.generateLights(this.freeCells, numLights);
+        
+        // make wall cells
+        this.addWalls();
+
+        // make PointLight objects 
+        this.addLights(shaderProgram);
+
+        
+        let index = Math.floor(ROT.RNG.getUniform() * this.freeCells.length);
+        let key = this.freeCells.splice(index, 1)[0];
+        let parts = key.split(",");
+        this.playerSpawn = new PIXI.Point(parseInt(parts[0])*this.tileSize, parseInt(parts[1])*this.tileSize);
     }
 
     addWalls() {
@@ -74,6 +136,8 @@ class MazeMap{
                                               (!rightNeighbor && !topNeighbor), // right ledge
                                                !topNeighbor)                    // walkbox
                 
+                this.debugGraphics.beginFill(0x660066)
+                this.debugGraphics.drawRect(x*this.tileSize - this.tileSize/2, y*this.tileSize - this.tileSize/2, this.tileSize, this.tileSize)
                 // push tile to linear array of tiles
                 this.terrain.push(newTile);  
                 
@@ -93,68 +157,31 @@ class MazeMap{
             }
         }
     }
-
-    addLights(shaderProgram){
-        for (let key in this.tileMap){
-            if (this.tileMap[key] == '*'){
-                let parts = key.split(",");
-                let x = parseInt(parts[0]);
-                let y = parseInt(parts[1]);
-
-                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, shaderProgram, this.torchFrames))
-            }
-        }
-
-        this.lights.forEach( (light) =>{
-            this.torchSprites.push(light.torch.animation);
-        })
-    }
 }
 
-class CellularMap extends MazeMap{
+// cellular automata cave map
+class CellularMap extends AbstractMap{
     constructor(w,h,tileSize, numLights, shaderProgram,  tileset, torchFrames){
-        super(0,0,0,0,shaderProgram, tileset,torchFrames);
-        this.w = w;
-        this.h = h;
-        this.tileSize = tileSize;
-        this.tileMap = {}; 
-        this.backgroundTileMap = {};
-        this.tileset = tileset; 
-        
-        this.terrain = [];
-        this.lights = [];
-        // using sets here to filter out duplicate edges/vertices
-        this.edges = new Set();
-        this.vertices = new Set();
+        super(w,h,tileSize,numLights,shaderProgram, tileset,torchFrames);
 
         this.cellMap = new ROT.Map.Cellular(w, h, {
             born: [4, 5, 6, 7, 8],
             survive: [2, 3, 4, 5]
         });
-    
-        this.featureContainer = new PIXI.Container();
-        this.tileContainer = new PIXI.Container();
-        this.backgroundContainer = new PIXI.Container();
-        this.midContainer = new PIXI.Container();
 
-        // light animation sprites
-        this.torchContainer = new PIXI.Container();
-        this.torchFrames = torchFrames;
-        
-        // holds cells with no walls
-        let freeCells = [];
-
-        this.cellMap.randomize(0.5); // 
+        this.cellMap.randomize(0.5); // random seed with 50/50 dead/alive cells
         
         // generate first iterations
         for (var i=8; i>=0; i--) {
             this.cellMap.create();
         }
+        // connect walls, then connect empty cells
         this.cellMap.connect(null, 1);
         this.cellMap.connect((x, y, value) => {
             let key = x+","+y;
             this.tileMap[key] = value;
         });
+        // do last minute tweaks to the cell map before generating tiling
         for (let key in this.tileMap){
             let parts = key.split(",");
             let x = parseInt(parts[0]);
@@ -167,34 +194,27 @@ class CellularMap extends MazeMap{
 
             // store all empty cells for placing random objects
             if (!this.tileMap[key])
-                freeCells.push(key);
-        } 
-        // this.backgroundTiles(freeCells);        
+               this.freeCells.push(key);
+        }       
         this.backgroundTiling();
-        // this.backgroundSprites();
-        
-       // this.genCaveBackground(w*2, h*2, 250);
 
         // randomly place lights in empty cells
-        this.generateLights(freeCells, numLights);
+        this.generateLights(this.freeCells, numLights);
         
         // make wall cells
         this.caveWalls(this.tileMap, true, this.tileContainer, this.tileSize);
         
-        this.addFeatures(freeCells, this.tileMap, this.featureContainer)  
+        // add grass and spikes to random edge tilesS
+        this.addFeatures(this.freeCells, this.tileMap)  
         console.log("ray cast vertices: ", this.vertices.size);
 
         // make PointLight objects 
         this.addLights(shaderProgram);
 
-        let index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
-        let key = freeCells.splice(index, 1)[0];
+        let index = Math.floor(ROT.RNG.getUniform() * this.freeCells.length);
+        let key = this.freeCells.splice(index, 1)[0];
         let parts = key.split(",");
         this.playerSpawn = new PIXI.Point(parseInt(parts[0])*this.tileSize, parseInt(parts[1])*this.tileSize);
-
-        // this.bgSprite.pivot.copyFrom(this.playerSpawn);
-        this.midContainer.position.copyFrom(this.tileContainer.position);
-        
     }
 
     caveWalls(tileMap, doesCollisions, tileContainer, tileSize){
@@ -353,34 +373,7 @@ class CellularMap extends MazeMap{
         this.bgSprite = bgSprite;
     }
 
-    parallaxScroll(cameraCenter, xSpeed, ySpeed){
-        // this.backgroundContainer.pivot.copyFrom(cameraCenter);
-        this.backgroundContainer.x = cameraCenter.x / xSpeed; //- (this.w * this.tileSize ) / 2;
-        this.backgroundContainer.y = cameraCenter.y / ySpeed; //- (this.h * this.tileSize ) / 2;
-        this.midContainer.x = cameraCenter.x / (xSpeed*2); //- (this.w * this.tileSize ) / 2;
-        this.midContainer.y = cameraCenter.y / (ySpeed*2); //- (this.h * this.tileSize ) / 2;
-    }
-    
-    genCaveBackground(w,h, iterations){
-        /* custom born/survive rules */
-        let map = new ROT.Map.Cellular(w*2, h*2, {
-            born: [4, 5, 6, 7, 8],
-            survive: [2, 3, 4, 5]
-        });
-
-        map.randomize(0.9);
-
-        /* generate fifty iterations, show the last one */
-        for (var i=iterations; i>=0; i--) {
-            map.create(i ? null : (x, y, value) => {
-                let key = x+","+y;
-                this.backgroundTileMap[key] = value;
-            })
-        };
-        this.caveWalls(this.backgroundTileMap, false, this.midContainer, this.tileSize/2);
-    }
-
-    addFeatures(freeCells, tileMap, tileContainer){
+    addFeatures(freeCells, tileMap){
         for ( let key of freeCells){
             let parts = key.split(",");
             let x = parseInt(parts[0]);
@@ -389,34 +382,22 @@ class CellularMap extends MazeMap{
             if (Math.floor(ROT.RNG.getUniform() * 3) == 0){
                 // if top neighbor tile is a wall
                 if (tileMap[ x +','+ (y-1)] == 1 )
-                    this.tileSpriteInit(x,y, this.tileset.get("Spikes"), tileContainer);
+                    this.tileSpriteInit(x,y, this.tileset.get("Spikes"));
                  // if bottom neighbor tile is a wall
                 else if (tileMap[ x +','+ (y+1)] == 1){
                     // randomly pick between grass sprites
                     switch (Math.floor(ROT.RNG.getUniform() * 2)){
                         case 0:
-                            this.tileSpriteInit(x,y, this.tileset.get("Grass-1"), tileContainer);
+                            this.tileSpriteInit(x,y, this.tileset.get("Grass-1"));
                             break;
                         case 1:
-                            this.tileSpriteInit(x,y, this.tileset.get("Grass-2"), tileContainer);
+                            this.tileSpriteInit(x,y, this.tileset.get("Grass-2"),);
                             break;
                     }                    
                 }
             }
         }
     }
-
-    tileSpriteInit(x,y,texture, tileContainer){
-        let sprite = new PIXI.Sprite.from(texture);
-        sprite.width = this.tileSize -6;
-        sprite.height = this.tileSize;
-        sprite.anchor.set(0.5);
-        sprite.position.x = x*this.tileSize;
-        sprite.position.y = y*this.tileSize;  
-
-        this.tileContainer.addChild(sprite);
-    }
-
 }
 
 export {MazeMap, CellularMap}

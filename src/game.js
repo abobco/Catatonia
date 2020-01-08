@@ -2,7 +2,7 @@ import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
 import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 
-import { CellularMap } from "./mapGen";
+import { CellularMap, MazeMap } from "./mapGen";
 import {Player} from './player.js';
 import {Controller, KBController} from './controller.js';
 import {ShadowMap} from './shadowMap.js';
@@ -17,7 +17,6 @@ Events = Matter.Events;
 
 class Game {  
     constructor(loader, app){
-      
         this.app = app;
         // every display object in the game world
         this.worldContainer = new PIXI.Container();
@@ -32,6 +31,7 @@ class Game {
 
         // procedural cave generator
         this.tileMap = new CellularMap(25,25,150,6, loader.lightShader, loader.tileset, loader.torchFrames);
+        // this.tileMap = new MazeMap(25,25,150,6, loader.lightShader, loader.tileset, loader.torchFrames);
         this.allLights = new PIXI.Container();
 
         // Contains player animations, physics bodies, flags, behavior functionsxc
@@ -146,14 +146,12 @@ class Game {
     initLayers() {
         // background / uninteractable tiles
         this.worldContainer.addChild(this.tileMap.backgroundContainer);
-        this.worldContainer.addChild(this.tileMap.midContainer);
-        
-        // add terrain tiles
-        this.worldContainer.addChild(this.tileMap.tileContainer);
-        this.worldContainer.addChild(this.tileMap.featureContainer);
 
         // add animations
         this.worldContainer.addChild(this.animationContainer);
+
+        // add terrain tiles
+        this.worldContainer.addChild(this.tileMap.tileContainer);
       
         this.tileMap.lights.forEach( (light) => {
           this.allLights.addChild(light.lightContainer);
