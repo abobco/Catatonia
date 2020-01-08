@@ -20,7 +20,7 @@ class MazeMap{
         let freeCells = [];
         
         // light animation sprites
-        this.torchContainer = new PIXI.Container();
+        this.torchSprites = [];
         this.torchFrames = torchFrames;
 
         // callback function for maze creation
@@ -106,14 +106,14 @@ class MazeMap{
         }
 
         this.lights.forEach( (light) =>{
-            this.torchContainer.addChild(light.torch.animation)
+            this.torchSprites.push(light.torch.animation);
         })
     }
 }
 
 class CellularMap extends MazeMap{
     constructor(w,h,tileSize, numLights, shaderProgram,  tileset, torchFrames){
-        super(0,0,0,shaderProgram, tileset);
+        super(0,0,0,0,shaderProgram, tileset,torchFrames);
         this.w = w;
         this.h = h;
         this.tileSize = tileSize;

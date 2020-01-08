@@ -62,7 +62,7 @@ class PlayerButton extends MyButton {
             if ( this.sprites.get("unpressed").getBounds().contains(position.x,position.y))
                 this.onPress();
         }
-        console.log(position.x, posistion.y);
+        // console.log(position.x, posistion.y);
     }
 
     swapButtons(){
@@ -104,10 +104,6 @@ class ButtonController{
         this.rightButtonOffset = new PIXI.Point(this.leftButtonOffset.x + this.buttons.get("left").width + 5, this.leftButtonOffset.y);
         this.upButtonOffset = new PIXI.Point(window.innerWidth - this.buttons.get("left").width -  5, this.leftButtonOffset.y);
 
-        
-        // this.sprites.get("unpressed").on('touchmove', this.onMove.bind(this));
-        // this.sprites.get("pressed").on('touchmove', this.onMove.bind(this));
-
         this.buttonContainer.children.forEach( (sprite) => {
             sprite.on('touchmove', this.onMove.bind(this));
         })
@@ -127,7 +123,7 @@ class ButtonController{
             }
         })
 
-        console.log(position.x, posistion.y);
+        // console.log(position.x, posistion.y);
     }
 
     moveButtons(cameraPos){

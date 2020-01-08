@@ -1,5 +1,6 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
+import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 
 import { CellularMap } from "./mapGen";
 import {Player} from './player.js';
@@ -38,9 +39,10 @@ class Game {
         this.player = new Player(playerPos, loader.catAnimations);
 
         // fill the animation container
-        this.tileMap.torchContainer.children.forEach( (animation) => {
+        this.tileMap.torchSprites.forEach( (animation) => {
           this.animationContainer.addChild(animation); // add torches
-        })
+        });
+        // this.animationContainer.addChild(this.tileMap.torchContainer);
         this.player.animations.forEach((value) => {
           this.animationContainer.addChild(value);  // add player animations 
         });
@@ -109,9 +111,6 @@ class Game {
             if ( this.player.cameraSnapped)
                 this.camera.update(this.player.position, this.player.flip, this.app.ticker.speed);
             else {
-                  console.log(this.player.flip);
-                  console.log(this.player.climbTranslation);
-                  console.log(this.player.position);
                   this.camera.update(this.player.climbTranslation, this.player.flip, this.app.ticker.speed);                
             }
             // increase gravity if player is falling
@@ -149,12 +148,12 @@ class Game {
         this.worldContainer.addChild(this.tileMap.backgroundContainer);
         this.worldContainer.addChild(this.tileMap.midContainer);
         
-        // add animations
-        this.worldContainer.addChild(this.animationContainer);
-        
         // add terrain tiles
         this.worldContainer.addChild(this.tileMap.tileContainer);
         this.worldContainer.addChild(this.tileMap.featureContainer);
+
+        // add animations
+        this.worldContainer.addChild(this.animationContainer);
       
         this.tileMap.lights.forEach( (light) => {
           this.allLights.addChild(light.lightContainer);
@@ -168,15 +167,15 @@ class Game {
         this.worldContainer.addChild(shadowMap.focus);
         this.worldContainer.addChild(shadowMap.mesh);
 
- 
-
         this.app.stage.addChild(this.worldContainer);
 
         // add ui buttons to the top layer
         this.app.stage.addChild(this.pauseMenu.buttonContainer);
         
         // apply filters
+        let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
         this.worldContainer.filters = [new PixelateFilter(3)];
+        this.animationContainer.filters = [colorSwapper];
       }
 
     // NSFW Spaghetti code

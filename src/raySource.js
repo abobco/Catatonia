@@ -1,6 +1,5 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {Ray} from "./ray.js";
-import {Corner} from './geometry.js'
 
 class RaySource {
 

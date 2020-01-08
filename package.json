@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
+    "@pixi/filter-color-replace": "^3.0.3",
     "@pixi/filter-kawase-blur": "^3.0.3",
     "@pixi/filter-pixelate": "^3.0.3",
     "@pixi/filter-radial-blur": "^3.0.3",

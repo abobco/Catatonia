@@ -15,9 +15,7 @@ class Player {
         this.scale = 3.5;
         this.maxVel = 5;
         this.jumpVel = -25;
-        // make the jump go the same height for all frame rates
-       // this.jumpVel += this.jumpVel -  this.jumpVel*(frameRate/60);
-        this.unScaledJumpVel = -25
+        this.unScaledJumpVel = -25;
         this.xVel = 0;
 
         // action flags
@@ -34,12 +32,12 @@ class Player {
         this.wallJumpTimer = new MyTimer();
         this.lateJumpDuration = 225; // how many ms to give the player for a late jump when falling off a ledge
         this.fallDamageMS = 1500;
-        this.grappleMS = 125;   
+        this.grappleMS = 125;
+
         // acceleration linearly increases from 1.0 to 2.5 over the first 75 updates of falling
         this.fallDamageVel = 10; 
         this.idleFrameCount = 0;
         this.maxIdleFrames = 60;
-        // console.log(this.lateJumpDuration);
 
         // help with ledge climbing
         this.climbTranslation = new PIXI.Point(0,0);

@@ -1,8 +1,16 @@
 {"frames": {
 
-"pause.png":
+"exit-button.png":
 {
 	"frame": {"x":0,"y":0,"w":32,"h":32},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
+	"sourceSize": {"w":32,"h":32}
+},
+"pause.png":
+{
+	"frame": {"x":32,"y":0,"w":32,"h":32},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":32},
@@ -21,8 +29,8 @@
 	"version": "1.0",
 	"image": "menuButtons.png",
 	"format": "RGBA8888",
-	"size": {"w":33,"h":39},
+	"size": {"w":64,"h":39},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:f4f9a56be82e552963ab5788b8d56160:ce908d1ffa0a1b2ec5441860d0526c7e:1717bab2474b4b7c832c2425fc5391a4$"
+	"smartupdate": "$TexturePacker:SmartUpdate:6cb9f83d4fb9c321b48979f64e4c0358:9b67b08893674cd1dea823093147e756:1717bab2474b4b7c832c2425fc5391a4$"
 }
 }

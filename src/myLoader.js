@@ -122,7 +122,7 @@ class myLoader {
         newSprite.animationSpeed = animationSpeed;
         newSprite.loop = doesLoop;
 
-        console.log(newSprite);
+        // console.log(newSprite);
         return newSprite;
     }
 
@@ -170,7 +170,7 @@ class myLoader {
     }
 
     loadButtons(){
-        console.log(PIXI.Texture.from('right-key (1).png'))
+        // console.log(PIXI.Texture.from('right-key (1).png'))
         let buttonFrames = new Map([['right', [PIXI.Texture.from('right-key (1).png'), PIXI.Texture.from('right-key (2).png')]],
                                     ['left', [PIXI.Texture.from('left-key (1).png'), PIXI.Texture.from('left-key (2).png')]],
                                     ['up', [PIXI.Texture.from('a-key (1).png'), PIXI.Texture.from('a-key (2).png')]],]);
@@ -179,6 +179,7 @@ class myLoader {
 
     loadMenu(){
         let buttonFrames = new Map([['pause', PIXI.Texture.from("pause.png")],
+                                    ['exit', PIXI.Texture.from("exit-button.png")],
                                     ['paused-text', PIXI.Texture.from("paused-text.png")]
                                    ]);
 
