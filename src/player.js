@@ -74,7 +74,7 @@ class Player {
                     }); 
     }
 
-    update(timescale, delta, deltaMS){  
+    update(timescale){  
         if ( !this.isGrounded && this.body.velocity.y > 1 ){
             this.prevVel = this.body.velocity.y;
         }

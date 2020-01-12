@@ -18,11 +18,12 @@ Events = Matter.Events;
 class Game {  
     constructor(loader, app){
         this.app = app;
-        // every display object in the game world
-        this.worldContainer = new PIXI.Container();
 
-        // every animated sprite in the game
-        this.animationContainer = new PIXI.Container();
+        // display object containers        
+        this.worldContainer = new PIXI.Container();      // every display object in the game world
+        this.animationContainer = new PIXI.Container();  // every animated sprite in the game
+        this.foregroundContainer = new PIXI.Container(); // objects with no parallax scroll
+        this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
         
         // physics Engine
         this.engine = Engine.create();
@@ -47,16 +48,6 @@ class Game {
           this.animationContainer.addChild(value);  // add player animations 
         });
 
-        this.buttonController = null;
-        if ( "ontouchstart" in document.documentElement )
-          this.buttonController = new ButtonController(loader.buttonFrames, playerPos, this.player.handleEvent.bind(this.player));
-
-        // pass the ticker and animation container to pause the game loop
-        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.buttonController, this.animationContainer);
-
-        // camera movement control
-        this.camera = new MyCamera(playerPos);
-
         // Add player's rigidbody to matterjs world
         World.add(this.world, this.player.body);
 
@@ -67,10 +58,22 @@ class Game {
                 World.add(this.world, element.walkBox);
 
             World.add(this.world, element.edgeBoxes)
-        });
-      
+        }); 
 
         // Input handlers
+        // camera movement control
+        this.camera = new MyCamera(playerPos);
+        
+        this.buttonController = null;
+        if ( "ontouchstart" in document.documentElement ){
+          this.buttonController = new ButtonController(loader.buttonFrames, 
+                                                        this.player.position, 
+                                                        this.player.handleEvent.bind(this.player), 
+                                                        this.app.renderer.view
+                                                        );
+        }
+        // pass the ticker and animation container to pause the game loop
+        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.buttonController, this.animationContainer);
             // virtual joystick
         // if ("ontouchstart" in document.documentElement) {
         //     this.customJoystick = new Controller(this.player, this.player.body);
@@ -94,41 +97,23 @@ class Game {
         // Add objects to pixi stage
         this.initLayers();
 
-        this.app.stage.scale.set(0.5)
+        this.app.stage.scale.set(0.5);
 
         // Start the game loop 
         this.app.ticker.add(delta => this.loop(delta));   
+
+        // init filter uniforms
+        this.filterUniforms = {
+          time: 0
+      };
+      this.filterTime = 0;
+      this.filterTimeIncrement = 0.5;
     }
 
     // main game loop, does not update at a constant rate
     loop(delta){
         // update physics bodies at 60 hz constant
-        this.updateLag += this.app.ticker.deltaMS;
-        while ( this.updateLag >= 16.666 ){
-            // apply player input to physics bodies
-            this.player.update(this.app.ticker.speed, delta, this.app.ticker.deltaMS);
-            Engine.update(this.engine);
-            if ( this.player.cameraSnapped)
-                this.camera.update(this.player.position, this.player.flip, this.app.ticker.speed);
-            else {
-                  this.camera.update(this.player.climbTranslation, this.player.flip, this.app.ticker.speed);                
-            }
-            // increase gravity if player is falling
-            if (!this.player.isGrounded && !this.player.inSlide && !this.player.isHanging && this.player.body.velocity.y > 0){
-                if ( this.world.gravity.y < 3.5 )
-                  this.world.gravity.y += 0.015;
-            }
-            else {
-                this.world.gravity.y = 1;
-            }
-            // move forward one time step
-            this.updateLag -= 16.666
-            this.tileMap.lights.forEach( (light) => {
-              light.lightContainer.children.forEach( ( mesh ) => {
-              mesh.shader.uniforms.time += 0.00003;
-              });
-          });
-        }
+        this.FixedUpdate();
 
         this.pauseMenu.moveButtons(this.camera.position);
             
@@ -138,41 +123,111 @@ class Game {
 
         this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
 
- 
+        
+        this.filterDisplacementSprite.x = this.filterTime;
+        this.filterDisplacementSprite.y = this.filterTime;
+        this.backgroundFilterDisplacementSprite.x = this.filterTime;
+        this.backgroundFilterDisplacementSprite.y = this.filterTime;
+    }
+
+    FixedUpdate(){
+      this.updateLag += this.app.ticker.deltaMS;
+      while ( this.updateLag >= 16.666 ){
+          // apply player input to physics bodies
+          this.player.update(this.app.ticker.speed);
+          Engine.update(this.engine);
+          if ( this.player.cameraSnapped)
+              this.camera.update(this.player.position, this.player.flip, this.app.ticker.speed);
+          else {
+                this.camera.update(this.player.climbTranslation, this.player.flip, this.app.ticker.speed);                
+          }
+          // increase gravity if player is falling
+          if (!this.player.isGrounded && !this.player.inSlide && !this.player.isHanging && this.player.body.velocity.y > 0){
+              if ( this.world.gravity.y < 3.5 )
+                this.world.gravity.y += 0.015;
+          }
+          else {
+              this.world.gravity.y = 1;
+          }
+          // move forward one time step
+          this.updateLag -= 16.666
+          this.tileMap.lights.forEach( (light) => {
+            light.lightContainer.children.forEach( ( mesh ) => {
+            mesh.shader.uniforms.time += 0.00003;
+            });
+        });
+        // same for post processing filters
+        this.filterTime += this.filterTimeIncrement;
+
+        // rotate the world back and forth for catnip effect
+        this.worldContainer.rotation = 0.015* Math.sin(this.filterTime * 0.02);
+      }
     }
 
     // add pixi objects to global renderer, 
     // works like a stack, last element added = top graphics layer
     initLayers() {
         // background / uninteractable tiles
-        this.worldContainer.addChild(this.tileMap.backgroundContainer);
+        this.backgroundContainer.addChild(this.tileMap.backgroundContainer);
+        this.worldContainer.addChild(this.backgroundContainer);
 
         // add animations
-        this.worldContainer.addChild(this.animationContainer);
+        this.foregroundContainer.addChild(this.animationContainer);
 
         // add terrain tiles
-        this.worldContainer.addChild(this.tileMap.tileContainer);
+        this.foregroundContainer.addChild(this.tileMap.tileContainer);
       
         this.tileMap.lights.forEach( (light) => {
           this.allLights.addChild(light.lightContainer);
         });
         
-        this.worldContainer.addChild(this.allLights);
+        this.foregroundContainer.addChild(this.allLights);
         
         // makes a mask for shadows
         let shadowMap = new ShadowMap(this.tileMap.lights, this.tileMap, this.app.renderer);
       
-        this.worldContainer.addChild(shadowMap.focus);
-        this.worldContainer.addChild(shadowMap.mesh);
+        this.foregroundContainer.addChild(shadowMap.focus);
+        this.foregroundContainer.addChild(shadowMap.mesh);
+
+        this.worldContainer.addChild(this.foregroundContainer);
 
         this.app.stage.addChild(this.worldContainer);
 
         // add ui buttons to the top layer
         this.app.stage.addChild(this.pauseMenu.buttonContainer);
         
-        // apply filters
+       // make filter noise sprites
+       this.filterDisplacementSprite = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
+       this.filterDisplacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
+       this.backgroundFilterDisplacementSprite = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
+       this.backgroundFilterDisplacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT; 
+
+       this.filterDisplacementSprite.scale.set(0.6);
+       this.backgroundFilterDisplacementSprite.scale.set(0.6);
+
+       this.worldContainer.addChild(this.filterDisplacementSprite);   
+       this.tileMap.backgroundContainer.addChild(this.backgroundFilterDisplacementSprite);
+
+       // make postprocessing filters
+       let myDisplacementFilter = new PIXI.filters.DisplacementFilter(this.filterDisplacementSprite);
+       let backgroundDisplacementFilter = new PIXI.filters.DisplacementFilter(this.backgroundFilterDisplacementSprite);  
+       // let catNipFilter = new PIXI.Filter(loader.catNipFilter.vert, loader.catNipFilter.frag, this.filterUniforms)
+
+       // this fixes some problems with the light shading, for now...
+       // the light shading will flicker if its parent filter container is not resized to around this size
+       let badfiltersolution = new PIXI.Graphics()
+                                    .beginFill(0,0.1)
+                                    .drawRect(-2000,-2000, 8000, 8000)
+                                    .endFill();
+        this.foregroundContainer.addChild(badfiltersolution);
+
+        // hide the cat's eyes, I think they are too small for the pixelation filter
         let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
+
+        // apply filters to containers
         this.worldContainer.filters = [new PixelateFilter(3)];
+        this.foregroundContainer.filters = [myDisplacementFilter];
+        this.backgroundContainer.filters = [backgroundDisplacementFilter];
         this.animationContainer.filters = [colorSwapper];
       }
 
@@ -294,6 +349,7 @@ class Game {
 
     // resize and center canvas
     onWindowResize() {
+      console.log("resize")
         // Get canvas parent node
         const parent = this.app.view.parentNode;
         

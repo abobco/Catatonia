@@ -20,7 +20,9 @@ class FilePaths {
             "shaders/lightFilterVert.GLSL",
             "shaders/lightFilterFrag.GLSL",
             "shaders/lightVert.GLSL",
-            "shaders/lightFrag.GLSL"
+            "shaders/lightFrag.GLSL",
+            "shaders/catnip-effect/catnipVert.GLSL",
+            "shaders/catnip-effect/catnipFrag.GLSL",
         ];
     }
     array() {

@@ -26,6 +26,8 @@ class myLoader {
     {
        this.lightShader = this.loadShaders();
 
+       this.catnipFilter = this.loadFilters();
+
        //this.catFrameMap = this.loadFrames();
        this.catAnimations = this.animationsInit();
 
@@ -62,6 +64,16 @@ class myLoader {
                 "vert": vert,
                 "frag": frag,
                };
+    }
+
+    loadFilters(){
+        let vert = resources["shaders/catnip-effect/catnipVert.GLSL"].data,
+        frag = resources["shaders/catnip-effect/catnipFrag.GLSL"].data;
+
+    return {
+            "vert": vert,
+            "frag": frag,
+           };
     }
     
     /*

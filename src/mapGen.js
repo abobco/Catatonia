@@ -64,7 +64,7 @@ class AbstractMap{
         this.backgroundContainer.x = cameraCenter.x / xSpeed; //- (this.w * this.tileSize ) / 2;
         this.backgroundContainer.y = cameraCenter.y / ySpeed; //- (this.h * this.tileSize ) / 2;
     }
-    
+
     tileSpriteInit(x,y,texture){
         let sprite = new PIXI.Sprite.from(texture);
         sprite.width = this.tileSize -6;
@@ -77,8 +77,8 @@ class AbstractMap{
     }
 }
 
-/// Eller maze map
-// this doesnt have any textures currently
+// eller maze map
+// currently this still draws tiles as rectangle graphics primitives
 class MazeMap extends AbstractMap {
     constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames){
         super(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames)
@@ -159,7 +159,7 @@ class MazeMap extends AbstractMap {
     }
 }
 
-// cellular automata cave map
+// textured cave map from cellular automata
 class CellularMap extends AbstractMap{
     constructor(w,h,tileSize, numLights, shaderProgram,  tileset, torchFrames){
         super(w,h,tileSize,numLights,shaderProgram, tileset,torchFrames);

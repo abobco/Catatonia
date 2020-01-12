@@ -10,6 +10,8 @@ class MyButton {
             sprite.scale.set(7);
         })
         this.sprites.get("unpressed").visible = true;
+
+        this.interactionRectangle = new PIXI.Rectangle();
     }
 }
 
@@ -20,8 +22,9 @@ class PlayerButton extends MyButton {
         this.eventCallback = eventCallback;
 
 
-        this.sprites.get("unpressed").on('touchstart', this.onPress.bind(this));
-        this.sprites.get("pressed").on('touchend', this.onEnd.bind(this));
+        //this.sprites.get("unpressed").on('touchstart', this.onPress.bind(this));
+        //this.sprites.get("pressed").on('touchend', this.onEnd.bind(this));
+
         //this.sprites.get("pressed").on('pointerout', this.onEnd.bind(this));
         //this.sprites.get("unpressed").on('pointerout', this.onEnd.bind(this));
 
@@ -88,24 +91,65 @@ class PlayerButton extends MyButton {
 }
 
 class ButtonController{
-    constructor( buttonFrames, playerPos, eventCallback ){
+    constructor( buttonFrames, playerPos, eventCallback, canvasContext ){
+        this.clientTopLeft = new PIXI.Point(playerPos.x - window.innerWidth, playerPos.y - window.innerHeight);
+       // console.log(this.clientTopLeft)
+
+        // add button event listeners to canvas
+        canvasContext.addEventListener("touchstart", this.handleTouches.bind(this));
+        canvasContext.addEventListener("touchend", this.handleTouches.bind(this));
+        canvasContext.addEventListener("touchmove", this.handleTouches.bind(this));
+        canvasContext.addEventListener("click", (event) => {
+            console.log("click: x: ", event.clientX, "y: ", event.clientY);
+        })
+
+        // make button display objects
         this.buttonContainer = new PIXI.Container();
         this.buttons = new Map([["left", new PlayerButton(buttonFrames.get("left"), "left",playerPos, eventCallback)],
                                 ["right", new PlayerButton(buttonFrames.get("right"), "right",playerPos, eventCallback)],
                                 ["up", new PlayerButton(buttonFrames.get("up"), "up",playerPos, eventCallback)]])
+        
 
+        // add to one parent container
         this.buttons.forEach( (button) => {
             button.sprites.forEach( (sprite ) => {
                 this.buttonContainer.addChild( sprite );
             });
         });
 
+        // window offsets for buttons
         this.leftButtonOffset = new PIXI.Point(-window.innerWidth + 10, window.innerHeight- (this.buttons.get("left").height + 10));
         this.rightButtonOffset = new PIXI.Point(this.leftButtonOffset.x + this.buttons.get("left").width + 5, this.leftButtonOffset.y);
         this.upButtonOffset = new PIXI.Point(window.innerWidth - this.buttons.get("left").width -  5, this.leftButtonOffset.y);
 
-        this.buttonContainer.children.forEach( (sprite) => {
-            sprite.on('touchmove', this.onMove.bind(this));
+        //this.moveButtons(playerPos);
+
+        // test button bounds
+        let leftButton = this.buttons.get("left").sprites.get("unpressed");
+        console.log(leftButton.getBounds());
+
+        // this.buttonContainer.children.forEach( (sprite) => {
+        //     sprite.on('touchmove', this.onMove.bind(this));
+        // })
+    }
+
+    handleTouches(event) {
+        console.log("touches: ", event.touches.length);
+        this.buttons.forEach( (button) => {
+            let touchInButton = false;
+            for ( let i = 0; i < event.touches.length; i++){
+                let touch = event.touches.item(i);
+                if ( button.interactionRectangle.contains(touch.clientX, touch.clientY) ) {
+                    touchInButton = true;
+                }
+            }
+            if ( touchInButton != button.pressed ){
+                button.pressed = touchInButton;
+                if ( button.pressed )
+                    button.onPress();
+                else 
+                    button.onEnd();
+            }
         })
     }
 
@@ -127,9 +171,16 @@ class ButtonController{
     }
 
     moveButtons(cameraPos){
+        // console.log("left button: ", this.buttons.get("left").sprites.get("unpressed").getBounds());
+        this.buttons.get("left").interactionRectangle = this.buttons.get("left").sprites.get("unpressed").getBounds();
+        this.buttons.get("right").interactionRectangle = this.buttons.get("right").sprites.get("unpressed").getBounds();
+        this.buttons.get("up").interactionRectangle = this.buttons.get("up").sprites.get("unpressed").getBounds();
+
         this.buttons.get("left").setPosition(cameraPos, this.leftButtonOffset);
         this.buttons.get("right").setPosition(cameraPos, this.rightButtonOffset);
         this.buttons.get("up").setPosition(cameraPos, this.upButtonOffset);
+
+
     }
 
     onResize(){
