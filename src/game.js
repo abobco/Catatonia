@@ -2,13 +2,17 @@ import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
 import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 
-import { CellularMap, MazeMap } from "./mapGen";
+import { CellularMap } from "./mapGen";
 import {Player} from './player.js';
-import {Controller, KBController} from './controller.js';
+import { KBController} from './controller.js';
 import {ShadowMap} from './shadowMap.js';
 import {MyCamera} from './myCamera.js';
-import { PlayerButton, ButtonController} from './buttons.js';
+import {ButtonController} from './buttons.js';
 import {PauseMenu} from './myMenu.js';
+import { MyTimer } from './myTimer.js';
+import {BezierCurve} from './BezierCurve.js';
+import {DissolveFilter} from './DissolveFilter.js';
+import {BezierDisplacementFilter} from './BezierDisplacement.js';
 
 // Aliases
 let Engine = Matter.Engine,
@@ -24,6 +28,18 @@ class Game {
         this.animationContainer = new PIXI.Container();  // every animated sprite in the game
         this.foregroundContainer = new PIXI.Container(); // objects with no parallax scroll
         this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
+
+        // dissolve effect shader
+        this.dissolveSprite = new PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');   
+        this.dissolveSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
+
+        this.dissolveSprite.scale.set(0.2);
+        this.dissolveShader = loader.dissolveShader;
+
+        this.bezierDisplacementShader = loader.displacementShader;
+  
+        this.worldContainer.addChild(this.dissolveSprite);
+        //this.dissolveEffect = new DissolveFilter(this.dissolveSprite, loader.dissolveShader, 1);
         
         // physics Engine
         this.engine = Engine.create();
@@ -59,6 +75,14 @@ class Game {
 
             World.add(this.world, element.edgeBoxes)
         }); 
+
+        this.tileMap.powerups.forEach( (powerup) => {
+          World.add(this.world, powerup.collider);
+          //console.log(powerup.collider);
+        });
+
+        this.filterFrames =0;
+        this.filterTimer = new MyTimer();
 
         // Input handlers
         // camera movement control
@@ -106,8 +130,20 @@ class Game {
         this.filterUniforms = {
           time: 0
       };
-      this.filterTime = 0;
+      this.filterTime = 0.0;
+      this.bezierTime = 0.0;
+      this.filterTransitionMS = 3000.0;
+      this.filterStaticMS = 10000.0;
       this.filterTimeIncrement = 0.5;
+      this.bezierIncrement = 1.0 / (this.filterTransitionMS / 16.666);
+
+      this.filterBezier = new BezierCurve();
+
+      this.poweruptimer = new MyTimer();
+      this.poweruptimer.start();
+
+
+
     }
 
     // main game loop, does not update at a constant rate
@@ -156,11 +192,10 @@ class Game {
             mesh.shader.uniforms.time += 0.00003;
             });
         });
-        // same for post processing filters
-        this.filterTime += this.filterTimeIncrement;
-
-        // rotate the world back and forth for catnip effect
-        this.worldContainer.rotation = 0.015* Math.sin(this.filterTime * 0.02);
+        
+        // update catnip trip effect
+        this.catTripEffect();
+        
       }
     }
 
@@ -209,8 +244,8 @@ class Game {
        this.tileMap.backgroundContainer.addChild(this.backgroundFilterDisplacementSprite);
 
        // make postprocessing filters
-       let myDisplacementFilter = new PIXI.filters.DisplacementFilter(this.filterDisplacementSprite);
-       let backgroundDisplacementFilter = new PIXI.filters.DisplacementFilter(this.backgroundFilterDisplacementSprite);  
+       this.myDisplacementFilter = new BezierDisplacementFilter(this.filterDisplacementSprite, this.bezierDisplacementShader);
+       this.backgroundDisplacementFilter = new BezierDisplacementFilter(this.backgroundFilterDisplacementSprite, this.bezierDisplacementShader);  
        // let catNipFilter = new PIXI.Filter(loader.catNipFilter.vert, loader.catNipFilter.frag, this.filterUniforms)
 
        // this fixes some problems with the light shading, for now...
@@ -224,10 +259,14 @@ class Game {
         // hide the cat's eyes, I think they are too small for the pixelation filter
         let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
 
+
+        //console.log(this.dissolveEffect);
+
         // apply filters to containers
-        this.worldContainer.filters = [new PixelateFilter(3)];
-        this.foregroundContainer.filters = [myDisplacementFilter];
-        this.backgroundContainer.filters = [backgroundDisplacementFilter];
+         this.worldContainer.filters = [new PixelateFilter(3)];
+        // this.worldContainer.filters = [this.dissolveEffect];
+        //this.foregroundContainer.filters = [myDisplacementFilter];
+        //this.backgroundContainer.filters = [backgroundDisplacementFilter];
         this.animationContainer.filters = [colorSwapper];
       }
 
@@ -274,6 +313,18 @@ class Game {
               // if colliding with a ground trigger collider
               else if (!this.player.isHanging)
                 inWalkBox = true;
+              
+            if ( otherBody.isCatnip ){
+                  //console.log("catnip collision");
+                  this.foregroundContainer.filters = [this.myDisplacementFilter];
+                  this.backgroundContainer.filters = [this.backgroundDisplacementFilter];
+                  this.filterTimer.start();
+                  World.remove(this.world, otherBody);
+                  otherBody.spriteReference.filters = [new DissolveFilter(this.dissolveSprite, this.dissolveShader, 1)];
+                  // this.tileMap.tileContainer.removeChild(otherBody.spriteReference);
+                  console.log(otherBody.spriteReference)
+                  
+            }
                 
             }
             else  {// if physics collision
@@ -365,6 +416,51 @@ class Game {
          });       
 
         this.pauseMenu.onResize();
+    }
+
+    catTripEffect(){
+      // rotate the world back and forth for catnip effect
+      if ( this.filterTimer.isRunning){  
+        //this.app.ticker.speed = 0.5;
+        this.player.jumpVel = this.player.tripJumpVel;  
+        this.player.maxVel = this.player.tripMaxVel;    
+        this.filterTime += this.filterTimeIncrement;
+        let bezierY;
+        if ( this.bezierTime > 1){
+          this.bezierTime = 1;
+          bezierY = 1;
+        }
+        else{
+          bezierY = this.filterBezier.getY(this.bezierTime);
+        }
+        
+        this.myDisplacementFilter.uniforms.bezierVal = bezierY;
+        this.backgroundDisplacementFilter.uniforms.bezierVal = bezierY;
+        this.worldContainer.rotation = 0.015 * bezierY*  Math.sin(this.filterTime * 0.02);
+          
+        if ( this.filterTimer.getElapsedTime() < this.filterTransitionMS){   
+          this.bezierTime += this.bezierIncrement;
+        }
+        else if (this.filterTimer.getElapsedTime() > (this.filterTransitionMS + this.filterStaticMS))
+        {
+          this.bezierTime -= this.bezierIncrement;
+        }
+        if ( this.filterTimer.getElapsedTime() > (2*this.filterTransitionMS + this.filterStaticMS) ) {
+          this.filterTime = 0.0;
+          this.bezierTime = 0.0;
+          this.filterTimer.stop();
+          this.foregroundContainer.filters = [];
+          this.backgroundContainer.filters = [];    
+          
+          //this.app.ticker.speed = 1.0;
+          this.player.jumpVel = this.player.defaultJumpVel;
+          this.player.maxVel = this.player.defaultMaxVel;
+        }
+      }
+        
+      this.tileMap.powerups.forEach( (powerup) => {
+        powerup.update(this.poweruptimer.getElapsedTime());
+      })
     }
 }
 

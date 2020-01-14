@@ -23,6 +23,10 @@ class FilePaths {
             "shaders/lightFrag.GLSL",
             "shaders/catnip-effect/catnipVert.GLSL",
             "shaders/catnip-effect/catnipFrag.GLSL",
+            "shaders/dissolve/dissolveVert.GLSL",
+            "shaders/dissolve/dissolveFrag.GLSL",
+            "shaders/BezierDisplacementFilter/BezierDispVert.GLSL",
+            "shaders/BezierDisplacementFilter/BezierDispFrag.GLSL"
         ];
     }
     array() {

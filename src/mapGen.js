@@ -1,6 +1,7 @@
 import {TileCollider} from './tiles.js'
 import {Boundary} from './terrain.js'
-import {PointLight} from './PointLight'
+import {PointLight} from './PointLight.js'
+import {Powerup} from './powerups.js'
 
 
 // parent of all other procedural generation map classes
@@ -13,7 +14,8 @@ class AbstractMap{
         this.tileMap = {}                       // hashmap of characters representing map features
         this.tileset = tileset;                 // hashmap of textures
         this.numLights = numLights;             // number of lights to randomly place in map
-        this.freeCells = [];                    // indices of empty map tiles
+        this.freeCells = [];                    // keys for empty map tiles
+        this.groundTiles = [];                  // keys for tiles with walkboxes
 
         this.terrain = [];                      // box colliders for walls
         this.lights = [];                       // light shading meshes 
@@ -30,6 +32,8 @@ class AbstractMap{
         // feed these into raycasting functions
         this.edges = new Set();
         this.vertices = new Set();
+
+        this.powerups = [];
 
     }
 
@@ -65,10 +69,16 @@ class AbstractMap{
         this.backgroundContainer.y = cameraCenter.y / ySpeed; //- (this.h * this.tileSize ) / 2;
     }
 
-    tileSpriteInit(x,y,texture){
+    tileSpriteInit(x,y,texture, scale = 0){
         let sprite = new PIXI.Sprite.from(texture);
+
         sprite.width = this.tileSize -6;
         sprite.height = this.tileSize;
+
+        if (scale != 0 )
+            sprite.scale.set(scale);
+        
+
         sprite.anchor.set(0.5);
         sprite.position.x = x*this.tileSize;
         sprite.position.y = y*this.tileSize;  
@@ -196,16 +206,25 @@ class CellularMap extends AbstractMap{
             if (!this.tileMap[key])
                this.freeCells.push(key);
         }       
-        this.backgroundTiling();
 
         // randomly place lights in empty cells
         this.generateLights(this.freeCells, numLights);
         
         // make wall cells
         this.caveWalls(this.tileMap, true, this.tileContainer, this.tileSize);
+
+        
+        // randomly place catnip on ground cells
+        this.generateCatnip(25);
+
+        // add backgroudn tiles
+        this.backgroundTiling();
         
         // add grass and spikes to random edge tilesS
         this.addFeatures(this.freeCells, this.tileMap)  
+        // add catnip sprites to the map
+        this.addCatnip();
+
         console.log("ray cast vertices: ", this.vertices.size);
 
         // make PointLight objects 
@@ -243,6 +262,9 @@ class CellularMap extends AbstractMap{
                     BRNeighbor = true;
                 if (tileMap[ (x -1)  +','+ (y+1)] == 1)
                     BLNeighbor = true;
+
+                if (!topNeighbor && y > 0)
+                    this.groundTiles.push(key);
 
                 if ( doesCollisions){
                     // create tile, boolean logic determines if climb/walk trigger colliders need to be made
@@ -397,6 +419,41 @@ class CellularMap extends AbstractMap{
                 }
             }
         }
+    }
+
+    generateCatnip(numSpawns){
+        for (let i=0;i<numSpawns;i++) {
+            let index = Math.floor(ROT.RNG.getUniform() * this.groundTiles.length);
+            let key = this.groundTiles.splice(index, 1)[0];
+
+            let parts = key.split(",");
+            let x = parseInt(parts[0]);
+            let y = parseInt(parts[1]);
+
+            y-=1;
+
+            this.tileMap[key] = "N";
+        }
+    }
+
+    // add catnip sprites to foreground container
+    addCatnip(){
+        for (let key in this.tileMap){
+            if (this.tileMap[key] == 'N'){
+                let parts = key.split(",");
+
+                let x = parseInt(parts[0]);
+                let y = parseInt(parts[1]);
+
+               // this.tileSpriteInit(x,--y, this.tileset.get("catnip"), 3.0);
+               let catnip = new Powerup(x*this.tileSize, --y* this.tileSize, this.tileset.get("catnip"));
+               this.powerups.push(catnip);
+
+               this.tileContainer.addChild(catnip.sprite);
+            }
+        }
+
+        
     }
 }
 

@@ -1,5 +1,4 @@
 import Matter from 'matter-js/build/matter.min.js';
-
 class Corner {
     constructor(mainPt, sidePt1, sidePt2){
         this.pos = mainPt;

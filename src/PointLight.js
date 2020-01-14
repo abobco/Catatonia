@@ -1,5 +1,4 @@
 import Matter from 'matter-js/build/matter.min.js';
-
 import {Player} from './player.js';
 import {RaySource} from './raySource.js';
 

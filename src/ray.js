@@ -1,5 +1,4 @@
 import Matter from 'matter-js/build/matter.min.js';
-
 class Ray {
     constructor(pos, angle, endpoint) {
         this.pos = pos;

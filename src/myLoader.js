@@ -1,12 +1,10 @@
-import Matter from 'matter-js/build/matter.min.js';
-
 import {FilePaths} from './FilePaths.js'
 
 // Aliases
 let loader = PIXI.loader,
     resources = PIXI.loader.resources;
 
-// Loads sprites and shaders from files, stores them as object properties
+// Loads textures and shaders from files, stores them as object properties
 class myLoader {
     constructor(setupFunction)
     {
@@ -25,6 +23,8 @@ class myLoader {
     onLoad(setupFunction)
     {
        this.lightShader = this.loadShaders();
+       this.dissolveShader = this.loadDissolveShader();
+       this.displacementShader = this.loadDisplacementShader();
 
        this.catnipFilter = this.loadFilters();
 
@@ -64,6 +64,28 @@ class myLoader {
                 "vert": vert,
                 "frag": frag,
                };
+    }
+
+    // load dissolve shaders into a {string:string} map
+    loadDissolveShader()
+    {
+        let vert = resources["shaders/dissolve/dissolveVert.GLSL"].data,
+        frag = resources["shaders/dissolve/dissolveFrag.GLSL"].data;
+
+    return {
+            "vert": vert,
+            "frag": frag,
+           };
+    }
+
+    loadDisplacementShader(){
+        let vert = resources["shaders/BezierDisplacementFilter/BezierDispVert.GLSL"].data,
+        frag = resources["shaders/BezierDisplacementFilter/BezierDispFrag.GLSL"].data;
+
+    return {
+            "vert": vert,
+            "frag": frag,
+           };
     }
 
     loadFilters(){
@@ -147,36 +169,38 @@ class myLoader {
         return frames;
     }
 
+    // must change the for loop when new tiles are added
     loadTiles(){
-        let sprites = [];
+        let textures = [];
         
-        for ( let i = 1; i < 23; i++ ) {
+        for ( let i = 1; i < 24; i++ ) {
             const val = i;       
             let texture = PIXI.Texture.from(`caveTile (${val}).png`); 
-            sprites.push( texture );
+            textures.push( texture );
         }
         
-        return new Map([['Background', sprites[0]],
-                        ['TLCorner', sprites[1]],
-                        ['TopEdge', sprites[2]],
-                        ['TRCorner', sprites[3]],
-                        ['LeftEdge', sprites[4]],
-                        ['Interior', sprites[5]],
-                        ['RightEdge', sprites[6]],
-                        ['BLCorner', sprites[7]],
-                        ['BottomEdge', sprites[8]],
-                        ['BRCorner', sprites[9]],
-                        ['Wang', sprites[10]],
-                        ['Shaft', sprites[11]],
-                        ['Loner', sprites[13]],
-                        ['Spikes', sprites[14]],
-                        ['Moon', sprites[15]],
-                        ['Sky', sprites[16]],
-                        ['Stars-1', sprites[17]],
-                        ['Stars-2', sprites[18]],
-                        ['Stars-3', sprites[19]],
-                        ['Grass-1', sprites[20]],
-                        ['Grass-2', sprites[21]],
+        return new Map([['Background', textures[0]],
+                        ['TLCorner', textures[1]],
+                        ['TopEdge', textures[2]],
+                        ['TRCorner', textures[3]],
+                        ['LeftEdge', textures[4]],
+                        ['Interior', textures[5]],
+                        ['RightEdge', textures[6]],
+                        ['BLCorner', textures[7]],
+                        ['BottomEdge', textures[8]],
+                        ['BRCorner', textures[9]],
+                        ['Wang', textures[10]],
+                        ['Shaft', textures[11]],
+                        ['Loner', textures[13]],
+                        ['Spikes', textures[14]],
+                        ['Moon', textures[15]],
+                        ['Sky', textures[16]],
+                        ['Stars-1', textures[17]],
+                        ['Stars-2', textures[18]],
+                        ['Stars-3', textures[19]],
+                        ['Grass-1', textures[20]],
+                        ['Grass-2', textures[21]],
+                        ['catnip', textures[22]],
 
                     ]);
     }

@@ -1,5 +1,4 @@
-import Matter from 'matter-js/build/matter.min.js'; 
-
+import Matter from 'matter-js/build/matter.min.js';
 import {Boundary} from "./terrain.js";
 import {MyTimer} from "./myTimer.js";
 
@@ -14,7 +13,11 @@ class Player {
         this.position = new PIXI.Point(position.x, position.y);
         this.scale = 3.5;
         this.maxVel = 5;
+        this.defaultMaxVel = 5;
+        this.tripMaxVel = 6.5
         this.jumpVel = -25;
+        this.defaultJumpVel = -25;
+        this.tripJumpVel = -30;
         this.unScaledJumpVel = -25;
         this.xVel = 0;
 
