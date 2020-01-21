@@ -1,4 +1,4 @@
-class TextBox{
+export class TextBox{
     constructor(x, y, width, _fontSize, text){
         this.boxRenderer = new PIXI.Graphics();
 
@@ -14,5 +14,3 @@ class TextBox{
         this.renderedText.position.set(x,y);
     }
 }
-
-export {TextBox};

@@ -28,8 +28,8 @@
       https://www.spriters-resource.com/ds_dsi/castlevaniaorderofecclesia/
 */
 
-import {myLoader} from './myLoader';
-import {Game} from './game.js';
+import {myLoader} from './app/myLoader';
+import {Game} from './app/game';
 
 let app;
 let myGame;
@@ -66,9 +66,6 @@ function InitPixi() {
   app.renderer.view.style.display = "block";
   // Add the canvas to the document
   document.getElementById('myCanvas').appendChild(app.view);
-
-    // lock frame rate 
-   // app.ticker.maxFPS =30;
 }
 
 // Prevent touch event scrolling on mobile

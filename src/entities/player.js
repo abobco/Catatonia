@@ -2,7 +2,7 @@ import Matter from 'matter-js/build/matter.min.js';
 import {Boundary} from "./terrain.js";
 import {MyTimer} from "./myTimer.js";
 
-class Player {
+export class Player {
     constructor(position, animationMap) {
         // store most recent input for ledge climbing logic
         this.lastInput = null;
@@ -415,5 +415,3 @@ class Player {
         }
     }
 };
-
-export { Player };

@@ -1,6 +1,6 @@
 import { makeNoise2D } from "open-simplex-noise";
 
-class MyCamera {
+export class MyCamera {
     constructor(playerPosition){
         this.targetPos = playerPosition;
         this.position = playerPosition;
@@ -70,5 +70,3 @@ class MyCamera {
     }
 
 }
-
-export {MyCamera}

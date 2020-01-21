@@ -1,4 +1,4 @@
-import {FilePaths} from './FilePaths.js'
+import {FilePaths} from './FilePaths'
 
 // Aliases
 let loader = PIXI.loader,
@@ -16,6 +16,7 @@ class myLoader {
 
         loader
             .add(loaderFiles.array())
+            .add('pauseMusic', 'sound/tropical jam.mp3')
             .load(this.onLoad.bind(this, setupFunction));  
     }
     
@@ -40,6 +41,9 @@ class myLoader {
        this.buttonFrames = this.loadButtons();
 
        this.menuButtons = this.loadMenu();
+
+       this.pauseMusic = this.loadSound();
+       this.pauseMusic.loop = true;
 
        // this.checkLoad();
 
@@ -220,6 +224,11 @@ class myLoader {
                                    ]);
 
         return buttonFrames;
+    }
+
+    loadSound(){
+        return resources.pauseMusic.data;
+
     }
 }
 

@@ -1,6 +1,6 @@
 import Matter from 'matter-js/build/matter.min.js';
 
-class TileCollider {
+export class TileCollider {
     constructor(x,y,r,leftLedge, rightLedge, hasWalkBox){
 
         this.x = x * r;
@@ -102,5 +102,3 @@ class TileBlob {
         
     }
 }
-
-export {TileCollider}

@@ -1,5 +1,5 @@
 import Matter from 'matter-js/build/matter.min.js';
-class Ray {
+export class Ray {
     constructor(pos, angle, endpoint) {
         this.pos = pos;
         //this.dir = p5.Vector.fromAngle(angle);
@@ -60,6 +60,4 @@ class Ray {
             return;
         }
     }
-}
-
-export { Ray };
+};

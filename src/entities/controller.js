@@ -1,7 +1,7 @@
 import nipplejs from 'nipplejs/dist/nipplejs.js';
 import Matter from 'matter-js/build/matter.min.js';
 
-class Controller{
+export class Controller{
     // pass by reference for dummies
     constructor(catPlayer, catBody) {
         // init joystick
@@ -13,10 +13,6 @@ class Controller{
 
         // bind joystick events to game actions
         this.manager.on('start', function (evt, nipple) {
-          // if (catPlayer.isHanging){
-          //   catPlayer.isHanging = false;
-          //   Matter.Body.setStatic(catBody, false);
-          // }
           // moonwalk
           if (catPlayer.isGrounded) {
             catPlayer.setAnimation("walk");
@@ -172,7 +168,5 @@ var KBController = function(catPlayer, catBody, gameTicker, camera, pauseMenu) {
     }
 }
 
-Controller.prototype.constructor = Controller
 KBController.prototype.constructor = KBController
-export {Controller};
 export {KBController};

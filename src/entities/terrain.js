@@ -2,32 +2,33 @@
     Sets of Colliders for physics collisions and Player action triggers
 */
 import Matter from 'matter-js/build/matter.min.js';
-import {Corner} from './geometry.js';
+import {Corner} from '../lighting/geometry.js';
 
-var Boundary = function(x1,y1,x2,y2, isEdge = false) {
-    this.a = new Matter.Vector.create(x1,y1);
-    this.b = new Matter.Vector.create(x2,y2);
-    this.isEdge = isEdge;
+export class Boundary  {
+    constructor(x1,y1,x2,y2, isEdge = false){
+        this.a = new Matter.Vector.create(x1,y1);
+        this.b = new Matter.Vector.create(x2,y2);
+        this.isEdge = isEdge;
+    }
+
 }
 
-Boundary.prototype.constructor = Boundary;
-export {Boundary};
+export class RectSegments{
+    constructor(x,y,w,h){
+        var A = new Matter.Vector.create(x - (w/2), y - (h/2));
+        var B = new Matter.Vector.create(x + (w/2), y - (h/2));
+        var C = new Matter.Vector.create(x - (w/2), y + (h/2));
+        var D = new Matter.Vector.create(x + (w/2), y + (h/2));
+    
+        this.bounds = [new Boundary(A.x,A.y, B.x,B.y), 
+                       new Boundary(A.x,A.y, C.x,C.y), 
+                       new Boundary(C.x,C.y, D.x,D.y), 
+                       new Boundary(B.x,B.y, D.x,D.y)]
+    }
 
-var RectSegments = function(x,y,w,h) {
-    var A = new Matter.Vector.create(x - (w/2), y - (h/2));
-    var B = new Matter.Vector.create(x + (w/2), y - (h/2));
-    var C = new Matter.Vector.create(x - (w/2), y + (h/2));
-    var D = new Matter.Vector.create(x + (w/2), y + (h/2));
-
-    this.bounds = [new Boundary(A.x,A.y, B.x,B.y), 
-                   new Boundary(A.x,A.y, C.x,C.y), 
-                   new Boundary(C.x,C.y, D.x,D.y), 
-                   new Boundary(B.x,B.y, D.x,D.y)]
 }
 
-RectSegments.prototype.constructor = RectSegments;
-
-class Terrain{
+export class Terrain{
     constructor(x,y,w,h){
             // collision rectangle 
         this.x = x;
@@ -120,8 +121,8 @@ class Terrain{
     }
 }
 
-function drawComponent(graphics, color, rectangle ) {
-    // draw walkBox for debug
+// draw walkBox for debug
+function drawComponent(graphics, color, rectangle ) { 
     graphics.beginFill(color);
     graphics.drawRect( rectangle.position.x - (rectangle.width/2) , 
                        rectangle.y - (rectangle.height/2), 
@@ -129,7 +130,4 @@ function drawComponent(graphics, color, rectangle ) {
                        rectangle.height);
     graphics.endFill();
 }
-
-export { Terrain };
-export { RectSegments };
 export {drawComponent}

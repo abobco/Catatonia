@@ -2,24 +2,21 @@ import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
 import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 
-import { CellularMap } from "./mapGen";
-import {Player} from './player.js';
-import { KBController} from './controller.js';
-import {ShadowMap} from './shadowMap.js';
-import {MyCamera} from './myCamera.js';
-import {ButtonController} from './buttons.js';
-import {PauseMenu} from './myMenu.js';
-import { MyTimer } from './myTimer.js';
-import {BezierCurve} from './BezierCurve.js';
-import {DissolveFilter} from './DissolveFilter.js';
-import {BezierDisplacementFilter} from './BezierDisplacement.js';
-
+import { CellularMap } from "../entities/mapGen.js";
+import {Player} from '../entities/player.js';
+import { KBController} from '../entities/controller.js';
+import {ShadowMap} from '../lighting/shadowMap.js';
+import {MyCamera} from '../entities/myCamera.js';
+import {ButtonController} from '../entities/buttons.js';
+import {PauseMenu} from '../entities/myMenu.js';
+import {DissolveFilter} from '../filters/DissolveFilter.js';
+import {CatnipTrip} from '../filters/catTripState.js'
 // Aliases
 let Engine = Matter.Engine,
 World = Matter.World,
 Events = Matter.Events;
 
-class Game {  
+export class Game {  
     constructor(loader, app){
         this.app = app;
 
@@ -28,6 +25,7 @@ class Game {
         this.animationContainer = new PIXI.Container();  // every animated sprite in the game
         this.foregroundContainer = new PIXI.Container(); // objects with no parallax scroll
         this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
+        this.pauseMusic = loader.pauseMusic;
 
         // dissolve effect shader
         this.dissolveSprite = new PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');   
@@ -35,7 +33,6 @@ class Game {
 
         this.dissolveSprite.scale.set(0.2);
         this.dissolveShader = loader.dissolveShader;
-
         this.bezierDisplacementShader = loader.displacementShader;
   
         this.worldContainer.addChild(this.dissolveSprite);
@@ -54,6 +51,9 @@ class Game {
         // Contains player animations, physics bodies, flags, behavior functionsxc
         let playerPos = this.tileMap.playerSpawn;
         this.player = new Player(playerPos, loader.catAnimations);
+        console.log(this.player);
+
+        this.catnipTrip = new CatnipTrip(this.bezierDisplacementShader, this.player);
 
         // fill the animation container
         this.tileMap.torchSprites.forEach( (animation) => {
@@ -81,8 +81,6 @@ class Game {
           //console.log(powerup.collider);
         });
 
-        this.filterFrames =0;
-        this.filterTimer = new MyTimer();
 
         // Input handlers
         // camera movement control
@@ -97,7 +95,7 @@ class Game {
                                                         );
         }
         // pass the ticker and animation container to pause the game loop
-        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.buttonController, this.animationContainer);
+        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.buttonController, this.animationContainer, this.pauseMusic);
             // virtual joystick
         // if ("ontouchstart" in document.documentElement) {
         //     this.customJoystick = new Controller(this.player, this.player.body);
@@ -125,31 +123,14 @@ class Game {
 
         // Start the game loop 
         this.app.ticker.add(delta => this.loop(delta));   
-
-        // init filter uniforms
-        this.filterUniforms = {
-          time: 0
-      };
-      this.filterTime = 0.0;
-      this.bezierTime = 0.0;
-      this.filterTransitionMS = 3000.0;
-      this.filterStaticMS = 10000.0;
-      this.filterTimeIncrement = 0.5;
-      this.bezierIncrement = 1.0 / (this.filterTransitionMS / 16.666);
-
-      this.filterBezier = new BezierCurve();
-
-      this.poweruptimer = new MyTimer();
-      this.poweruptimer.start();
-
-
-
     }
 
     // main game loop, does not update at a constant rate
     loop(delta){
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
+        if ( this.catnipTrip.timer.isRunning)
+          this.worldContainer.rotation = this.catnipTrip.cameraRotation;
 
         this.pauseMenu.moveButtons(this.camera.position);
             
@@ -159,11 +140,7 @@ class Game {
 
         this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
 
-        
-        this.filterDisplacementSprite.x = this.filterTime;
-        this.filterDisplacementSprite.y = this.filterTime;
-        this.backgroundFilterDisplacementSprite.x = this.filterTime;
-        this.backgroundFilterDisplacementSprite.y = this.filterTime;
+        this.catnipTrip.update();
     }
 
     FixedUpdate(){
@@ -194,7 +171,10 @@ class Game {
         });
         
         // update catnip trip effect
-        this.catTripEffect();
+        this.catnipTrip.FixedUpdate(this.player, 
+                                   this.foregroundContainer.filters, 
+                                   this.backgroundContainer.filters,
+                                   this.tileMap.powerups);
         
       }
     }
@@ -231,42 +211,15 @@ class Game {
         // add ui buttons to the top layer
         this.app.stage.addChild(this.pauseMenu.buttonContainer);
         
-       // make filter noise sprites
-       this.filterDisplacementSprite = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
-       this.filterDisplacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
-       this.backgroundFilterDisplacementSprite = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
-       this.backgroundFilterDisplacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT; 
-
-       this.filterDisplacementSprite.scale.set(0.6);
-       this.backgroundFilterDisplacementSprite.scale.set(0.6);
-
-       this.worldContainer.addChild(this.filterDisplacementSprite);   
-       this.tileMap.backgroundContainer.addChild(this.backgroundFilterDisplacementSprite);
-
-       // make postprocessing filters
-       this.myDisplacementFilter = new BezierDisplacementFilter(this.filterDisplacementSprite, this.bezierDisplacementShader);
-       this.backgroundDisplacementFilter = new BezierDisplacementFilter(this.backgroundFilterDisplacementSprite, this.bezierDisplacementShader);  
-       // let catNipFilter = new PIXI.Filter(loader.catNipFilter.vert, loader.catNipFilter.frag, this.filterUniforms)
-
-       // this fixes some problems with the light shading, for now...
-       // the light shading will flicker if its parent filter container is not resized to around this size
-       let badfiltersolution = new PIXI.Graphics()
-                                    .beginFill(0,0.1)
-                                    .drawRect(-2000,-2000, 8000, 8000)
-                                    .endFill();
-        this.foregroundContainer.addChild(badfiltersolution);
+        this.foregroundContainer.addChild(this.catnipTrip.foregroundNoise);
+        this.foregroundContainer.addChild(this.catnipTrip.badFilterSolution);
+        this.tileMap.backgroundContainer.addChild(this.catnipTrip.backgroundNoise);
 
         // hide the cat's eyes, I think they are too small for the pixelation filter
         let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
 
-
-        //console.log(this.dissolveEffect);
-
         // apply filters to containers
          this.worldContainer.filters = [new PixelateFilter(3)];
-        // this.worldContainer.filters = [this.dissolveEffect];
-        //this.foregroundContainer.filters = [myDisplacementFilter];
-        //this.backgroundContainer.filters = [backgroundDisplacementFilter];
         this.animationContainer.filters = [colorSwapper];
       }
 
@@ -315,10 +268,9 @@ class Game {
                 inWalkBox = true;
               
             if ( otherBody.isCatnip ){
-                  //console.log("catnip collision");
-                  this.foregroundContainer.filters = [this.myDisplacementFilter];
-                  this.backgroundContainer.filters = [this.backgroundDisplacementFilter];
-                  this.filterTimer.start();
+                  this.foregroundContainer.filters = [this.catnipTrip.foregroundFilter];
+                  this.tileMap.backgroundContainer.filters = [this.catnipTrip.backgroundFilter];
+                  this.catnipTrip.start();
                   World.remove(this.world, otherBody);
                   otherBody.spriteReference.filters = [new DissolveFilter(this.dissolveSprite, this.dissolveShader, 1)];
                   // this.tileMap.tileContainer.removeChild(otherBody.spriteReference);
@@ -417,51 +369,4 @@ class Game {
 
         this.pauseMenu.onResize();
     }
-
-    catTripEffect(){
-      // rotate the world back and forth for catnip effect
-      if ( this.filterTimer.isRunning){  
-        //this.app.ticker.speed = 0.5;
-        this.player.jumpVel = this.player.tripJumpVel;  
-        this.player.maxVel = this.player.tripMaxVel;    
-        this.filterTime += this.filterTimeIncrement;
-        let bezierY;
-        if ( this.bezierTime > 1){
-          this.bezierTime = 1;
-          bezierY = 1;
-        }
-        else{
-          bezierY = this.filterBezier.getY(this.bezierTime);
-        }
-        
-        this.myDisplacementFilter.uniforms.bezierVal = bezierY;
-        this.backgroundDisplacementFilter.uniforms.bezierVal = bezierY;
-        this.worldContainer.rotation = 0.015 * bezierY*  Math.sin(this.filterTime * 0.02);
-          
-        if ( this.filterTimer.getElapsedTime() < this.filterTransitionMS){   
-          this.bezierTime += this.bezierIncrement;
-        }
-        else if (this.filterTimer.getElapsedTime() > (this.filterTransitionMS + this.filterStaticMS))
-        {
-          this.bezierTime -= this.bezierIncrement;
-        }
-        if ( this.filterTimer.getElapsedTime() > (2*this.filterTransitionMS + this.filterStaticMS) ) {
-          this.filterTime = 0.0;
-          this.bezierTime = 0.0;
-          this.filterTimer.stop();
-          this.foregroundContainer.filters = [];
-          this.backgroundContainer.filters = [];    
-          
-          //this.app.ticker.speed = 1.0;
-          this.player.jumpVel = this.player.defaultJumpVel;
-          this.player.maxVel = this.player.defaultMaxVel;
-        }
-      }
-        
-      this.tileMap.powerups.forEach( (powerup) => {
-        powerup.update(this.poweruptimer.getElapsedTime());
-      })
-    }
 }
-
-export {Game}

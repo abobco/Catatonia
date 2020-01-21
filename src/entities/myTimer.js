@@ -1,4 +1,4 @@
-class MyTimer{
+export class MyTimer{
     constructor(){
         this.isRunning = false;
         this.startTime = null;
@@ -35,6 +35,3 @@ class MyTimer{
 
 
 }
-
-
-export {MyTimer}

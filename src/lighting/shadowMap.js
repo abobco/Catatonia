@@ -1,4 +1,4 @@
-class ShadowMap {
+export class ShadowMap {
     constructor(lights, tileMap, renderer) {
         let shaper = new PIXI.Graphics();
         this.mesh = new PIXI.Graphics();
@@ -48,5 +48,3 @@ class ShadowMap {
         this.mesh.mask = this.focus;
     }
 }
-
-export {ShadowMap}

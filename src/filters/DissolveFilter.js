@@ -1,4 +1,4 @@
-class DissolveFilter extends PIXI.Filter
+export class DissolveFilter extends PIXI.Filter
 {
     /**
      * @param {PIXI.Sprite} sprite - noise texture for the dissolve effect
@@ -68,5 +68,3 @@ class DissolveFilter extends PIXI.Filter
     }
 
 }
-
-export {DissolveFilter}

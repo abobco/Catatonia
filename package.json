@@ -9,21 +9,24 @@
     "@pixi/filter-radial-blur": "^3.0.3",
     "install": "^0.13.0",
     "matter-js": "^0.14.2",
-    "nipplejs": "^0.8.1",
-    "npm": "^6.13.4",
+    "nipplejs": "^0.8.4",
+    "npm": "^6.13.6",
     "open-simplex-noise": "^2.2.0",
+    "pixi-sound": "^3.0.4",
     "pixi.js": "^5.2.0",
     "rot-js": "^2.1.1",
-    "webpack": "^4.41.2",
+    "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
   },
   "devDependencies": {
-    "serialize-javascript": ">=2.1.1"
+    "serialize-javascript": ">=2.1.1",
+    "webpack-dev-server": "^3.10.1"
   },
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "webpack",
+    "start": "webpack-dev-server --open"
   },
   "author": "",
   "license": "ISC"

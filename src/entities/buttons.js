@@ -12,6 +12,7 @@ class MyButton {
         this.sprites.get("unpressed").visible = true;
 
         this.interactionRectangle = new PIXI.Rectangle();
+        console.log("hello");
     }
 }
 
@@ -20,13 +21,6 @@ class PlayerButton extends MyButton {
         super(textures);
         this.type = type;
         this.eventCallback = eventCallback;
-
-
-        //this.sprites.get("unpressed").on('touchstart', this.onPress.bind(this));
-        //this.sprites.get("pressed").on('touchend', this.onEnd.bind(this));
-
-        //this.sprites.get("pressed").on('pointerout', this.onEnd.bind(this));
-        //this.sprites.get("unpressed").on('pointerout', this.onEnd.bind(this));
 
         this.sprites.forEach( (sprite) => {
             sprite.position.copyFrom(position);
@@ -122,15 +116,9 @@ class ButtonController{
         this.rightButtonOffset = new PIXI.Point(this.leftButtonOffset.x + this.buttons.get("left").width + 5, this.leftButtonOffset.y);
         this.upButtonOffset = new PIXI.Point(window.innerWidth - this.buttons.get("left").width -  5, this.leftButtonOffset.y);
 
-        //this.moveButtons(playerPos);
-
         // test button bounds
         let leftButton = this.buttons.get("left").sprites.get("unpressed");
         console.log(leftButton.getBounds());
-
-        // this.buttonContainer.children.forEach( (sprite) => {
-        //     sprite.on('touchmove', this.onMove.bind(this));
-        // })
     }
 
     handleTouches(event) {
@@ -166,12 +154,9 @@ class ButtonController{
                     button.onPress();
             }
         })
-
-        // console.log(position.x, posistion.y);
     }
 
     moveButtons(cameraPos){
-        // console.log("left button: ", this.buttons.get("left").sprites.get("unpressed").getBounds());
         this.buttons.get("left").interactionRectangle = this.buttons.get("left").sprites.get("unpressed").getBounds();
         this.buttons.get("right").interactionRectangle = this.buttons.get("right").sprites.get("unpressed").getBounds();
         this.buttons.get("up").interactionRectangle = this.buttons.get("up").sprites.get("unpressed").getBounds();

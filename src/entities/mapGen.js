@@ -1,6 +1,6 @@
 import {TileCollider} from './tiles.js'
 import {Boundary} from './terrain.js'
-import {PointLight} from './PointLight.js'
+import {PointLight} from '../lighting/PointLight.js'
 import {Powerup} from './powerups.js'
 
 
@@ -215,7 +215,7 @@ class CellularMap extends AbstractMap{
 
         
         // randomly place catnip on ground cells
-        this.generateCatnip(25);
+        this.generateCatnip(10);
 
         // add backgroudn tiles
         this.backgroundTiling();

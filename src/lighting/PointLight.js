@@ -1,9 +1,7 @@
 import Matter from 'matter-js/build/matter.min.js';
-import {Player} from './player.js';
 import {RaySource} from './raySource.js';
 
-class PointLight {
-
+export class PointLight {
   constructor(x,y, castSegments, endpoints, shaderProgram, torchFrames) {
     this.pos = Matter.Vector.create(x,y);
     this.castSegments = castSegments;
@@ -40,5 +38,3 @@ class TorchAnimation {
     this.animation.gotoAndPlay(Math.random() * 9);
   }
 }
-
-export {PointLight}

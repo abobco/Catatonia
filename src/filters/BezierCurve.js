@@ -1,9 +1,9 @@
-class BezierCurve{
+export class BezierCurve{
     constructor(){
         this.points = [
                        new PIXI.Point(0.0,0.0),
                        new PIXI.Point(0.5,0.0),
-                       new PIXI.Point(0.5,0.5),
+                       new PIXI.Point(0.5,1.0),
                        new PIXI.Point(1.0,1.0)        
                       ];
     }
@@ -17,5 +17,3 @@ class BezierCurve{
         return y;
     }
 }
-
-export {BezierCurve}

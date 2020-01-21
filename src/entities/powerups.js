@@ -1,5 +1,5 @@
 import Matter from 'matter-js/build/matter.min.js';
-class Powerup{
+export class Powerup{
     constructor(x,y,texture){
         this.sprite = new PIXI.Sprite.from(texture);
         this.sprite.position.set(x,y);
@@ -49,5 +49,3 @@ class Powerup{
         }
     }
 }
-
-export {Powerup}

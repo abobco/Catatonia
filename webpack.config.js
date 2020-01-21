@@ -9,5 +9,9 @@ module.exports = {
   },
   node: {
     fs: "empty"
-  }
+  },
+  devServer: {
+    contentBase: './dist',
+  },
+  devtool: 'inline-source-map',
 };

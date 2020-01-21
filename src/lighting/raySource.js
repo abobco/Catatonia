@@ -1,7 +1,7 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {Ray} from "./ray.js";
 
-class RaySource {
+export class RaySource {
 
     constructor(x, y, segments, endpoints, shaderProgram){
         this.pos = Matter.Vector.create(x, y);  // ray source point
@@ -199,6 +199,3 @@ class RaySource {
         this.tris.push(firstTriMesh);
     }
 }
-
-export { RaySource }
-

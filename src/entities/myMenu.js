@@ -31,10 +31,13 @@ class PauseToggleButton{
     }
 }
 
-class PauseMenu{
-    constructor(buttonTextures, ticker, playerPos, controller, animationContainer){
+export class PauseMenu{
+    constructor(buttonTextures, ticker, playerPos, controller, animationContainer, sound){
         this.isOpen = false;
         this.toggleButton = new PauseToggleButton([buttonTextures.get("pause"), buttonTextures.get("exit")]);
+        //this.audioCtx = new AudioContext();
+       // this.music = document.getElementById("audio");
+      //  this.music.loop = true;
 
         // subscribe pause button to click and tap events
         this.toggleButton.sprites.forEach( (sprite) => {
@@ -100,6 +103,8 @@ class PauseMenu{
 
         // pause the game
         if (this.isOpen){
+           // this.music.play();  
+           // this.music.loop = true;
             this.pauseTicker.start();
             this.pausedText.visible = true;
             this.pauseBlinkerLag = 0;
@@ -117,6 +122,8 @@ class PauseMenu{
         }
         // resume the game
         else {
+          //  this.music.pause();
+            //this.music.currentTime = 0;
             ticker.speed = 1;
             this.pausedText.visible = false;
             this.pauseTicker.stop();
@@ -142,5 +149,3 @@ class PauseMenu{
         }
     }
 }
-
-export { PauseMenu }
