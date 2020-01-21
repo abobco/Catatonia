@@ -5,7 +5,7 @@ let loader = PIXI.loader,
     resources = PIXI.loader.resources;
 
 // Loads textures and shaders from files, stores them as object properties
-class myLoader {
+export class MyLoader {
     constructor(setupFunction)
     {
         this.doneLoading = false;
@@ -231,5 +231,3 @@ class myLoader {
 
     }
 }
-
-export {myLoader}

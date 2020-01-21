@@ -28,8 +28,8 @@
       https://www.spriters-resource.com/ds_dsi/castlevaniaorderofecclesia/
 */
 
-import {myLoader} from './app/myLoader';
-import {Game} from './app/game';
+import {MyLoader} from './app/myLoader.js';
+import {Game} from './app/game.js';
 
 let app;
 let myGame;
@@ -38,7 +38,7 @@ let myGame;
 InitPixi();
 
 // load files, call the setup function, bind the calling context to this file's global scope
-let customLoader = new myLoader(setup.bind(this));
+let customLoader = new MyLoader(setup.bind(this));
 
 // Set up the game after all files load 
 function setup() {
