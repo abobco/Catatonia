@@ -17,10 +17,13 @@ class MyButton {
 }
 
 class PlayerButton extends MyButton {
-    constructor(textures, type, position, eventCallback){
+    constructor(textures, type, position, eventCallback, pauseCallback){
         super(textures);
         this.type = type;
         this.eventCallback = eventCallback;
+        this.pauseCallback = pauseCallback;
+
+        this.inPause = false;
 
         this.sprites.forEach( (sprite) => {
             sprite.position.copyFrom(position);
@@ -33,19 +36,31 @@ class PlayerButton extends MyButton {
 
     onPress(){
         this.swapButtons();
-        this.eventCallback({
+        const event = {
             type: "inputDown",
             direction: this.type
-        });
+        }
+        if (this.inPause){
+            if ( event.direction == "up" ){
+                event.direction = "enter";
+            }
+            this.pauseCallback(event);
+        }       
+        else
+            this.eventCallback(event);
         this.pressed = true;
     }
 
     onEnd(){
         this.swapButtons();
-        this.eventCallback({
+        const event = {
             type: "inputUp",
             direction: this.type
-        })
+        }
+        if (this.inPause)
+            this.pauseCallback(event);
+        else
+            this.eventCallback(event);
         this.pressed = false;
     }
 
@@ -85,7 +100,7 @@ class PlayerButton extends MyButton {
 }
 
 class ButtonController{
-    constructor( buttonFrames, playerPos, eventCallback, canvasContext ){
+    constructor( buttonFrames, playerPos, eventCallback, pauseCallback, canvasContext, pauseMenu){
         this.clientTopLeft = new PIXI.Point(playerPos.x - window.innerWidth, playerPos.y - window.innerHeight);
        // console.log(this.clientTopLeft)
 
@@ -99,9 +114,9 @@ class ButtonController{
 
         // make button display objects
         this.buttonContainer = new PIXI.Container();
-        this.buttons = new Map([["left", new PlayerButton(buttonFrames.get("left"), "left",playerPos, eventCallback)],
-                                ["right", new PlayerButton(buttonFrames.get("right"), "right",playerPos, eventCallback)],
-                                ["up", new PlayerButton(buttonFrames.get("up"), "up",playerPos, eventCallback)]])
+        this.buttons = new Map([["left", new PlayerButton(buttonFrames.get("left"), "left",playerPos, eventCallback, pauseCallback)],
+                                ["right", new PlayerButton(buttonFrames.get("right"), "right",playerPos, eventCallback, pauseCallback)],
+                                ["up", new PlayerButton(buttonFrames.get("up"), "up",playerPos, eventCallback, pauseCallback)]])
         
 
         // add to one parent container

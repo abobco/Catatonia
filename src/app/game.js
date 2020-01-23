@@ -19,7 +19,7 @@ Events = Matter.Events;
 export class Game {  
     constructor(loader, app){
         this.app = app;
-
+        //PIXI.settings.SPRITE_MAX_TEXTURES = 16;
         // display object containers        
         this.worldContainer = new PIXI.Container();      // every display object in the game world
         this.animationContainer = new PIXI.Container();  // every animated sprite in the game
@@ -51,6 +51,7 @@ export class Game {
         // Contains player animations, physics bodies, flags, behavior functionsxc
         let playerPos = this.tileMap.playerSpawn;
         this.player = new Player(playerPos, loader.catAnimations);
+
         console.log(this.player);
 
         this.catnipTrip = new CatnipTrip(this.bezierDisplacementShader, this.player);
@@ -86,16 +87,20 @@ export class Game {
         // camera movement control
         this.camera = new MyCamera(playerPos);
         
+        // pass the ticker and animation container to pause the game loop
+        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.animationContainer, this.pauseMusic, loader.menuFont);
+
         this.buttonController = null;
         if ( "ontouchstart" in document.documentElement ){
           this.buttonController = new ButtonController(loader.buttonFrames, 
                                                         this.player.position, 
                                                         this.player.handleEvent.bind(this.player), 
+                                                        this.pauseMenu.handleEvent.bind(this.pauseMenu),
                                                         this.app.renderer.view
                                                         );
+          this.pauseMenu.attachController(this.buttonController);
         }
-        // pass the ticker and animation container to pause the game loop
-        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.buttonController, this.animationContainer, this.pauseMusic);
+
             // virtual joystick
         // if ("ontouchstart" in document.documentElement) {
         //     this.customJoystick = new Controller(this.player, this.player.body);

@@ -30,19 +30,26 @@
 
 import {MyLoader} from './app/myLoader.js';
 import {Game} from './app/game.js';
+import {waitForWebfonts} from './app/loadFonts.js'
 
 let app;
 let myGame;
 
+// Detect Linux 
+// if (navigator.appVersion.indexOf("Linux")!=-1)
+  
 // Create Pixi Application
-InitPixi();
+
+waitForWebfonts(['ARCADECLASSIC'], InitPixi());
+
+// InitPixi();
 
 // load files, call the setup function, bind the calling context to this file's global scope
 let customLoader = new MyLoader(setup.bind(this));
 
 // Set up the game after all files load 
 function setup() {
-  myGame = new Game(customLoader, app);
+  myGame = new Game(customLoader, app, this);
 
   preventScroll();  // stops joystick from scrolling page on mobile
 }

@@ -120,7 +120,11 @@ var KBController = function(catPlayer, catBody, gameTicker, camera, pauseMenu) {
         }
         // spacebar
         else if (e.keyCode == '32'){
-          gameTicker.speed = 0.5;
+          if (pauseMenu.isOpen)
+            myEvent.direction = "enter"
+          else
+           gameTicker.speed = 0.5;
+          
         }
         // 'x' key
         else if (e.keyCode == '88') {
@@ -134,7 +138,16 @@ var KBController = function(catPlayer, catBody, gameTicker, camera, pauseMenu) {
         else if (e.keyCode == '27'){
           pauseMenu.onClick(gameTicker);
         }
-        catPlayer.handleEvent(myEvent);
+        if (pauseMenu.isOpen){
+          
+          if (myEvent.direction == "up")
+            myEvent.direction = "left";
+          else if (myEvent.direction == "down")
+            myEvent.direction = "right";
+          pauseMenu.handleEvent(myEvent);
+        }
+        else
+          catPlayer.handleEvent(myEvent);
     }
 
         function checkKeyUp(e) {

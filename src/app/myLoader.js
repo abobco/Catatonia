@@ -17,6 +17,7 @@ export class MyLoader {
         loader
             .add(loaderFiles.array())
             .add('pauseMusic', 'sound/tropical jam.mp3')
+            .add('ARCADECLASSIC', 'fonts/ARCADECLASSIC.TTF')
             .load(this.onLoad.bind(this, setupFunction));  
     }
     
@@ -44,6 +45,9 @@ export class MyLoader {
 
        this.pauseMusic = this.loadSound();
        this.pauseMusic.loop = true;
+
+       this.menuFont = this.loadFont();
+        console.log(this.menuFont.data);
 
        // this.checkLoad();
 
@@ -229,5 +233,9 @@ export class MyLoader {
     loadSound(){
         return resources.pauseMusic.data;
 
+    }
+    
+    loadFont() {
+        return resources.ARCADECLASSIC;
     }
 }

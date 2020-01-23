@@ -32,7 +32,8 @@ class PauseToggleButton{
 }
 
 export class PauseMenu{
-    constructor(buttonTextures, ticker, playerPos, controller, animationContainer, sound){
+    constructor(buttonTextures, ticker, playerPos, animationContainer, sound, font) {
+        this.ticker = ticker;
         this.isOpen = false;
         this.toggleButton = new PauseToggleButton([buttonTextures.get("pause"), buttonTextures.get("exit")]);
         //this.audioCtx = new AudioContext();
@@ -54,52 +55,39 @@ export class PauseMenu{
         this.pauseBlinkerLag = 0;
 
         // touch controls
-        this.controller = controller;
         this.toggleButtonOffset = new PIXI.Point(window.innerWidth - this.toggleButton.width - 16, -window.innerHeight + 32);
         
         // add all interactive buttons to one container
         this.buttonContainer = new PIXI.Container();
-        if ( this.controller )
-            this.buttonContainer.addChild(this.controller.buttonContainer)
+           
         this.buttonContainer.addChild( this.toggleButton.buttonContainer, this.pausedText);
-
-
 
         this.animationContainer = animationContainer;
 
+        // make menu list object
+        this.menuList = new MenuList(playerPos, font);
+
+        this.menuList.options.forEach( element => {
+            this.buttonContainer.addChild(element.inactiveSprite);       
+            this.buttonContainer.addChild(element.activeSprite);
+        }) 
+
     }
-
-    staticText(buttonTextures) {
-        let pauseText = new PIXI.Sprite.from(buttonTextures.get("paused-text"));
-        pauseText.visible = false;
-        pauseText.scale.set(14);
-        pauseText.anchor.set(0.5);
-        pauseText.alpha = 0.5;
-        return pauseText;
-    }
-
-
-    onResize(){
-        this.toggleButtonOffset = new PIXI.Point(window.innerWidth - this.toggleButton.width - 16, -window.innerHeight + 32);
-        if ( this.controller)
-            this.controller.onResize();
-    }
-
-    moveButtons(position){
-        if ( this.controller )
-            this.controller.moveButtons(position);
-        this.toggleButton.setPosition(position, this.toggleButtonOffset);
-        this.pausedText.position.copyFrom(position);
-        this.pausedText.y -= window.innerHeight - (this.pausedText.height/2 + 6);
-    }
-
-    
+  
     onClick(ticker){
         // toggle bools
         this.isOpen ^= 1;
         this.toggleButton.sprites.forEach( (sprite) => {
             sprite.visible ^= 1;
         })
+
+        this.menuList.onToggle(this.isOpen);
+
+        if ( this.controller ) {
+            this.controller.buttons.forEach( button => {
+                button.inPause = this.isOpen;
+            })
+        }
 
         // pause the game
         if (this.isOpen){
@@ -140,6 +128,91 @@ export class PauseMenu{
         }
     }
 
+    handleEvent(event){
+        let noUpdate = false;
+        switch (event.type){
+            case "inputDown":
+                switch (event.direction) {
+                    case "right":
+                        if ( this.menuList.currentIndex >= this.menuList.options.length - 1)
+                            this.menuList.currentIndex = 0;
+                        else
+                            this.menuList.currentIndex++;
+                        
+                        const i = this.menuList.currentIndex;
+                        this.menuList.currentKey = this.menuList.options[i].label;
+                        break;
+                    case "left":
+                        if (this.menuList.currentIndex == 0)
+                            this.menuList.currentIndex = this.menuList.options.length - 1;
+                        else
+                            this.menuList.currentIndex--;
+
+                        const j = this.menuList.currentIndex;
+                        this.menuList.currentKey = this.menuList.options[j].label;
+                        break;
+                    case "enter":
+                    case "up":
+                        noUpdate = true;
+                        switch ( this.menuList.currentKey ){
+                            case "RESUME":
+                            this.onClick(this.ticker);
+                            break;
+                            case "REROLL":
+                            this.onReroll();
+                            break;
+                        }
+                        break;
+                        
+                }
+                if (!noUpdate)
+                    this.menuList.updateOptions();
+                break;
+            default:
+                break;
+            
+        }
+    }
+
+    onReroll(){
+        /*
+            delete all:
+                - display objects
+                - physics objects
+                - map object
+                - Pixi application
+                - canvas element
+            
+            call setup function in main.js
+
+            OR
+
+            just refresh the page
+        */
+
+        window.location.reload();
+    }
+
+    attachController(controller) {
+        this.controller = controller;
+        this.buttonContainer.addChild(this.controller.buttonContainer);
+    }
+
+    staticText(buttonTextures) {
+        const style = {
+            fill: 0xffffff,
+            fontSize: 52,
+            fontFamily: 'ARCADECLASSIC'
+        };
+        let pauseText = new PIXI.Text("PAUSED", style)
+        pauseText.visible = false;
+        //pauseText.scale.set(14);
+        pauseText.anchor.set(0.5);
+        //pauseText.alpha = 0.5;
+        return pauseText;
+    }
+
+
     pauseBlinker(){
         this.pauseBlinkerLag += this.pauseTicker.deltaMS;
 
@@ -148,4 +221,126 @@ export class PauseMenu{
             this.pausedText.visible ^= 1;
         }
     }
+
+    
+    moveButtons(position){
+        if ( this.controller )
+            this.controller.moveButtons(position);
+        this.toggleButton.setPosition(position, this.toggleButtonOffset);
+        this.pausedText.position.copyFrom(position);
+        this.pausedText.y -= window.innerHeight - (this.pausedText.height/2 + 6);
+        this.menuList.moveElements(this.pausedText.position);
+    }
+
+    
+    onResize(){
+        this.toggleButtonOffset = new PIXI.Point(window.innerWidth - this.toggleButton.width - 16, -window.innerHeight + 32);
+        if ( this.controller)
+            this.controller.onResize();
+    }
+}
+
+class MenuList {
+    constructor(position, font) {
+        
+        this.currentIndex = 0;
+
+        this.options = [ new MenuListElement("RESUME", "placeholder", font),
+                         new MenuListElement("REROLL", "placeholder", font),
+                         new MenuListElement("PALETTE", "placeholder", font),
+                         new MenuListElement("OPTIONS", "placeholder", font),
+                       ];
+          
+        this.currentKey = this.options[0].label;
+        
+        this.moveElements(position);
+
+    }
+
+
+
+    moveElements(position){
+        const indent = 40;
+        const offset = 100;
+        
+        this.options.forEach( ( element, index ) => {
+            element.activeSprite.position.copyFrom(position);
+            element.inactiveSprite.position.copyFrom(position);
+
+            element.activeSprite.y += offset;
+            element.inactiveSprite.y += offset;
+
+            element.inactiveSprite.x -= (200);
+            element.activeSprite.x -= (200);
+
+            element.activeSprite.x += indent * index;
+            element.activeSprite.y += element.activeSprite.height * index;
+
+            element.inactiveSprite.x += indent * index;
+            element.inactiveSprite.y += element.activeSprite.height * index;       
+
+            const activeOffset = 5;
+
+            element.activeSprite.x += activeOffset;
+            element.activeSprite.y -= activeOffset;
+        });
+    }
+
+    onToggle(isPauseMenuOpen){
+        if ( isPauseMenuOpen ){
+            this.currentIndex = 0;
+
+            this.options.forEach ( (element, index) => {
+                element.inactiveSprite.visible = true;
+                element.activeSprite.visible = false;
+                if (index == 0){
+                    element.activeSprite.visible = true;
+                }
+            });
+        }
+        else {
+            this.options.forEach ( element => {
+                element.inactiveSprite.visible = false;
+                element.activeSprite.visible = false;
+            });
+        }
+    }
+
+    updateOptions() {
+        console.log("successful pause menu event");
+        this.options.forEach ( (element, index) => {
+            element.activeSprite.visible = false;
+            if ( index == this.currentIndex ){
+                element.activeSprite.visible = true;
+            }
+
+        });
+    }
+}
+
+class MenuListElement {
+    constructor(name, callback, font){
+        this.label = name;
+        this.callback = callback;
+        const style1 = {
+            fill: 0xffa252,
+            fontSize: 52,
+            fontFamily: 'ARCADECLASSIC'
+        };
+        const style2 = {
+            fill: 0xffffff,
+            fontSize: 52,
+            fontFamily: 'ARCADECLASSIC'
+        }
+        this.inactiveSprite = new PIXI.Text(name, style1);
+        this.activeSprite = new PIXI.Text(name, style2);
+
+        this.inactiveSprite.cacheAsBitmap = true;  
+        this.activeSprite.cacheAsBitmap = true;  
+
+        this.activeSprite.visible = false;
+        this.inactiveSprite.visible = false;
+    }
+    
+    
 }

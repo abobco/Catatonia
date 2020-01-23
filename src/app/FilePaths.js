@@ -26,7 +26,7 @@ class FilePaths {
             "shaders/dissolve/dissolveVert.GLSL",
             "shaders/dissolve/dissolveFrag.GLSL",
             "shaders/BezierDisplacementFilter/BezierDispVert.GLSL",
-            "shaders/BezierDisplacementFilter/BezierDispFrag.GLSL"
+            "shaders/BezierDisplacementFilter/BezierDispFrag.GLSL",
         ];
     }
     array() {
