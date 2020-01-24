@@ -12,7 +12,9 @@ export class MyLoader {
 
         let loaderFiles = new FilePaths();
 
+        PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.NEAREST;
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+        
 
         loader
             .add(loaderFiles.array())
@@ -27,6 +29,8 @@ export class MyLoader {
        this.lightShader = this.loadShaders();
        this.dissolveShader = this.loadDissolveShader();
        this.displacementShader = this.loadDisplacementShader();
+       this.paletteFrag = this.loadPaletteFrag();
+       this.paletteTextures = this.loadPalettes();  
 
        this.catnipFilter = this.loadFilters();
 
@@ -60,6 +64,12 @@ export class MyLoader {
         console.log(this.lightShader);
         console.log(this.catAnimations);
         console.log(this.doneLoading);
+    }
+
+    loadPalettes(){
+        return [PIXI.Texture.from(resources["sprites/color_map_1.png"].data),
+                PIXI.Texture.from(resources["sprites/color_map_2.png"].data),
+                PIXI.Texture.from(resources["sprites/color_map_3.png"].data)];
     }
 
     // load light shaders into a {string:string} map
@@ -104,6 +114,10 @@ export class MyLoader {
             "vert": vert,
             "frag": frag,
            };
+    }
+
+    loadPaletteFrag(){
+        return resources["shaders/PaletteSwap/paletteSwap.GLSL"].data;
     }
     
     /*

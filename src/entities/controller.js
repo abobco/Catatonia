@@ -175,7 +175,8 @@ var KBController = function(catPlayer, catBody, gameTicker, camera, pauseMenu) {
 
         }
         else if (e.keyCode == '32'){
-          gameTicker.speed = 1;
+          if (!pauseMenu.isOpen)
+            gameTicker.speed = 1;
         }
         catPlayer.handleEvent(myEvent);
     }

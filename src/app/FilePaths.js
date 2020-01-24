@@ -15,6 +15,9 @@ class FilePaths {
             "sprites/torchSprites.json",
             "sprites/keys.json",
             "sprites/menuButtons.json",
+            "sprites/color_map_1.png",
+            "sprites/color_map_2.png",
+            "sprites/color_map_3.png",
 
             // shaders
             "shaders/lightFilterVert.GLSL",
@@ -27,6 +30,7 @@ class FilePaths {
             "shaders/dissolve/dissolveFrag.GLSL",
             "shaders/BezierDisplacementFilter/BezierDispVert.GLSL",
             "shaders/BezierDisplacementFilter/BezierDispFrag.GLSL",
+            "shaders/PaletteSwap/paletteSwap.GLSL"
         ];
     }
     array() {

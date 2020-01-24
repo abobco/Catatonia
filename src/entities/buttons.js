@@ -48,7 +48,7 @@ class PlayerButton extends MyButton {
         }       
         else
             this.eventCallback(event);
-        this.pressed = true;
+        this.pressed = true;    
     }
 
     onEnd(){

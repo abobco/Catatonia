@@ -11,21 +11,35 @@ import {ButtonController} from '../entities/buttons.js';
 import {PauseMenu} from '../entities/myMenu.js';
 import {DissolveFilter} from '../filters/DissolveFilter.js';
 import {CatnipTrip} from '../filters/catTripState.js'
+import {PaletteSwapFilter} from '../filters/paletteSwap.js';
+import {MyLoader} from './myLoader.js'
+
 // Aliases
 let Engine = Matter.Engine,
 World = Matter.World,
 Events = Matter.Events;
 
+
 export class Game {  
+    /**
+      * @param {MyLoader} loader - custom loader object
+      * @param {PIXI.Application} app - pixi application
+    **/
     constructor(loader, app){
+
+        PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.NEAREST;
+        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; 
+
         this.app = app;
-        //PIXI.settings.SPRITE_MAX_TEXTURES = 16;
         // display object containers        
         this.worldContainer = new PIXI.Container();      // every display object in the game world
         this.animationContainer = new PIXI.Container();  // every animated sprite in the game
         this.foregroundContainer = new PIXI.Container(); // objects with no parallax scroll
         this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
         this.pauseMusic = loader.pauseMusic;
+
+        this.paletteIndex = 2;
+        this.paletteSwap = new PaletteSwapFilter(loader.paletteFrag, loader.paletteTextures[this.paletteIndex] );
 
         // dissolve effect shader
         this.dissolveSprite = new PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');   
@@ -51,6 +65,9 @@ export class Game {
         // Contains player animations, physics bodies, flags, behavior functionsxc
         let playerPos = this.tileMap.playerSpawn;
         this.player = new Player(playerPos, loader.catAnimations);
+        // hide the cat's eyes, I think they are too small for the pixelation filter
+        let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
+        this.player.animationContainer.filters = [ colorSwapper, this.paletteSwap.filter ];
 
         console.log(this.player);
 
@@ -61,9 +78,10 @@ export class Game {
           this.animationContainer.addChild(animation); // add torches
         });
         // this.animationContainer.addChild(this.tileMap.torchContainer);
-        this.player.animations.forEach((value) => {
-          this.animationContainer.addChild(value);  // add player animations 
-        });
+        // this.player.animations.forEach((animation) => {
+        //   this.animationContainer.addChild(animation);  // add player animations 
+        // });
+        this.animationContainer.addChild(this.player.animationContainer);
 
         // Add player's rigidbody to matterjs world
         World.add(this.world, this.player.body);
@@ -88,7 +106,15 @@ export class Game {
         this.camera = new MyCamera(playerPos);
         
         // pass the ticker and animation container to pause the game loop
-        this.pauseMenu = new PauseMenu(loader.menuButtons, this.app.ticker, playerPos, this.animationContainer, this.pauseMusic, loader.menuFont);
+        this.pauseMenu = new PauseMenu( loader.menuButtons,       // button sprites
+                                        this.app.ticker,          // game update ticker
+                                        playerPos,                // starting position
+                                        this.animationContainer,  // all animations to be paused 
+                                        this.pauseMusic,          // loaded music file
+                                        loader.menuFont,          // TTF font file
+                                        this.paletteSwap.filter,  // palette swap post processing filter
+                                        loader.paletteTextures,
+                                        this.player.animationContainer);  // array of color maps for palette swapping
 
         this.buttonController = null;
         if ( "ontouchstart" in document.documentElement ){
@@ -220,12 +246,8 @@ export class Game {
         this.foregroundContainer.addChild(this.catnipTrip.badFilterSolution);
         this.tileMap.backgroundContainer.addChild(this.catnipTrip.backgroundNoise);
 
-        // hide the cat's eyes, I think they are too small for the pixelation filter
-        let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
-
         // apply filters to containers
-         this.worldContainer.filters = [new PixelateFilter(3)];
-        this.animationContainer.filters = [colorSwapper];
+        this.worldContainer.filters = [new PixelateFilter(3)];
       }
 
     // NSFW Spaghetti code

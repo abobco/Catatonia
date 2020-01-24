@@ -8,6 +8,7 @@ export class Player {
         this.lastInput = null;
         this.prevTimeScale = 1.0;
         this.prevVel = 0.0
+        this.animationContainer = new PIXI.Container();
 
         // physics variables
         this.position = new PIXI.Point(position.x, position.y);
@@ -75,6 +76,10 @@ export class Player {
                                          friction: 0.01,
                                          inertia: Infinity
                     }); 
+        
+        this.animations.forEach( animation => {
+            this.animationContainer.addChild(animation)
+        })
     }
 
     update(timescale){  
