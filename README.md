@@ -10,20 +10,17 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
  Navigate to your clone's directory and install dependencies via `npm`:
  ```
  npm install
+ ```
+ You can use the [webpack dev server](https://webpack.js.org/configuration/dev-server/) to automatically update your development build every time you save a change. Launch it in your terminal via `npm`:
+ ```
+ npm run start
+ ```
+ Your default browser should open a tab to `localhost:8080`, which will automatically refresh every time you save a change.
+ 
+ Finally, build a release bundle to the `dist\` folder with:
+ ```
  npm run build
  ```
- Then, host the `dist` folder with an http server and navigate to the `index.html` file in a browser to test your local build of the game. 
- 
- If you don't know how to do this, I recommend using the [http-server](https://github.com/http-party/http-server) node package. Install it globally with:
- ```
- npm install http-server -g
- ```
-Then, open a new terminal in `path/to/your/clone/dist` and run the command:
-```
-http-server
-```
-Finally, navigate to `http://localhost:8080/index.html` in a browser to test your local build of the game.
-
 ## Dependencies:
 * [npm](https://www.npmjs.com/get-npm):  package manager
 * [webpack](https://webpack.js.org/guides/getting-started/):  asset bundler 
