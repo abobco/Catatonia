@@ -17,7 +17,7 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
  ```
  Your default browser should open a tab to `localhost:8080`, which will automatically refresh every time you save a change.
  
- Finally, build a release bundle to the `\dist\` folder with:
+ Finally, build a release bundle to the `\dist` folder with:
  ```
  npm run build
  ```
