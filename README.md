@@ -12,15 +12,15 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
  npm install
  ```
  You can use the [webpack dev server](https://webpack.js.org/configuration/dev-server/) to automatically update your development build every time you save a change. Launch it in your terminal via `npm`:
- `
+ ```
  npm run start
- `
+ ```
  Your default browser should open a tab to `localhost:8080`, which will automatically refresh every time you save a change.
  
  Finally, build a release bundle to the `dist\` folder with:
- `
+ ```
  npm run build
- `
+ ```
 ## Dependencies:
 * [npm](https://www.npmjs.com/get-npm):  package manager
 * [webpack](https://webpack.js.org/guides/getting-started/):  asset bundler 
