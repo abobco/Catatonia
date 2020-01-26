@@ -44,9 +44,9 @@ export class PauseMenu{
         // menu theme colors corresponding to different color palettes
         this.menuColors = [0xffa252, 0x393863, 0xb5d3de, 0x948abd ]
         
-        //this.audioCtx = new AudioContext();
-       // this.music = document.getElementById("audio");
-      //  this.music.loop = true;
+        // this.audioCtx = new AudioContext();
+        // this.music = document.getElementById("audio");
+        // this.music.loop = true;
 
         // subscribe pause button to click and tap events
         this.toggleButton.sprites.forEach( (sprite) => {
@@ -149,7 +149,6 @@ export class PauseMenu{
             ticker.speed = 1;
             this.pausedText.visible = false;
             this.pauseTicker.stop();
-            this.pauseBlinker()
             if (this.controller){ // enable touch controls if applicable
                 this.controller.buttonContainer.children.forEach( (button) => {
                     button.interactive = true;
