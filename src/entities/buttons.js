@@ -111,7 +111,7 @@ class ButtonController{
         canvasContext.addEventListener("click", (event) => {
             console.log("click: x: ", event.clientX, "y: ", event.clientY);
         })
-
+        
         // make button display objects
         this.buttonContainer = new PIXI.Container();
         this.buttons = new Map([["left", new PlayerButton(buttonFrames.get("left"), "left",playerPos, eventCallback, pauseCallback)],

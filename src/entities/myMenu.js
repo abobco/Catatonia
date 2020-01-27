@@ -1,45 +1,34 @@
-class PauseToggleButton{
-    constructor(textures){
-        this.sprites = new Map([['pause', PIXI.Sprite.from(textures[0])],
-                                ['exit', PIXI.Sprite.from(textures[1])] 
-                               ]);
-
-        this.buttonContainer = new PIXI.Container();
-
-        this.sprites.forEach( (sprite) => {
-            sprite.interactive = true;
-            sprite.alpha = 0.5;
-            sprite.scale.set(3);
-
-            this.buttonContainer.addChild(sprite);
-        });
-
-        this.width = this.sprites.get("exit").width;
-        this.height = this.sprites.get("exit").height;
-
-        this.sprites.get("exit").visible = false;
-    }
-
-    setPosition(position, offset){
-        let newPosition = new PIXI.Point();
-        newPosition.copyFrom(position);
-        newPosition.x += offset.x;
-        newPosition.y += offset.y;
-        this.buttonContainer.children.forEach( (sprite) => {
-            sprite.position.copyFrom(newPosition);
-        });
-    }
-}
-
+/**
+ * Retro style pause menu, contains options for:
+ * - Palette swapping 
+ * - Refreshing the page
+ * - Hiding Controller buttons
+ * - Disabling screen shake
+ * @class
+ */
 export class PauseMenu{
-    constructor(buttonTextures, ticker, playerPos, animationContainer, sound, font, paletteFilter, colorMaps, playerAnimations) {
+    /**
+     * @param {Map<string, PIXI.Texture>} buttonTextures - button sprites
+     * @param {PIXI.Texture[]} colorMaps - array of color map textures for palette swapping
+     * @param {PIXI.Point} playerPos - starting position
+     * @param {PIXI.Container} animationContainer - all animations to be paused 
+     * @param {PIXI.Filter} paletteFilter - palette swap post processing filter
+     * @param {PIXI.Container} playerAnimations - lazy fix for player animations being in their own container 
+     * @param {PIXI.Ticker} ticker - game update ticker
+     * @param {PIXI.Ticker} catnipTicker - ticker for the catnip trip effect
+     */
+    constructor(buttonTextures, colorMaps,  playerPos, animationContainer, paletteFilter, playerAnimations, ticker, catnipTicker)               
+        {
         this.ticker = ticker;
+        this.catnipTicker = catnipTicker;
         this.isOpen = false;
         this.inPaletteMenu = false;
+        this.inOptionsMenu = false;
         this.toggleButton = new PauseToggleButton([buttonTextures.get("pause"), buttonTextures.get("exit")]);
         this.paletteFilter = paletteFilter;
         this.colorMaps = colorMaps;
         this.playerAnimations = playerAnimations;
+        this.cameraShake = true;
 
         // menu theme colors corresponding to different color palettes
         this.menuColors = [0xffa252, 0x393863, 0xb5d3de, 0x948abd ]
@@ -73,28 +62,24 @@ export class PauseMenu{
         this.animationContainer = animationContainer;
 
         // make menu list object
-        this.menuList = new MenuList(playerPos, font);
-        this.paletteMenu = new PaletteMenuList(playerPos, font);
+        this.mainMenu = new MenuList(playerPos);
+        this.paletteMenu = new PaletteMenuList(playerPos);
+        this.optionsMenu = new OptionsMenu(playerPos);
 
-        this.activeMenu = this.menuList;
+        this.activeMenu = this.mainMenu;
+        this.subMenus = [this.mainMenu, this.paletteMenu, this.optionsMenu];
 
-        // this.menuList.options.forEach( element => {
-        //     this.buttonContainer.addChild(element.inactiveSprite);       
-        //     this.buttonContainer.addChild(element.activeSprite);
-        // }) 
-        this.buttonContainer.addChild(this.menuList.displayContainer);
-        this.buttonContainer.addChild(this.paletteMenu.displayContainer);
+        this.subMenus.forEach( subMenu => {
+            this.buttonContainer.addChild(subMenu.displayContainer);
+        });
 
         this.changePalette();
 
-        this.menuList.displayContainer.children.forEach( item => {
-            item.visible = false;
+        this.subMenus.forEach( subMenu => {
+            subMenu.displayContainer.children.forEach( item => {
+                item.visible = false;
+            });
         });
-        this.paletteMenu.displayContainer.children.forEach( item => {
-            item.visible = false;
-        });
-        
-
     }
   
     onClick(ticker){
@@ -102,7 +87,7 @@ export class PauseMenu{
         this.isOpen ^= 1;
         this.toggleButton.sprites.forEach( (sprite) => {
             sprite.visible ^= 1;
-        })
+        });
 
         if (this.isOpen){
             this.activeMenu.onToggle(this.isOpen);
@@ -110,7 +95,7 @@ export class PauseMenu{
         }
         else {
             this.activeMenu.onToggle(this.isOpen);
-            this.activeMenu = this.menuList;
+            this.activeMenu = this.mainMenu;
             this.activeMenu.onToggle(this.isOpen);
         }
 
@@ -129,6 +114,7 @@ export class PauseMenu{
             this.pauseBlinkerLag = 0;
             this.pauseBlinker();
             ticker.speed = 0;
+            this.catnipTicker.speed = 0;
             if (this.controller){ // disable touch controls if applicable
                 this.controller.buttonContainer.children.forEach( (button) => {
                     button.interactive = false;
@@ -144,9 +130,11 @@ export class PauseMenu{
         }
         // resume the game
         else {
-          //  this.music.pause();
-            //this.music.currentTime = 0;
+            // this.music.pause();
+            // this.music.currentTime = 0;
+            
             ticker.speed = 1;
+            this.catnipTicker.speed = 1;
             this.pausedText.visible = false;
             this.pauseTicker.stop();
             if (this.controller){ // enable touch controls if applicable
@@ -210,6 +198,51 @@ export class PauseMenu{
                                 this.togglePalleteMenu(true);
                                 // noUpdate = false;
                                 break;
+                            case "OPTIONS":
+                                noUpdate = false;
+                                this.toggleOptionsMenu(true);
+                                break;
+                            case "BACK":
+                                noUpdate = false;
+                                this.toggleOptionsMenu(false);
+                                break;
+                            case "HIDE   BUTTONS:   ON":
+                            case "HIDE   BUTTONS:   OFF":
+                                if ( this.controller ){
+                                    this.controller.buttonContainer.visible ^= 1;
+                                    const visible = this.controller.buttonContainer.visible;
+                                    this.toggleButton.buttonContainer.children.forEach( sprite => {
+                                        if ( visible) {
+                                            sprite.alpha = 0.5;
+                                        }
+                                        else {
+                                            sprite.alpha = 0;
+                                        }
+                                    })
+                                    if ( visible ) {
+                                        this.optionsMenu.options[1].inactiveSprite.text = "HIDE   BUTTONS:   OFF";
+                                        this.optionsMenu.options[1].activeSprite.text = "HIDE   BUTTONS:   OFF";
+                                    }
+                                    else {
+                                        this.optionsMenu.options[1].inactiveSprite.text = "HIDE   BUTTONS:   ON"
+                                        this.optionsMenu.options[1].activeSprite.text = "HIDE   BUTTONS:   ON"
+                                    }
+                                }
+                                noUpdate = false;
+                                break;
+                            case "CAMERA   SHAKE:   OFF":
+                            case "CAMERA   SHAKE:   ON":
+                                this.cameraShake ^= 1;
+                                if (  this.cameraShake ) {
+                                    this.optionsMenu.options[2].inactiveSprite.text = "CAMERA   SHAKE:   ON";
+                                    this.optionsMenu.options[2].activeSprite.text = "CAMERA   SHAKE:   ON";
+                                }
+                                else {
+                                    this.optionsMenu.options[2].inactiveSprite.text = "CAMERA   SHAKE:   OFF"
+                                    this.optionsMenu.options[2].activeSprite.text = "CAMERA   SHAKE:   OFF"
+                                }
+                                noUpdate = false;
+                                break;
                             default :
                                 noUpdate = false;
                                 this.togglePalleteMenu(false);
@@ -228,78 +261,44 @@ export class PauseMenu{
 
     // refresh the page to generate a new map
     onReroll(){
-        /*
-            delete all:
-                - display objects
-                - physics objects
-                - map object
-                - Pixi application
-                - canvas element
-            
-            call setup function in main.js
-
-            OR
-
-            just refresh the page
-        */
         window.location.reload();
     }
 
     changePalette(){
         this.playerAnimations.filters.length =1;
         switch ( this.paletteMenu.currentKey ){
-            case "SIMBA":
+            case "SIMBA":   // just use the default sprite
                 break;
-            case "VANTA":
-                this.paletteFilter.uniforms.Palette = this.colorMaps[0];
-                this.playerAnimations.filters.push(this.paletteFilter);
-                break;
-            case "COCO":
-                this.paletteFilter.uniforms.Palette = this.colorMaps[1];             
-                this.playerAnimations.filters.push(this.paletteFilter);
-                break;
-            case "PURP":
-                this.paletteFilter.uniforms.Palette = this.colorMaps[2];    
-                this.playerAnimations.filters.push(this.paletteFilter);
-                break;               
+            default:       // apply a new color replacement filter
+                // color map index is off by 1 cuz the simba palette doesn't have a filter
+                const index = this.paletteMenu.currentIndex-1; 
+                this.paletteFilter.uniforms.Palette = this.colorMaps[index]; 
+                this.playerAnimations.filters.push(this.paletteFilter);          
         }
-
+        
+        // change the font color
         let newStyle = {
             fill: this.menuColors[this.paletteMenu.currentIndex],
             fontSize: 52,
             fontFamily: 'ARCADECLASSIC'
         };
-
-        // this.menuList.options.forEach(option => {
-        //     option.inactiveSprite.style = newStyle;
-        //     option.inactiveSprite.dirty = true;
-        // });
-        // this.paletteMenu.options.forEach(option => {
-        //     option.inactiveSprite.style = newStyle;
-        //     option.inactiveSprite.dirty = true;
-        // });
-        this.menuList.displayContainer.removeChildren();
-        this.paletteMenu.displayContainer.removeChildren();
-
-        this.menuList.options.forEach( option => {
-            delete option.inactiveSprite;
-            option.inactiveSprite = new PIXI.Text(option.label, newStyle);
-            this.menuList.displayContainer.addChild(option.inactiveSprite);
-            this.menuList.displayContainer.addChild(option.activeSprite);
-        });
-        this.paletteMenu.options.forEach( option => {
-            delete option.inactiveSprite;
-            option.inactiveSprite = new PIXI.Text(option.label, newStyle);
-            this.paletteMenu.displayContainer.addChild(option.inactiveSprite);
-            this.paletteMenu.displayContainer.addChild(option.activeSprite);
-        });
-        
+        // draw new menu text for the palette
+        this.subMenus.forEach( subMenu => {
+            subMenu.displayContainer.removeChildren();
+            subMenu.options.forEach( option => {
+                delete option.inactiveSprite;
+                option.inactiveSprite = new PIXI.Text(option.label, newStyle);
+                subMenu.displayContainer.addChild(option.inactiveSprite);
+                subMenu.displayContainer.addChild(option.activeSprite)
+            })
+        });     
     }
 
     togglePalleteMenu(isOpen) {
         if (isOpen){
             this.inPaletteMenu = true;
-            this.menuList.displayContainer.visible = false;
+            this.mainMenu.displayContainer.visible = false;
+            this.optionsMenu.displayContainer.visible = false;
             this.paletteMenu.onToggle(true, true);
     
             this.activeMenu = this.paletteMenu;
@@ -307,14 +306,36 @@ export class PauseMenu{
         else {
             this.inPaletteMenu = false;
             this.paletteMenu.displayContainer.visible = false;
-            this.menuList.displayContainer.visible = true;
+            this.mainMenu.displayContainer.visible = true;
 
-            this.menuList.currentIndex = 0;
-            this.menuList.currentKey = "RESUME";
+            this.mainMenu.currentIndex = 0;
+            this.mainMenu.currentKey = "RESUME";
 
-            this.activeMenu = this.menuList;
+            this.activeMenu = this.mainMenu;
         }
-   
+    }
+
+    toggleOptionsMenu(isOpen) {
+        if (isOpen){
+            this.inOptionsMenu = true;
+            this.mainMenu.displayContainer.visible = false;
+            this.paletteMenu.displayContainer.visible = false;
+            this.optionsMenu.displayContainer.visible = true;
+            this.optionsMenu.onToggle(true, false);
+    
+            this.activeMenu = this.optionsMenu;
+        }
+        else {
+            this.inOptionsMenu = false;
+            this.paletteMenu.displayContainer.visible = false;
+            this.optionsMenu.displayContainer.visible = false;
+            this.mainMenu.displayContainer.visible = true;
+
+            this.mainMenu.currentIndex = 0;
+            this.mainMenu.currentKey = "RESUME";
+
+            this.activeMenu = this.mainMenu;
+        }
     }
 
     attachController(controller) {
@@ -353,8 +374,9 @@ export class PauseMenu{
         this.toggleButton.setPosition(position, this.toggleButtonOffset);
         this.pausedText.position.copyFrom(position);
         this.pausedText.y -= window.innerHeight - (this.pausedText.height/2 + 6);
-        this.menuList.moveElements(this.pausedText.position);
+        this.mainMenu.moveElements(this.pausedText.position);
         this.paletteMenu.moveElements(this.pausedText.position);
+        this.optionsMenu.moveElements(this.pausedText.position);
     }
 
     
@@ -365,56 +387,73 @@ export class PauseMenu{
     }
 }
 
-class MenuListElement {
-    constructor(name, callback, font){
-        this.label = name;
-        this.callback = callback;
-        this.style1 = {
-            fill: 0xffa252,
-            fontSize: 52,
-            fontFamily: 'ARCADECLASSIC'
-        };
-        const style2 = {
-            fill: 0xffffff,
-            fontSize: 52,
-            fontFamily: 'ARCADECLASSIC'
-        }
-        this.inactiveSprite = new PIXI.Text(name, this.style1);
-        this.activeSprite = new PIXI.Text(name, style2);
+/**
+ * Touch button for toggling the pause menu
+ * @class
+ */
+class PauseToggleButton{
+    /**
+     * @param {Map<string, PIXI.Texture>} textures 
+     */
+    constructor(textures){
+        this.sprites = new Map([['pause', PIXI.Sprite.from(textures[0])],
+                                ['exit', PIXI.Sprite.from(textures[1])] 
+                               ]);
 
-        this.inactiveSprite.cacheAsBitmap = true;  
-        this.activeSprite.cacheAsBitmap = true;  
+        this.buttonContainer = new PIXI.Container();
 
-        this.activeSprite.visible = false;
-        this.inactiveSprite.visible = false;
+        this.sprites.forEach( (sprite) => {
+            sprite.interactive = true;
+            sprite.alpha = 0.5;
+            sprite.scale.set(3);
+
+            this.buttonContainer.addChild(sprite);
+        });
+
+        this.width = this.sprites.get("exit").width;
+        this.height = this.sprites.get("exit").height;
+
+        this.sprites.get("exit").visible = false;
     }
-    
-    
+
+    setPosition(position, offset){
+        let newPosition = new PIXI.Point();
+        newPosition.copyFrom(position);
+        newPosition.x += offset.x;
+        newPosition.y += offset.y;
+        this.buttonContainer.children.forEach( (sprite) => {
+            sprite.position.copyFrom(newPosition);
+        });
+    }
 }
 
+/**
+ * Cascading list of Menu UI elements
+ */
 class MenuList {
-    constructor(position, font) {
+    /**
+     * @param {PIXI.Point} position 
+     */
+    constructor(position) {
         this.displayContainer = new PIXI.Container();
         this.currentIndex = 0;
 
-        this.options = [ new MenuListElement("RESUME", "placeholder", font),
-                         new MenuListElement("REROLL", "placeholder", font),
-                         new MenuListElement("PALETTE", "placeholder", font)
+        this.options = [ new MenuListElement("RESUME"),
+                         new MenuListElement("REROLL"),
+                         new MenuListElement("PALETTE"),
+                         new MenuListElement("OPTIONS")
                        ];
         this.options.forEach(option => {
             this.displayContainer.addChild(option.inactiveSprite);          
             this.displayContainer.addChild(option.activeSprite);
-        });
-          
+        });  
           
         this.currentKey = this.options[0].label;
         
         this.moveElements(position);
-
     }
 
-
-
+    /** @param {PIXI.Point} position - world position of the camera object */
     moveElements(position){
         const indent = 40;
         const offset = 100;
@@ -441,6 +480,7 @@ class MenuList {
             element.activeSprite.y -= activeOffset;
         });
     }
+
 
     onToggle(isPauseMenuOpen, keepIndex){
         if ( isPauseMenuOpen ){
@@ -477,17 +517,25 @@ class MenuList {
     }
 }
 
+/**
+ * Palette swap submenu, activates different color replacement filters, changes menu text color
+ * @class 
+ * @extends MenuList
+ */
 class PaletteMenuList extends MenuList{
-    constructor(position, font){
-        super(position, font);
+    /**
+     * @param {PIXI.Point} position 
+     */
+    constructor(position){
+        super(position);
 
         this.currentIndex = Math.floor(Math.random() * 4);
         this.displayContainer.removeChildren();
 
-        this.options = [ new MenuListElement("SIMBA", "placeholder", font),
-                         new MenuListElement("VANTA", "placeholder", font),
-                         new MenuListElement("COCO", "placeholder", font),
-                         new MenuListElement("PURP", "placeholder", font),
+        this.options = [ new MenuListElement("SIMBA"),
+                         new MenuListElement("VANTA"),
+                         new MenuListElement("COCO"),
+                         new MenuListElement("PURP"),
                        ];
         this.options.forEach(option => {
             this.displayContainer.addChild(option.inactiveSprite);          
@@ -499,3 +547,60 @@ class PaletteMenuList extends MenuList{
     }
 }
 
+/**
+ * Options submenu, contains toggle switches for :
+ * - Hiding touch buttons
+ * - disabling screen shake
+ * @class 
+ * @extends MenuList
+ */
+class OptionsMenu extends MenuList{
+    /**
+     * @param {PIXI.Point} position 
+     */
+    constructor(position){
+        super(position);
+
+        this.displayContainer.removeChildren();
+
+        this.options = [ new MenuListElement("BACK"), 
+                         new MenuListElement("HIDE   BUTTONS:   OFF"),
+                         new MenuListElement("CAMERA   SHAKE:   ON")
+                       ];
+        this.options.forEach(option => {
+            this.displayContainer.addChild(option.inactiveSprite);          
+            this.displayContainer.addChild(option.activeSprite);
+        });
+
+        this.moveElements(position);
+        this.currentKey = this.options[this.currentIndex].label;
+    }
+}
+
+/**
+ * Basic text UI element, lights up when selected
+ * @class
+ */
+class MenuListElement {
+    /**
+     * @param {string} name 
+     */
+    constructor(name){
+        this.label = name;
+        this.style1 = {
+            fill: 0xffa252,
+            fontSize: 52,
+            fontFamily: 'ARCADECLASSIC'
+        };
+        const style2 = {
+            fill: 0xffffff,
+            fontSize: 52,
+            fontFamily: 'ARCADECLASSIC'
+        }
+        this.inactiveSprite = new PIXI.Text(name, this.style1);
+        this.activeSprite = new PIXI.Text(name, style2);
+
+        this.activeSprite.visible = false;
+        this.inactiveSprite.visible = false;
+    }   
+}

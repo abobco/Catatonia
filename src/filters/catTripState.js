@@ -3,7 +3,7 @@ import {BezierCurve} from './BezierCurve.js'
 import {MyTimer} from '../entities/myTimer.js'
 
 export class CatnipTrip{
-    constructor(shader, player){
+    constructor(shader, player, powerups){
         // physics values that will be toggled during the effect
         this.playerDefaultVel = player.maxVel;
         this.playerTripVel = player.maxVel * 1.3;
@@ -19,37 +19,61 @@ export class CatnipTrip{
         this.displacementIncrement = 0.5;   // how much the noise texture will be moved each frame
         this.bezierIncrement = 1.0 / (this.filterTransitionMS / 16.666);    // how much to step forward the bezier t vallue each update
 
+        this.ticker = new PIXI.Ticker();    // used for the transition phases
+        this.tickerMS = 0;
+        this.ticker.add( this.onTick.bind(this) );
+
+        // Transition curve, 4 point bezier : [(0,0), (0.5, 0), (0.5, 1), (1,1)]
         this.bezierCurve = new BezierCurve();
-        this.timer = new MyTimer();
         this.powerupTimer = new MyTimer;
         this.powerupTimer.start();
 
+        // noise textures for the displacement filters
         this.foregroundNoise = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
         this.foregroundNoise.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
+        // parallax screws up the effect for the background by default, 
+        //  using a 2nd texture/filter that will be moved in sync with the background
         this.backgroundNoise = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
         this.backgroundNoise.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
-
         this.foregroundNoise.scale.set(0.6);
         this.backgroundNoise.scale.set(0.6);
 
+        // actual post processing filters for the effect
         this.foregroundFilter = new BezierDisplacementFilter(this.foregroundNoise, shader);
         this.backgroundFilter = new BezierDisplacementFilter(this.backgroundNoise, shader);
 
+        // giant invisible rectangle that somehow fixes a lighting bug
         this.badFilterSolution = new PIXI.Graphics()
                                     .beginFill(0,0.0)
                                     .drawRect(-2000,-2000, 8000, 8000)
                                     .endFill();
-
         
+        // used to move the catnip leaves up and down for the floating effect
+        this.powerups = powerups;
+        this.maxCatnipFloatOffset = 10;
+        this.floatTimescale = 0.05;
+        this.floatTime = 0;    
     }
 
-    update(){
+    onTick(){
+        this.tickerMS += this.ticker.deltaMS;
+    }
+
+    // called whenever a new frame is drawn
+    update(deltaMS){
         this.foregroundNoise.position.set(this.filterTime, this.filterTime);
         this.backgroundNoise.position.set(this.filterTime, this.filterTime);
+
+        this.floatTime += deltaMS * this.floatTimescale;
+        const catNipOffset = this.maxCatnipFloatOffset * Math.sin(this.floatTime);
+        this.powerups.forEach( (powerup) => {
+            powerup.update(catNipOffset);
+        } )
     }
 
-    FixedUpdate(player, foregroundFilters, backgroundFilters, powerups ){
-        if (this.timer.isRunning){
+    // updated at constant 60 hz
+    FixedUpdate(player, foregroundFilters, backgroundFilters ){
+        if (this.ticker.started){
             player.maxVel = this.playerTripVel;
             player.jumpVel = this.playerTripJump;
 
@@ -68,28 +92,28 @@ export class CatnipTrip{
 
             this.cameraRotation = 0.015 * bezierY*  Math.sin(this.filterTime * 0.02);
 
-            if ( this.timer.getElapsedTime() < this.filterTransitionMS){   
+            if ( this.tickerMS < this.filterTransitionMS){   
                 this.bezierTime += this.bezierIncrement;
             }
-            else if (this.timer.getElapsedTime() > (this.filterTransitionMS + this.filterStaticMS)) {
+            else if (this.tickerMS > (this.filterTransitionMS + this.filterStaticMS)) {
                 this.bezierTime -= this.bezierIncrement;
             }
-            if ( this.timer.getElapsedTime() > (2*this.filterTransitionMS + this.filterStaticMS) ) {
+            if ( this.tickerMS > (2*this.filterTransitionMS + this.filterStaticMS) ) {
                 this.filterTime = 0.0;
                 this.bezierTime = 0.0;
-                this.timer.stop();
+                this.ticker.stop();
                 foregroundFilters = [];
                 backgroundFilters = [];    
             
-                //this.app.ticker.speed = 1.0;
                 player.jumpVel = this.playerDefaultJump;
                 player.maxVel = this.playerDefaultVel;
             }
         }
 
-        powerups.forEach( (powerup) => {
-            powerup.update(this.powerupTimer.getElapsedTime());
-        } )
+        // update the dissolve effect on recently touched catnip powerups
+        this.powerups.forEach(powerup => {
+            powerup.FixedUpdate();
+        });
     }
 
     addToStage(foregroundContainer, backgroundContainer){
@@ -101,8 +125,7 @@ export class CatnipTrip{
     }
 
     start() {
-        //foregroundFilters = [this.foregroundFilter];
-       // backgroundFilters = [this.backgroundFilter];
-        this.timer.start();
+        this.tickerMS = 0;
+        this.ticker.start();
     }
 }

@@ -1,5 +1,18 @@
 import Matter from 'matter-js/build/matter.min.js';
+/**
+ * Interactable object that applies a Displacement filter to the screen when the player collides with it.
+ * 
+ * - Controlled by the catTripState class
+ * - Make it float up and down by passing an offset value into the update function 
+ * @class
+ */
 export class Powerup{
+    /**
+     * 
+     * @param {number} x - x position
+     * @param {number} y - y position
+     * @param {PIXI.Texture} texture - Sprite texture for the powerup
+     */
     constructor(x,y,texture){
         this.sprite = new PIXI.Sprite.from(texture);
         this.sprite.position.set(x,y);
@@ -8,9 +21,6 @@ export class Powerup{
 
         this.x = x;
         this.y = y;
-
-        this.timescale = 0.003;
-        this.maxOffset = 10;
 
         this.width = this.sprite.width//* this.sprite.scale.x;
         this.height = this.sprite.height//* this.sprite.scale.y;
@@ -34,9 +44,13 @@ export class Powerup{
         this.collider.spriteReference = this.sprite;
     }
 
-    update(ticks){
-        let scaledTicks = ticks * this.timescale
-        this.sprite.y = this.y + this.maxOffset * Math.sin(scaledTicks);
+    /**  Calculate the offset from the parent object to avoid redundant calls to Math.sin on duplicate powerups */
+    update(offset){
+        this.sprite.y = this.y + offset;
+    }
+
+    /** update the dissolve filter until the sprite disappears */ 
+    FixedUpdate(){
         if ( this.sprite.filters){
             this.DissolveValue -= 0.01;
             this.sprite.filters[0].uniforms.DissolveVal = this.DissolveValue;

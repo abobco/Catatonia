@@ -4,8 +4,15 @@ import {FilePaths} from './FilePaths'
 let loader = PIXI.loader,
     resources = PIXI.loader.resources;
 
-// Loads textures and shaders from files, stores them as object properties
+/**
+ *  Loads textures and shaders from files, stores them as object properties
+ * @callback requestCallback
+ * @class
+ */
 export class MyLoader {
+    /**
+     * @param {requestCallback} setupFunction - Sets up the game after all files are loaded
+     */
     constructor(setupFunction)
     {
         this.doneLoading = false;
@@ -15,7 +22,6 @@ export class MyLoader {
         PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.NEAREST;
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
         
-
         loader
             .add(loaderFiles.array())
             .add('pauseMusic', 'sound/tropical jam.mp3')
@@ -23,7 +29,7 @@ export class MyLoader {
             .load(this.onLoad.bind(this, setupFunction));  
     }
     
-    // organize data into objects after files load
+    /**  organize data into objects after files load */
     onLoad(setupFunction)
     {
        this.lightShader = this.loadShaders();
@@ -72,7 +78,7 @@ export class MyLoader {
                 PIXI.Texture.from(resources["sprites/color_map_3.png"].data)];
     }
 
-    // load light shaders into a {string:string} map
+    /** load light shaders into a {string:string} map */ 
     loadShaders()
     {
         let vert = resources["shaders/lightVert.GLSL"].data,
@@ -84,7 +90,7 @@ export class MyLoader {
                };
     }
 
-    // load dissolve shaders into a {string:string} map
+    /** load dissolve shaders into a {string:string} map */ 
     loadDissolveShader()
     {
         let vert = resources["shaders/dissolve/dissolveVert.GLSL"].data,
@@ -120,17 +126,17 @@ export class MyLoader {
         return resources["shaders/PaletteSwap/paletteSwap.GLSL"].data;
     }
     
-    /*
-        Init animated sprite objects, load into a hashmap
-        
-        The texture atlas must have keys of the form :
-        
-            `{key} ({frameNumber}).png` 
-        
-        where the {key} for each animation matches the strings that we provide in this function as keys to each animation of the map
-        
-        The {frameNumber} must start at 1, this is only because that's how batch renaming works in windows by default.
-    */
+    /**
+     *   Init animated sprite objects, load into a hashmap
+     *   
+     *   The texture atlas must have keys of the form :
+     *   
+     *       `{key} ({frameNumber}).png` 
+     *   
+     *   where the {key} for each animation matches the strings that we provide in this function as keys to each animation of the map
+     *   
+     *   The {frameNumber} must start at 1, this is only because that's how batch renaming works in windows by default.
+     */
     animationsInit(){
         let animationMap = new Map([['walk', this.loadSprite("walk", 10, true)],
                                     ['stop', this.loadSprite("stop", 4, false)],
@@ -159,7 +165,7 @@ export class MyLoader {
         return animationMap;
     }
 
-    // load textures from memory into animated sprite objects
+    /** load textures from memory into animated sprite objects */ 
     loadSprite(key, frameCount, doesLoop, animationSpeed = 0.2 ){
         let frames = [];
         for ( let i = 1; i < (frameCount+1); i++ ) {
@@ -191,7 +197,7 @@ export class MyLoader {
         return frames;
     }
 
-    // must change the for loop when new tiles are added
+    /** must change the for loop when new tiles are added */ 
     loadTiles(){
         let textures = [];
         

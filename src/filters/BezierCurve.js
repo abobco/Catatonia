@@ -1,11 +1,17 @@
+/**
+ * 4 point bezier curve for animation/shader transitions
+ * @class
+ */
 export class BezierCurve{
-    constructor(){
-        this.points = [
-                       new PIXI.Point(0.0,0.0),
-                       new PIXI.Point(0.5,0.0),
-                       new PIXI.Point(0.5,1.0),
-                       new PIXI.Point(1.0,1.0)        
-                      ];
+    /**
+     * @param {PIXI.Point[]} points - Array of 4 control points, default [(0,0), (0.5, 0), (0.5, 1), (1,1)]
+     */
+    constructor( points = [ new PIXI.Point(0.0,0.0),
+                            new PIXI.Point(0.5,0.0),
+                            new PIXI.Point(0.5,1.0),
+                            new PIXI.Point(1.0,1.0) ] )
+    {
+        this.points = points
     }
     
     getY(t){

@@ -19,7 +19,10 @@ let Engine = Matter.Engine,
 World = Matter.World,
 Events = Matter.Events;
 
-
+/**
+ * Parent object for everything in the game
+ * @class
+ */
 export class Game {  
     /**
       * @param {MyLoader} loader - custom loader object
@@ -71,7 +74,7 @@ export class Game {
 
         console.log(this.player);
 
-        this.catnipTrip = new CatnipTrip(this.bezierDisplacementShader, this.player);
+        this.catnipTrip = new CatnipTrip(this.bezierDisplacementShader, this.player, this.tileMap.powerups);
 
         // fill the animation container
         this.tileMap.torchSprites.forEach( (animation) => {
@@ -106,15 +109,14 @@ export class Game {
         this.camera = new MyCamera(playerPos);
         
         // pass the ticker and animation container to pause the game loop
-        this.pauseMenu = new PauseMenu( loader.menuButtons,       // button sprites
-                                        this.app.ticker,          // game update ticker
-                                        playerPos,                // starting position
-                                        this.animationContainer,  // all animations to be paused 
-                                        this.pauseMusic,          // loaded music file
-                                        loader.menuFont,          // TTF font file
-                                        this.paletteSwap.filter,  // palette swap post processing filter
-                                        loader.paletteTextures,
-                                        this.player.animationContainer);  // array of color maps for palette swapping
+        this.pauseMenu = new PauseMenu( loader.menuButtons, 
+                                        loader.paletteTextures,               
+                                        playerPos,                
+                                        this.animationContainer,  
+                                        this.paletteSwap.filter,  
+                                        this.player.animationContainer,
+                                        this.app.ticker, 
+                                        this.catnipTrip.ticker);  
 
         this.buttonController = null;
         if ( "ontouchstart" in document.documentElement ){
@@ -144,7 +146,7 @@ export class Game {
 
         // draw the static light
         this.tileMap.lights.forEach( (light) => {
-        light.update(this.app.ticker.speed);
+          light.update(this.app.ticker.speed);
         });
 
         // Add objects to pixi stage
@@ -160,7 +162,7 @@ export class Game {
     loop(delta){
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
-        if ( this.catnipTrip.timer.isRunning)
+        if ( this.catnipTrip.ticker.started)
           this.worldContainer.rotation = this.catnipTrip.cameraRotation;
 
         this.pauseMenu.moveButtons(this.camera.position);
@@ -171,7 +173,7 @@ export class Game {
 
         this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
 
-        this.catnipTrip.update();
+        this.catnipTrip.update(delta);
     }
 
     FixedUpdate(){
@@ -205,7 +207,7 @@ export class Game {
         this.catnipTrip.FixedUpdate(this.player, 
                                    this.foregroundContainer.filters, 
                                    this.backgroundContainer.filters,
-                                   this.tileMap.powerups);
+                                   );
         
       }
     }
@@ -279,7 +281,7 @@ export class Game {
                 if ((this.player.lastInput == "right" && !otherBody.isRight) || this.player.lastInput == "left" && otherBody.isRight){
                   this.world.gravity.y = 1;
                   const impactVel = this.player.prevVel;
-                  if (impactVel > this.player.fallDamageVel) 
+                  if (impactVel > this.player.fallDamageVel && this.pauseMenu.cameraShake) 
                     this.camera.addTrauma(impactVel / (this.player.fallDamageVel * 2));
                   this.player.startLedgeClimb(otherBody.position, otherBody.isRight)
                   return; // skip the rest of the collision checks for this frame; the player will be locked in place
@@ -338,7 +340,7 @@ export class Game {
           else if ( !this.player.isGrounded && ( (inWalkBox && catCollision && !this.player.inSlide) || (physicsCollisions >= 2 && inWalkBox ) ) )  {  
             this.world.gravity.y = 1;
             const impactVel = this.player.prevVel;
-            if (impactVel > this.player.fallDamageVel) 
+            if (impactVel > this.player.fallDamageVel && this.pauseMenu.cameraShake) 
               this.camera.addTrauma(impactVel / (this.player.fallDamageVel * 2));
             this.player.prevVel = 0.0;
             this.player.isGrounded = true;

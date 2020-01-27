@@ -20,7 +20,7 @@ export class BezierDisplacementFilter extends PIXI.Filter
 {
     /**
      * @param {PIXI.Sprite} sprite - The sprite used for the displacement map. (make sure its added to the scene!)
-     * @param {number} [scale] - The scale of the displacement
+     * @param {number} scale - The scale of the displacement
      */
     constructor(sprite, shader, scale)
     {
