@@ -1,3 +1,4 @@
+import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 /**
  * Retro style pause menu, contains options for:
  * - Palette swapping 
@@ -72,6 +73,8 @@ export class PauseMenu{
         this.subMenus.forEach( subMenu => {
             this.buttonContainer.addChild(subMenu.displayContainer);
         });
+        let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
+        this.playerAnimations.filters = [colorSwapper];
 
         this.changePalette();
 
@@ -122,9 +125,10 @@ export class PauseMenu{
             }
             // pause all animations
             this.animationContainer.children.forEach( ( animation ) => {
-                animation.stop();
+                if (animation.stop)
+                    animation.stop();
             })
-            this.playerAnimations.forEach( animation => {
+            this.playerAnimations.children.forEach( animation => {
                 animation.stop();
             })
         }
@@ -144,9 +148,10 @@ export class PauseMenu{
             }
             // resume all animations
             this.animationContainer.children.forEach( ( animation ) => {
-                animation.play();
+                if (animation.play)
+                    animation.play();
             })
-            this.playerAnimations.forEach( animation => {
+            this.playerAnimations.children.forEach( animation => {
                 animation.play();
             })
         }

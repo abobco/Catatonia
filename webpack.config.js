@@ -1,5 +1,11 @@
 const path = require('path');
 
+// webpack.config.js
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
+
+
+
 module.exports = {
   context: path.resolve(__dirname, 'src'),
   entry: './main.js',
@@ -14,4 +20,7 @@ module.exports = {
     contentBase: './dist',
   },
   devtool: 'inline-source-map',
+  // plugins: [
+  //   new BundleAnalyzerPlugin(),
+  // ],
 };

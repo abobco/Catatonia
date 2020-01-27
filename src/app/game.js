@@ -1,6 +1,6 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
-import {ColorReplaceFilter} from '@pixi/filter-color-replace';
+//import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 
 import { CellularMap } from "../entities/mapGen.js";
 import {Player} from '../entities/player.js';
@@ -69,12 +69,16 @@ export class Game {
         let playerPos = this.tileMap.playerSpawn;
         this.player = new Player(playerPos, loader.catAnimations);
         // hide the cat's eyes, I think they are too small for the pixelation filter
-        let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
-        this.player.animationContainer.filters = [ colorSwapper, this.paletteSwap.filter ];
+        //let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
+        //this.player.animationContainer.filters = [ colorSwapper/*, this.paletteSwap.filter */];
 
         console.log(this.player);
 
+        console.log('b4 catnip trip');
+
         this.catnipTrip = new CatnipTrip(this.bezierDisplacementShader, this.player, this.tileMap.powerups);
+
+        console.log("past catnip trip")
 
         // fill the animation container
         this.tileMap.torchSprites.forEach( (animation) => {
@@ -108,6 +112,8 @@ export class Game {
         // camera movement control
         this.camera = new MyCamera(playerPos);
         
+        console.log('before pausemenu')
+
         // pass the ticker and animation container to pause the game loop
         this.pauseMenu = new PauseMenu( loader.menuButtons, 
                                         loader.paletteTextures,               
@@ -118,6 +124,7 @@ export class Game {
                                         this.app.ticker, 
                                         this.catnipTrip.ticker);  
 
+        console.log('after pausemenu')
         this.buttonController = null;
         if ( "ontouchstart" in document.documentElement ){
           this.buttonController = new ButtonController(loader.buttonFrames, 

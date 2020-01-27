@@ -25,8 +25,6 @@ export class Powerup{
         this.width = this.sprite.width//* this.sprite.scale.x;
         this.height = this.sprite.height//* this.sprite.scale.y;
 
-        this.ticker = new PIXI.Ticker();
-        this.ticker.autoStart = false;
 
         this.DissolveValue = 0.8;
 

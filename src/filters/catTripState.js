@@ -29,18 +29,21 @@ export class CatnipTrip{
         this.powerupTimer.start();
 
         // noise textures for the displacement filters
-        this.foregroundNoise = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
+        this.foregroundNoise = PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
         this.foregroundNoise.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
         // parallax screws up the effect for the background by default, 
         //  using a 2nd texture/filter that will be moved in sync with the background
-        this.backgroundNoise = PIXI.Sprite.fromImage('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
+        this.backgroundNoise = PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');
         this.backgroundNoise.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
         this.foregroundNoise.scale.set(0.6);
         this.backgroundNoise.scale.set(0.6);
 
+        
         // actual post processing filters for the effect
         this.foregroundFilter = new BezierDisplacementFilter(this.foregroundNoise, shader);
         this.backgroundFilter = new BezierDisplacementFilter(this.backgroundNoise, shader);
+
+        console.log( 'crash test' );
 
         // giant invisible rectangle that somehow fixes a lighting bug
         this.badFilterSolution = new PIXI.Graphics()
