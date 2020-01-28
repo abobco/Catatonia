@@ -26,7 +26,6 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
 * [webpack](https://webpack.js.org/guides/getting-started/):  asset bundler 
 * [pixi.js](https://www.pixijs.com/):  2D WebGL renderer
 * [matter.js](https://www.npmjs.com/package/matter-js):  2D physics engine 
-* [nipplejs](https://www.npmjs.com/package/nipplejs):  virtual joysticks for touch devices
 * [rot.js](https://www.npmjs.com/package/rot-js): procedural generation helper library
 
 ## Art:
