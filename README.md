@@ -11,7 +11,7 @@ Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
  ```
  npm install
  ```
- You can use the [webpack dev server](https://webpack.js.org/configuration/dev-server/) to automatically update your development build every time you save a change. Launch it in your terminal via `npm`:
+ You can use the [webpack dev server](https://webpack.js.org/configuration/dev-server/) to automatically update your development build every time you save a change. Launch it from your terminal via `npm`:
  ```
  npm run start
  ```
