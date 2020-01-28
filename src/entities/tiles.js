@@ -1,8 +1,21 @@
 import Matter from 'matter-js/build/matter.min.js';
 
+/** 
+ * - Colliders for kinematics 
+ * - Trigger colliders for game events (climbing/walking)
+ * - Options to prevent unneccessary trigger colliders from being made
+ */
 export class TileCollider {
+    /**
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} r 
+     * @param {boolean} leftLedge 
+     * @param {boolean} rightLedge 
+     * @param {boolean} hasWalkBox 
+     */
     constructor(x,y,r,leftLedge, rightLedge, hasWalkBox){
-
         this.x = x * r;
         this.y = y * r;
         this.w = r;
@@ -84,21 +97,5 @@ export class TileCollider {
                 debugGraphics.endFill();
             }  
         }
-    }
-}
-
-class TileBlob {
-    
-    constructor(x,y,w,h, tileset){
-            this.tiles = [];
-            let edgeLength = 100;
-            for (let i = 0; i < h, i++; ){
-                for (let j =0; j < w, j++; ){
-                    
-                    // push new Tile to the stack 
-
-                }
-            }
-        
     }
 }

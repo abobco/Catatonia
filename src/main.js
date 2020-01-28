@@ -34,45 +34,37 @@ import {waitForWebfonts} from './app/loadFonts.js'
 
 let app;
 let myGame;
-
-// Detect Linux 
-// if (navigator.appVersion.indexOf("Linux")!=-1)
   
-// Create Pixi Application
-
+// Load ttf font file
 waitForWebfonts(['ARCADECLASSIC'], InitPixi());
 
-// InitPixi();
-
-// load files, call the setup function, bind the calling context to this file's global scope
+// load Sprites
 let customLoader = new MyLoader(setup.bind(this));
 
-// Set up the game after all files load 
+/** make webgl/canvas renderer */ 
+function InitPixi() {
+  app = new PIXI.Application({ 
+    width: window.innerWidth, 
+    height: window.innerHeight,                       
+    antialias: true, 
+    transparent: false, 
+    resolution: 1,
+    backgroundColor: 0x000000 ,
+    autoDensity: true
+  }
+);
+// Fit the canvas to the window
+app.renderer.view.style.position = "absolute";
+app.renderer.view.style.display = "block";
+// Add the canvas to the document
+document.getElementById('myCanvas').appendChild(app.view);
+}
+
+/** Set up the game after all files load*/  
 function setup() {
   myGame = new Game(customLoader, app, this);
 
   preventScroll();  // stops joystick from scrolling page on mobile
-}
-
-//==================== Helper Functions =====================================//
-
-// Initialize Pixi Application
-function InitPixi() {
-    app = new PIXI.Application({ 
-      width: window.innerWidth, 
-      height: window.innerHeight,                       
-      antialias: true, 
-      transparent: false, 
-      resolution: 1,
-      backgroundColor: 0x000000 ,
-      autoDensity: true
-    }
-  );
-  // Fit the canvas to the window
-  app.renderer.view.style.position = "absolute";
-  app.renderer.view.style.display = "block";
-  // Add the canvas to the document
-  document.getElementById('myCanvas').appendChild(app.view);
 }
 
 // Prevent touch event scrolling on mobile

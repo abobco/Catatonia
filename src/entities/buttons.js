@@ -1,105 +1,17 @@
-class MyButton {
-    constructor(textures){
-        this.pressed = false;
-        this.sprites = new Map([["unpressed",new PIXI.Sprite.from(textures[0])],
-                                ["pressed", new PIXI.Sprite.from(textures[1])]]);
-        
-        this.sprites.forEach( (sprite) => {
-            sprite.interactive = true;
-            sprite.visible = false;
-            sprite.scale.set(7);
-        })
-        this.sprites.get("unpressed").visible = true;
+import { PauseMenu } from "./myMenu";
 
-        this.interactionRectangle = new PIXI.Rectangle();
-        console.log("hello");
-    }
-}
-
-class PlayerButton extends MyButton {
-    constructor(textures, type, position, eventCallback, pauseCallback){
-        super(textures);
-        this.type = type;
-        this.eventCallback = eventCallback;
-        this.pauseCallback = pauseCallback;
-
-        this.inPause = false;
-
-        this.sprites.forEach( (sprite) => {
-            sprite.position.copyFrom(position);
-            sprite.alpha = 0.5;
-        });
-
-        this.height = this.sprites.get("unpressed").height;
-        this.width = this.sprites.get("unpressed").width;
-    }
-
-    onPress(){
-        this.swapButtons();
-        const event = {
-            type: "inputDown",
-            direction: this.type
-        }
-        if (this.inPause){
-            if ( event.direction == "up" ){
-                event.direction = "enter";
-            }
-            this.pauseCallback(event);
-        }       
-        else
-            this.eventCallback(event);
-        this.pressed = true;    
-    }
-
-    onEnd(){
-        this.swapButtons();
-        const event = {
-            type: "inputUp",
-            direction: this.type
-        }
-        if (this.inPause)
-            this.pauseCallback(event);
-        else
-            this.eventCallback(event);
-        this.pressed = false;
-    }
-
-    onMove(event){
-        let position = event.data.global;
-        if ( this.pressed) {
-            if (!this.sprites.get("pressed").getBounds().contains(position.x,position.y))
-                this.onEnd();
-        }
-        else {
-            if ( this.sprites.get("unpressed").getBounds().contains(position.x,position.y))
-                this.onPress();
-        }
-        // console.log(position.x, posistion.y);
-    }
-
-    swapButtons(){
-        if (this.sprites.get("unpressed").visible){
-            this.sprites.get("unpressed").visible = false;
-            this.sprites.get("pressed").visible = true;
-        }
-        else{
-            this.sprites.get("unpressed").visible = true;
-            this.sprites.get("pressed").visible = false;
-        }
-    }
-
-    setPosition(position, offset){
-        let newPosition = new PIXI.Point();
-        newPosition.copyFrom(position);
-        newPosition.x += offset.x;
-        newPosition.y += offset.y;
-        this.sprites.forEach((sprite) => {
-            sprite.position.copyFrom(newPosition);
-        } )
-    }
-}
-
-class ButtonController{
+/** Virtual touch controller with 3 buttons for left, right, and jump/enter
+ *  @class
+ */
+export class ButtonController{
+    /**
+     * @param {PIXI.Texture[]} buttonFrames 
+     * @param {PIXI.Point} playerPos 
+     * @param {function} eventCallback 
+     * @param {function} pauseCallback 
+     * @param {HTMLCanvasElement} canvasContext 
+     * @param {PauseMenu} pauseMenu 
+     */
     constructor( buttonFrames, playerPos, eventCallback, pauseCallback, canvasContext, pauseMenu){
         this.clientTopLeft = new PIXI.Point(playerPos.x - window.innerWidth, playerPos.y - window.innerHeight);
        // console.log(this.clientTopLeft)
@@ -190,4 +102,114 @@ class ButtonController{
     }
 }
 
-export {PlayerButton , MyButton, ButtonController};
+
+/** Retro style virtual button for touch devices
+ * @class
+ */
+class MyButton {
+    /**
+     * @param {PIXI.Texture[]} textures 
+     */
+    constructor(textures){
+        this.pressed = false;
+        this.sprites = new Map([["unpressed",new PIXI.Sprite.from(textures[0])],
+                                ["pressed", new PIXI.Sprite.from(textures[1])]]);
+        
+        this.sprites.forEach( (sprite) => {
+            sprite.interactive = true;
+            sprite.visible = false;
+            sprite.scale.set(7);
+        })
+        this.sprites.get("unpressed").visible = true;
+
+        this.interactionRectangle = new PIXI.Rectangle();
+        console.log("hello");
+    }
+}
+
+/** Sends game events to appropriate handlers on button presses
+ * @class
+ * @extends MyButton
+ */
+class PlayerButton extends MyButton {
+    constructor(textures, type, position, eventCallback, pauseCallback){
+        super(textures);
+        this.type = type;
+        this.eventCallback = eventCallback;
+        this.pauseCallback = pauseCallback;
+
+        this.inPause = false;
+
+        this.sprites.forEach( (sprite) => {
+            sprite.position.copyFrom(position);
+            sprite.alpha = 0.5;
+        });
+
+        this.height = this.sprites.get("unpressed").height;
+        this.width = this.sprites.get("unpressed").width;
+    }
+
+    onPress(){
+        this.swapButtons();
+        const event = {
+            type: "inputDown",
+            direction: this.type
+        }
+        if (this.inPause){
+            if ( event.direction == "up" ){
+                event.direction = "enter";
+            }
+            this.pauseCallback(event);
+        }       
+        else
+            this.eventCallback(event);
+        this.pressed = true;    
+    }
+
+    onEnd(){
+        this.swapButtons();
+        const event = {
+            type: "inputUp",
+            direction: this.type
+        }
+        if (this.inPause)
+            this.pauseCallback(event);
+        else
+            this.eventCallback(event);
+        this.pressed = false;
+    }
+
+    onMove(event){
+        let position = event.data.global;
+        if ( this.pressed) {
+            if (!this.sprites.get("pressed").getBounds().contains(position.x,position.y))
+                this.onEnd();
+        }
+        else {
+            if ( this.sprites.get("unpressed").getBounds().contains(position.x,position.y))
+                this.onPress();
+        }
+        // console.log(position.x, posistion.y);
+    }
+
+    swapButtons(){
+        if (this.sprites.get("unpressed").visible){
+            this.sprites.get("unpressed").visible = false;
+            this.sprites.get("pressed").visible = true;
+        }
+        else{
+            this.sprites.get("unpressed").visible = true;
+            this.sprites.get("pressed").visible = false;
+        }
+    }
+
+    setPosition(position, offset){
+        let newPosition = new PIXI.Point();
+        newPosition.copyFrom(position);
+        newPosition.x += offset.x;
+        newPosition.y += offset.y;
+        this.sprites.forEach((sprite) => {
+            sprite.position.copyFrom(newPosition);
+        } )
+    }
+}

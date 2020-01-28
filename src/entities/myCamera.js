@@ -1,6 +1,13 @@
 import { makeNoise2D } from "open-simplex-noise";
 
+/**
+ * Handles offset calculations for smoothing/shake/etc
+ * @class
+ */
 export class MyCamera {
+    /**
+     * @param {PIXI.Point} playerPosition - starting position of the player
+     */
     constructor(playerPosition){
         this.targetPos = playerPosition;
         this.position = playerPosition;
@@ -22,6 +29,7 @@ export class MyCamera {
         this.noiseIncrement = 0;
     }
 
+    /** calculate camera offset */
     update(playerPosition, flip, timescale){
         this.noiseIncrement += timescale;
         this.trauma -= 0.015 * timescale;
@@ -46,23 +54,27 @@ export class MyCamera {
         this.position.y += this.offset.y;
     }
 
+    /** Add trauma for camera shake */
     addTrauma(trauma){
         this.trauma += trauma;
         console.log("trauma += ", trauma);
     }
 
+    /** Camera shake from random numbers, won't scale with time */
     randomShake(){
         this.offset.x = this.maxOffset * this.shake * (Math.random()*2 -1);
         this.offset.y = this.maxOffset * this.shake * (Math.random()*2 -1);
         this.angleOffset = this.maxAngleOffset * this.shake * (Math.random()*2 -1);
     }
 
+    /** Camera shake from simplex noise */
     simplexShake(){
         this.offset.x = this.maxOffset * this.shake * this.xNoise(this.noiseIncrement, 0);
         this.offset.y = this.maxOffset * this.shake * this.yNoise(this.noiseIncrement, 0);
         this.angleOffset = this.maxAngleOffset * this.shake * this.rNoise(this.noiseIncrement, 0);
     }
 
+    /** Asymptotic smoothing for all camera movement towards the player */
     asymptoticAverage(target, weight){
         const inverseWeight = 1.0 - weight;
         this.position.x = inverseWeight * this.position.x + weight*target.x;

@@ -1,3 +1,4 @@
+/** Call a function after loading some font files*/
 function waitForWebfonts(fonts, callback) {
     var loadedFonts = 0;
     for(var i = 0, l = fonts.length; i < l; ++i) {

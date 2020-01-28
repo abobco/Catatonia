@@ -4,11 +4,22 @@ import {PointLight} from '../lighting/PointLight.js'
 import {Powerup} from './powerups.js'
 
 
-// parent of all other procedural generation map classes
+/** Parent of all other procedural generation map classes 
+ * @class
+*/
 class AbstractMap{
+    /**
+     * @param {number} w - width of map in tiles
+     * @param {number} h - height of map in tiles
+     * @param {number} tileSize - edge length of tiles in pixels
+     * @param {number} numLights -  number of lights to randomly place in map
+     * @param {Object} shaderProgram - vertex and fragment shader strings for kighting
+     * @param {Map<string,PIXI.Texture>} tileset - tile textures
+     * @param {PIXI.Texture[]} torchFrames - Torch animation textures
+     */
     constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames) {
         this.w = w;                             // width of map in tiles
-        this.h = h;                             // height of map in tiles
+        this.h = h;                             // width of map in tiles
         this.tileSize = tileSize;               // edge length of tiles in pixels
 
         this.tileMap = {}                       // hashmap of characters representing map features
@@ -37,7 +48,7 @@ class AbstractMap{
 
     }
 
-    // replace random open cells with lights in the feature hashmap
+    /** replace random open cells with lights in the feature hashmap */ 
     generateLights(freeCells, numLights){
         for (let i=0;i<numLights;i++) {
             let index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
@@ -46,7 +57,7 @@ class AbstractMap{
         }
     }
 
-    // Make webgl meshes from the light shader & raycasting data
+    /** Make webgl meshes from the light shader & raycasting data */ 
     addLights(shaderProgram){
         for (let key in this.tileMap){
             if (this.tileMap[key] == '*'){
@@ -87,90 +98,21 @@ class AbstractMap{
     }
 }
 
-// eller maze map
-// currently this still draws tiles as rectangle graphics primitives
-class MazeMap extends AbstractMap {
-    constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames){
-        super(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames)
-
-        this.ellerMaze = new ROT.Map.EllerMaze(w, h);
-        this.debugGraphics = new PIXI.Graphics();
-        this.tileContainer.addChild(this.debugGraphics);
-
-        // callback function for maze creation
-        this.ellerMaze.create( (x, y, value) => {
-            let key = x+","+y;
-            this.tileMap[key] = value;
-            if (!value) {
-                this.freeCells.push(key);
-            }
-        });
-
-        // randomly place lights in empty cells
-        this.generateLights(this.freeCells, numLights);
-        
-        // make wall cells
-        this.addWalls();
-
-        // make PointLight objects 
-        this.addLights(shaderProgram);
-
-        
-        let index = Math.floor(ROT.RNG.getUniform() * this.freeCells.length);
-        let key = this.freeCells.splice(index, 1)[0];
-        let parts = key.split(",");
-        this.playerSpawn = new PIXI.Point(parseInt(parts[0])*this.tileSize, parseInt(parts[1])*this.tileSize);
-    }
-
-    addWalls() {
-        for (let key in this.tileMap){
-            if (this.tileMap[key] == 1){    
-                let parts = key.split(",");
-                let x = parseInt(parts[0]);
-                let y = parseInt(parts[1]);
-
-                // check for neighbor walls
-                let leftNeighbor, rightNeighbor, topNeighbor, botNeighbor;
-                if (this.tileMap[ (x-1) +','+  y ] == 1)
-                    leftNeighbor = true;
-                if (this.tileMap[ (x+1) +','+  y ] == 1)
-                    rightNeighbor = true;
-                if (this.tileMap[ x     +','+ (y-1)] == 1)
-                    topNeighbor = true;
-                if (this.tileMap[ x     +','+ (y+1)] == 1)
-                    botNeighbor = true;
-                
-                // create tile, boolean logic determines if climb/walk trigger colliders need to be made
-                let newTile = new TileCollider(x,y, this.tileSize, 
-                                              (!leftNeighbor  && !topNeighbor), // left ledge
-                                              (!rightNeighbor && !topNeighbor), // right ledge
-                                               !topNeighbor)                    // walkbox
-                
-                this.debugGraphics.beginFill(0x660066)
-                this.debugGraphics.drawRect(x*this.tileSize - this.tileSize/2, y*this.tileSize - this.tileSize/2, this.tileSize, this.tileSize)
-                // push tile to linear array of tiles
-                this.terrain.push(newTile);  
-                
-                // push vertices to set of vertices
-                let verts = newTile.Collider.vertices;
-                
-                verts.forEach( (vertex) => {
-                    this.vertices.add(vertex);
-                })
-                
-                // push line segments to set of edges
-                this.edges.add(new Boundary(verts[0].x, verts[0].y, verts[1].x, verts[1].y));   // top edge
-                this.edges.add(new Boundary(verts[1].x, verts[1].y, verts[2].x, verts[2].y));   // right edge
-                this.edges.add(new Boundary(verts[3].x, verts[3].y, verts[2].x, verts[2].y));   // bot edge
-                this.edges.add(new Boundary(verts[0].x, verts[0].y, verts[3].x, verts[3].y));   // left edge
-
-            }
-        }
-    }
-}
-
-// textured cave map from cellular automata
-class CellularMap extends AbstractMap{
+/**
+ * Textured cave map from cellular automata
+ * @class
+ * @extends AbstractMap
+ */ 
+export class CellularMap extends AbstractMap{
+    /**
+     * @param {number} w - width of map in tiles
+     * @param {number} h - height of map in tiles
+     * @param {number} tileSize - edge length of tiles in pixels
+     * @param {number} numLights -  number of lights to randomly place in map
+     * @param {Object} shaderProgram - vertex and fragment shader strings for kighting
+     * @param {Map<string,PIXI.Texture>} tileset - tile textures
+     * @param {PIXI.Texture[]} torchFrames - Torch animation textures
+     */
     constructor(w,h,tileSize, numLights, shaderProgram,  tileset, torchFrames){
         super(w,h,tileSize,numLights,shaderProgram, tileset,torchFrames);
 
@@ -457,4 +399,97 @@ class CellularMap extends AbstractMap{
     }
 }
 
-export {MazeMap, CellularMap}
+/**
+ * Eller maze map
+ * - currently this still draws tiles as rectangle graphics primitives
+ * @class
+ * @extends AbstractMap
+ */
+export class MazeMap extends AbstractMap {
+    /**
+     * @param {number} w - width of map in tiles
+     * @param {number} h - height of map in tiles
+     * @param {number} tileSize - edge length of tiles in pixels
+     * @param {number} numLights -  number of lights to randomly place in map
+     * @param {Object} shaderProgram - vertex and fragment shader strings for kighting
+     * @param {Map<string,PIXI.Texture>} tileset - tile textures
+     * @param {PIXI.Texture[]} torchFrames - Torch animation textures
+     */
+    constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames){
+        super(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames)
+
+        this.ellerMaze = new ROT.Map.EllerMaze(w, h);
+        this.debugGraphics = new PIXI.Graphics();
+        this.tileContainer.addChild(this.debugGraphics);
+
+        // callback function for maze creation
+        this.ellerMaze.create( (x, y, value) => {
+            let key = x+","+y;
+            this.tileMap[key] = value;
+            if (!value) {
+                this.freeCells.push(key);
+            }
+        });
+
+        // randomly place lights in empty cells
+        this.generateLights(this.freeCells, numLights);
+        
+        // make wall cells
+        this.addWalls();
+
+        // make PointLight objects 
+        this.addLights(shaderProgram);
+
+        
+        let index = Math.floor(ROT.RNG.getUniform() * this.freeCells.length);
+        let key = this.freeCells.splice(index, 1)[0];
+        let parts = key.split(",");
+        this.playerSpawn = new PIXI.Point(parseInt(parts[0])*this.tileSize, parseInt(parts[1])*this.tileSize);
+    }
+
+    addWalls() {
+        for (let key in this.tileMap){
+            if (this.tileMap[key] == 1){    
+                let parts = key.split(",");
+                let x = parseInt(parts[0]);
+                let y = parseInt(parts[1]);
+
+                // check for neighbor walls
+                let leftNeighbor, rightNeighbor, topNeighbor, botNeighbor;
+                if (this.tileMap[ (x-1) +','+  y ] == 1)
+                    leftNeighbor = true;
+                if (this.tileMap[ (x+1) +','+  y ] == 1)
+                    rightNeighbor = true;
+                if (this.tileMap[ x     +','+ (y-1)] == 1)
+                    topNeighbor = true;
+                if (this.tileMap[ x     +','+ (y+1)] == 1)
+                    botNeighbor = true;
+                
+                // create tile, boolean logic determines if climb/walk trigger colliders need to be made
+                let newTile = new TileCollider(x,y, this.tileSize, 
+                                              (!leftNeighbor  && !topNeighbor), // left ledge
+                                              (!rightNeighbor && !topNeighbor), // right ledge
+                                               !topNeighbor)                    // walkbox
+                
+                this.debugGraphics.beginFill(0x660066)
+                this.debugGraphics.drawRect(x*this.tileSize - this.tileSize/2, y*this.tileSize - this.tileSize/2, this.tileSize, this.tileSize)
+                // push tile to linear array of tiles
+                this.terrain.push(newTile);  
+                
+                // push vertices to set of vertices
+                let verts = newTile.Collider.vertices;
+                
+                verts.forEach( (vertex) => {
+                    this.vertices.add(vertex);
+                })
+                
+                // push line segments to set of edges
+                this.edges.add(new Boundary(verts[0].x, verts[0].y, verts[1].x, verts[1].y));   // top edge
+                this.edges.add(new Boundary(verts[1].x, verts[1].y, verts[2].x, verts[2].y));   // right edge
+                this.edges.add(new Boundary(verts[3].x, verts[3].y, verts[2].x, verts[2].y));   // bot edge
+                this.edges.add(new Boundary(verts[0].x, verts[0].y, verts[3].x, verts[3].y));   // left edge
+
+            }
+        }
+    }
+}

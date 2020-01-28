@@ -1,6 +1,5 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
-//import {ColorReplaceFilter} from '@pixi/filter-color-replace';
 
 import { CellularMap } from "../entities/mapGen.js";
 import {Player} from '../entities/player.js';
@@ -41,19 +40,17 @@ export class Game {
         this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
         this.pauseMusic = loader.pauseMusic;
 
+        // palette swap filter
         this.paletteIndex = 2;
         this.paletteSwap = new PaletteSwapFilter(loader.paletteFrag, loader.paletteTextures[this.paletteIndex] );
 
         // dissolve effect shader
         this.dissolveSprite = new PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');   
         this.dissolveSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
-
         this.dissolveSprite.scale.set(0.2);
         this.dissolveShader = loader.dissolveShader;
         this.bezierDisplacementShader = loader.displacementShader;
-  
         this.worldContainer.addChild(this.dissolveSprite);
-        //this.dissolveEffect = new DissolveFilter(this.dissolveSprite, loader.dissolveShader, 1);
         
         // physics Engine
         this.engine = Engine.create();
@@ -68,26 +65,15 @@ export class Game {
         // Contains player animations, physics bodies, flags, behavior functionsxc
         let playerPos = this.tileMap.playerSpawn;
         this.player = new Player(playerPos, loader.catAnimations);
-        // hide the cat's eyes, I think they are too small for the pixelation filter
-        //let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
-        //this.player.animationContainer.filters = [ colorSwapper/*, this.paletteSwap.filter */];
-
         console.log(this.player);
 
-        console.log('b4 catnip trip');
-
+        // controls all catnip powerups/filters
         this.catnipTrip = new CatnipTrip(this.bezierDisplacementShader, this.player, this.tileMap.powerups);
-
-        console.log("past catnip trip")
 
         // fill the animation container
         this.tileMap.torchSprites.forEach( (animation) => {
           this.animationContainer.addChild(animation); // add torches
         });
-        // this.animationContainer.addChild(this.tileMap.torchContainer);
-        // this.player.animations.forEach((animation) => {
-        //   this.animationContainer.addChild(animation);  // add player animations 
-        // });
         this.animationContainer.addChild(this.player.animationContainer);
 
         // Add player's rigidbody to matterjs world
@@ -107,14 +93,9 @@ export class Game {
           //console.log(powerup.collider);
         });
 
-
-        // Input handlers
         // camera movement control
         this.camera = new MyCamera(playerPos);
-        
-        console.log('before pausemenu')
 
-        // pass the ticker and animation container to pause the game loop
         this.pauseMenu = new PauseMenu( loader.menuButtons, 
                                         loader.paletteTextures,               
                                         playerPos,                
@@ -124,7 +105,6 @@ export class Game {
                                         this.app.ticker, 
                                         this.catnipTrip.ticker);  
 
-        console.log('after pausemenu')
         this.buttonController = null;
         if ( "ontouchstart" in document.documentElement ){
           this.buttonController = new ButtonController(loader.buttonFrames, 
@@ -136,11 +116,7 @@ export class Game {
           this.pauseMenu.attachController(this.buttonController);
         }
 
-            // virtual joystick
-        // if ("ontouchstart" in document.documentElement) {
-        //     this.customJoystick = new Controller(this.player, this.player.body);
-        // }
-            // keyboard
+        // keyboard
         this.KBInput = new KBController(this.player, this.player.body, this.app.ticker, this.camera, this.pauseMenu);
 
         // resize canvas on window resize
@@ -219,8 +195,10 @@ export class Game {
       }
     }
 
-    // add pixi objects to global renderer, 
-    // works like a stack, last element added = top graphics layer
+    /**
+     * Add pixi objects to global renderer, 
+     * - Works like a stack, last element added = top graphics layer
+    */ 
     initLayers() {
         // background / uninteractable tiles
         this.backgroundContainer.addChild(this.tileMap.backgroundContainer);
@@ -259,7 +237,7 @@ export class Game {
         this.worldContainer.filters = [new PixelateFilter(3)];
       }
 
-    // NSFW Spaghetti code
+    /** NSFW Spaghetti code */ 
     collisionEventSetup() {
         Events.on(this.engine, 'collisionActive', (event) => {
           var inWalkBox = false;
@@ -386,7 +364,7 @@ export class Game {
         });
     }
 
-    // resize and center canvas
+    /** resize and center canvas */ 
     onWindowResize() {
       console.log("resize")
         // Get canvas parent node

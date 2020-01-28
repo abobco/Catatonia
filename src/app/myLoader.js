@@ -17,13 +17,11 @@ export class MyLoader {
     {
         this.doneLoading = false;
 
-        let loaderFiles = new FilePaths();
-
         PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.NEAREST;
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
         
         loader
-            .add(loaderFiles.array())
+            .add(FilePaths())
             .add('pauseMusic', 'sound/tropical jam.mp3')
             .add('ARCADECLASSIC', 'fonts/ARCADECLASSIC.TTF')
             .load(this.onLoad.bind(this, setupFunction));  
@@ -38,9 +36,6 @@ export class MyLoader {
        this.paletteFrag = this.loadPaletteFrag();
        this.paletteTextures = this.loadPalettes();  
 
-       this.catnipFilter = this.loadFilters();
-
-       //this.catFrameMap = this.loadFrames();
        this.catAnimations = this.animationsInit();
 
        this.tileset = this.loadTiles();
@@ -57,14 +52,13 @@ export class MyLoader {
        this.pauseMusic.loop = true;
 
        this.menuFont = this.loadFont();
-        console.log(this.menuFont.data);
 
        // this.checkLoad();
 
        setupFunction();
     }
 
-    // debugging for dummies
+    /** debugging for dummies */ 
     checkLoad() 
     {
         console.log(this.lightShader);
@@ -72,6 +66,7 @@ export class MyLoader {
         console.log(this.doneLoading);
     }
 
+    /**returns an array of color map textures */
     loadPalettes(){
         return [PIXI.Texture.from(resources["sprites/color_map_1.png"].data),
                 PIXI.Texture.from(resources["sprites/color_map_2.png"].data),
@@ -102,19 +97,10 @@ export class MyLoader {
            };
     }
 
+    /** returns the text for a post processing shader */
     loadDisplacementShader(){
         let vert = resources["shaders/BezierDisplacementFilter/BezierDispVert.GLSL"].data,
         frag = resources["shaders/BezierDisplacementFilter/BezierDispFrag.GLSL"].data;
-
-    return {
-            "vert": vert,
-            "frag": frag,
-           };
-    }
-
-    loadFilters(){
-        let vert = resources["shaders/catnip-effect/catnipVert.GLSL"].data,
-        frag = resources["shaders/catnip-effect/catnipFrag.GLSL"].data;
 
     return {
             "vert": vert,

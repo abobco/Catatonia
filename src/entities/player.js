@@ -2,7 +2,18 @@ import Matter from 'matter-js/build/matter.min.js';
 import {Boundary} from "./terrain.js";
 import {MyTimer} from "./myTimer.js";
 
+/**
+ * Wrapper object for the cat that the player controls. Contains:
+ * - Cat animations
+ * - Physics data
+ * - Game state flags
+ */
 export class Player {
+    /**
+     * 
+     * @param {PIXI.Point} position - spawn location, should be calculated during map generation
+     * @param {Map<string, PIXI.AnimatedSprite} animationMap - all animations, already set up in the loader
+     */
     constructor(position, animationMap) {
         // store most recent input for ledge climbing logic
         this.lastInput = null;

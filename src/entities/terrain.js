@@ -4,33 +4,20 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {Corner} from '../lighting/geometry.js';
 
-export class Boundary  {
-    constructor(x1,y1,x2,y2, isEdge = false){
-        this.a = new Matter.Vector.create(x1,y1);
-        this.b = new Matter.Vector.create(x2,y2);
-        this.isEdge = isEdge;
-    }
-
-}
-
-export class RectSegments{
+/** 
+ * - Colliders for kinematics 
+ * - Line segments for ray casting
+ * - Trigger colliders for game events(climbing/walking)
+ */
+export class Terrain {
+    /**
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} w 
+     * @param {number} h 
+     */
     constructor(x,y,w,h){
-        var A = new Matter.Vector.create(x - (w/2), y - (h/2));
-        var B = new Matter.Vector.create(x + (w/2), y - (h/2));
-        var C = new Matter.Vector.create(x - (w/2), y + (h/2));
-        var D = new Matter.Vector.create(x + (w/2), y + (h/2));
-    
-        this.bounds = [new Boundary(A.x,A.y, B.x,B.y), 
-                       new Boundary(A.x,A.y, C.x,C.y), 
-                       new Boundary(C.x,C.y, D.x,D.y), 
-                       new Boundary(B.x,B.y, D.x,D.y)]
-    }
-
-}
-
-export class Terrain{
-    constructor(x,y,w,h){
-            // collision rectangle 
+        // collision rectangle 
         this.x = x;
         this.y = y;
         this.w = w;
@@ -51,8 +38,6 @@ export class Terrain{
                         new Corner(this.B, this.A, this.D),
                         new Corner(this.C, this.A, this.D),
                         new Corner(this.D, this.B, this.C)];
-
-        //this.segments = new RectSegments(x,y,w,h);
 
         // physics collider
         this.Collider = new Matter.Bodies.rectangle(x,y,w,h,{ isStatic : true });
@@ -92,12 +77,11 @@ export class Terrain{
         this.edgeBoxes[1].isEdgeBox = true;
         this.edgeBoxes[0].isRight = true;
         this.edgeBoxes[1].isRight = false
-
-
-    }
+    } 
     
-    
-    // draw rect given input PIXI Graphics object
+    /** Draw collision boxes for debugging 
+     * @param {PIXI.Graphics} graphics - webgl/canvas renderer
+    */
     drawRect(graphics) {
         // draw collision box rectangle
         graphics.beginFill(0x6032a8);
@@ -119,6 +103,49 @@ export class Terrain{
             graphics.endFill();
         }    
     }
+}
+
+/** Line segment for raycasting
+ * @class
+ */
+export class Boundary  {
+    /**
+     * @param {number} x1 
+     * @param {number} y1 
+     * @param {number} x2 
+     * @param {number} y2 
+     * @param {boolean} isEdge 
+     */
+    constructor(x1,y1,x2,y2, isEdge = false){
+        this.a = new Matter.Vector.create(x1,y1);
+        this.b = new Matter.Vector.create(x2,y2);
+        this.isEdge = isEdge;
+    }
+
+}
+
+/** Set of 4 line segments from a tile
+ * @class
+ */
+export class RectSegments{
+    /**
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} w 
+     * @param {number} h 
+     */
+    constructor(x,y,w,h){
+        var A = new Matter.Vector.create(x - (w/2), y - (h/2));
+        var B = new Matter.Vector.create(x + (w/2), y - (h/2));
+        var C = new Matter.Vector.create(x - (w/2), y + (h/2));
+        var D = new Matter.Vector.create(x + (w/2), y + (h/2));
+    
+        this.bounds = [new Boundary(A.x,A.y, B.x,B.y), 
+                       new Boundary(A.x,A.y, C.x,C.y), 
+                       new Boundary(C.x,C.y, D.x,D.y), 
+                       new Boundary(B.x,B.y, D.x,D.y)]
+    }
+
 }
 
 // draw walkBox for debug
