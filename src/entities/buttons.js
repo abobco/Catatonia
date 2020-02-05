@@ -52,6 +52,7 @@ export class ButtonController{
         console.log("touches: ", event.touches.length);
         this.buttons.forEach( (button) => {
             let touchInButton = false;
+            let touchID = null;
             for ( let i = 0; i < event.touches.length; i++){
                 let touch = event.touches.item(i);
                 if ( button.interactionRectangle.contains(touch.clientX, touch.clientY) ) {
@@ -60,11 +61,18 @@ export class ButtonController{
             }
             if ( touchInButton != button.pressed ){
                 button.pressed = touchInButton;
-                if ( button.pressed )
+                if ( button.pressed ){
                     button.onPress();
-                else 
+                }  
+                else {
                     button.onEnd();
+                    if (button.type == "left" && this.buttons.get("right").pressed )
+                        this.buttons.get("right").onPress();
+                    else if (button.type == "right" && this.buttons.get("left").pressed )
+                        this.buttons.get("left").onPress();
+                }   
             }
+              
         })
     }
 

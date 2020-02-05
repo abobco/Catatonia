@@ -40,7 +40,7 @@ export class ShadowMap {
         this.focus.x = -tileSize/2;
         this.focus.y = -tileSize/2;
 
-        this.mesh.beginFill(0x000000, 0.4);
+        this.mesh.beginFill(0x000000, 0.35);
         this.mesh.drawRect(-tileSize/2, -tileSize/2, 
                             w*tileSize , h*tileSize);
         this.mesh.endFill();

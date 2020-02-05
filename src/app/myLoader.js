@@ -36,6 +36,11 @@ export class MyLoader {
        this.paletteFrag = this.loadPaletteFrag();
        this.paletteTextures = this.loadPalettes();  
 
+       this.wangPic = this.loadWangPic();
+       this.dungeonTextures = this.loadDungeon();
+       //console.log(this.wangPic)
+       this.perlinNoise = this.loadPerlinNoise();
+
        this.catAnimations = this.animationsInit();
 
        this.tileset = this.loadTiles();
@@ -56,6 +61,14 @@ export class MyLoader {
        // this.checkLoad();
 
        setupFunction();
+    }
+
+    loadPerlinNoise(){
+        return resources['sprites/perlin-2.png'].data;
+    }
+
+    loadWangPic(){
+        return resources["sprites/big_wang.png"].data;
     }
 
     /** debugging for dummies */ 
@@ -216,6 +229,45 @@ export class MyLoader {
                         ['Grass-2', textures[21]],
                         ['catnip', textures[22]],
 
+                    ]);
+    }
+
+    loadDungeon(){
+        let textures = [];
+        
+        for ( let i = 1; i <= 27; i++ ) {
+            const val = i;       
+            let texture = PIXI.Texture.from(`dungeon (${val}).png`); 
+            textures.push( texture );
+        }
+        
+        return new Map([['TLCorner', textures[0]],
+                        ['TopEdge', textures[1]],
+                        ['TRCorner', textures[2]],
+                        ['ITLCorner', textures[3]],
+                        ['ITEdge', textures[4]],
+                        ['ITRCorner', textures[5]],
+                        ['LeftEdge', textures[6]],
+                        ['ILEdge', textures[7]],
+                        ['Interior', textures[8]],
+                        ['IREdge', textures[9]],
+                        ['RightEdge', textures[10]],
+                        ['IBLCorner', textures[11]],
+                        ['IBEdge', textures[12]],
+                        ['IBRCorner', textures[13]],
+                        ['BLCorner', textures[14]],
+                        ['BottomEdge', textures[15]],
+                        ['BRCorner', textures[16]],
+                        ['Loner', textures[17]],
+                        ['Shaft', textures[18]],
+                        ['Background', textures[19]],
+                        ['catnip', textures[20]],
+                        ['Background-2', textures[21]],
+                        ['BR-Background-corner', textures[22]],
+                        ['BL-Background-corner', textures[23]],
+                        ['TL-Background-corner', textures[24]],
+                        ['TR-Background-corner', textures[25]],
+                        ['Background-3', textures[26]],
                     ]);
     }
 

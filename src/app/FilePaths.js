@@ -18,6 +18,10 @@ export function FilePaths() {
         "sprites/color_map_1.png",
         "sprites/color_map_2.png",
         "sprites/color_map_3.png",
+        "sprites/big_wang.png",
+        "sprites/dungeon.json",
+        "sprites/perlin-noise.png",
+        "sprites/perlin-2.png",
 
         // shaders
         "shaders/lightFilterVert.GLSL",

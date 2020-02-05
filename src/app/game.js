@@ -1,7 +1,7 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
 
-import { CellularMap } from "../entities/mapGen.js";
+import { CellularMap, WangMap } from "../entities/mapGen.js";
 import {Player} from '../entities/player.js';
 import { KBController} from '../entities/controller.js';
 import {ShadowMap} from '../lighting/shadowMap.js';
@@ -58,8 +58,11 @@ export class Game {
         this.updateLag = 0;
 
         // procedural cave generator
-        this.tileMap = new CellularMap(25,25,150,6, loader.lightShader, loader.tileset, loader.torchFrames);
+         
         // this.tileMap = new MazeMap(25,25,150,6, loader.lightShader, loader.tileset, loader.torchFrames);
+        this.tileMap = new CellularMap(25,25,150,6, loader.lightShader, loader.tileset, loader.torchFrames);
+         //this.tileMap = new WangMap(32, 32, loader.wangPic, 120,6, loader.lightShader, loader.dungeonTextures, loader.torchFrames, loader.perlinNoise)
+
         this.allLights = new PIXI.Container();
 
         // Contains player animations, physics bodies, flags, behavior functionsxc
@@ -154,7 +157,8 @@ export class Game {
         this.app.stage.pivot.copyFrom(this.camera.position);
         this.app.stage.angle = this.camera.angleOffset;
 
-        this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
+        //this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
+        this.tileMap.parallaxScroll(this.app.stage.pivot);
 
         this.catnipTrip.update(delta);
     }
@@ -359,8 +363,16 @@ export class Game {
                 this.player.inSlide = false;
                 this.player.jumpInput = false;    
               }
-            } 
-          }
+              else {
+                if ( this.buttonController && this.buttonController.buttons.get("right").pressed)
+                  this.player.xVel = this.player.maxVel;
+                else if (this.buttonController && this.buttonController.buttons.get("left").pressed)
+                  this.player.xVel = -this.player.maxVel;
+              }
+
+            }
+          } 
+            
         });
     }
 

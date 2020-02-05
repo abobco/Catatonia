@@ -207,6 +207,8 @@ export class PauseMenu{
                                 noUpdate = false;
                                 this.toggleOptionsMenu(true);
                                 break;
+                            case "SWAP MAPS":
+                                window.location.replace("http://www.xabnab.com/cat%20game/debug/index.html");
                             case "BACK":
                                 noUpdate = false;
                                 this.toggleOptionsMenu(false);
@@ -446,7 +448,8 @@ class MenuList {
         this.options = [ new MenuListElement("RESUME"),
                          new MenuListElement("REROLL"),
                          new MenuListElement("PALETTE"),
-                         new MenuListElement("OPTIONS")
+                         new MenuListElement("OPTIONS"),
+                         new MenuListElement("SWAP MAPS")
                        ];
         this.options.forEach(option => {
             this.displayContainer.addChild(option.inactiveSprite);          

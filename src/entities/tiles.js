@@ -7,7 +7,6 @@ import Matter from 'matter-js/build/matter.min.js';
  */
 export class TileCollider {
     /**
-     * 
      * @param {number} x 
      * @param {number} y 
      * @param {number} r 
