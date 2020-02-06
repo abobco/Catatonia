@@ -316,7 +316,7 @@ export class Player {
         this.setAnimation("climb"); 
         let xOffset = 40,   // how far away from the ledge we will anchor the cat
             yOffset = 0,
-            xClimbOffset = -60,
+            xClimbOffset = -80,
             yClimbOffset = -52;
         if ( isRightLedge){
           this.setFlip("left");

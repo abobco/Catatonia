@@ -148,6 +148,7 @@ export class Game {
     loop(delta){
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
+
         if ( this.catnipTrip.ticker.started)
           this.worldContainer.rotation = this.catnipTrip.cameraRotation;
 
@@ -364,10 +365,20 @@ export class Game {
                 this.player.jumpInput = false;    
               }
               else {
-                if ( this.buttonController && this.buttonController.buttons.get("right").pressed)
-                  this.player.xVel = this.player.maxVel;
-                else if (this.buttonController && this.buttonController.buttons.get("left").pressed)
+                if (this.buttonController){
+                  if ( this.buttonController.buttons.get("right").pressed)
+                    this.player.xVel = this.player.maxVel;
+                  else if ( this.buttonController.buttons.get("left").pressed)
+                    this.player.xVel = -this.player.maxVel;
+                }
+                else {
+                  if ( this.player.lastInput == "right")
+                    this.player.xVel = this.player.maxVel;
+                  else if ( this.player.lastInput == "left")
                   this.player.xVel = -this.player.maxVel;
+                }
+                
+                
               }
 
             }

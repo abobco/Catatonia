@@ -18,13 +18,13 @@ var KBController = function(catPlayer, catBody, gameTicker, camera, pauseMenu) {
 
         else if (e.keyCode == '37' && !this.leftDown ) {
           myEvent.direction = "left";
-          this.rightDown = false;
+          //this.rightDown = false;
           this.leftDown = true;
         }
 
         else if (e.keyCode == '39' && !this.rightDown ) {
           myEvent.direction = "right";
-          this.leftDown = false;
+          //this.leftDown = false;
           this.rightDown = true;
         }
         // spacebar
@@ -76,11 +76,21 @@ var KBController = function(catPlayer, catBody, gameTicker, camera, pauseMenu) {
         else if (e.keyCode == '37' && this.leftDown) {
           myEvent.direction = "left"
             this.leftDown = false;
+          if ( this.rightDown )
+            myEvent = {
+              type: "inputDown",
+              direction: "right"
+            };
 
         }
         else if (e.keyCode == '39' && this.rightDown) {
             this.rightDown = false;
             myEvent.direction = "right"
+            if ( this.leftDown )
+            myEvent = {
+              type: "inputDown",
+              direction: "left"
+            };
 
         }
         else if (e.keyCode == '32'){
