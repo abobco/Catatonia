@@ -16,15 +16,24 @@ export class PointLight {
     this.torch = new TorchAnimation(x,y,torchFrames);
   }
 
-  update(timescale) {
+  update(timescale, position, time) {
     this.lightContainer.destroy({ "children" : true });
     this.lightContainer = new PIXI.Container();
-    this.pos.x += this.vel*timescale;
-    this.visionSource.update(this.pos.x, this.pos.y);
+    if ( position ){
+      this.pos = position;
+      this.torch.animation.position.set(position);
+    }
+      
+    else;
+      this.pos.x += this.vel*timescale;
+    this.visionSource.update(this.pos.x, this.pos.y, time);
     this.visionSource.drawMesh();
     for ( let i = 0; i < this.visionSource.tris.length; i++) {
       this.lightContainer.addChild(this.visionSource.tris[i]);
     }
+   //this.lightContainer.addChild(this.visionSource.mesh);
+
+
   }
 }
 

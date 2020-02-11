@@ -1,7 +1,10 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {PixelateFilter} from '@pixi/filter-pixelate';
 
-import { CellularMap, WangMap } from "../entities/mapGen.js";
+import { WangMap } from '../world_gen/WangMap.js';
+import { CellularMap } from '../world_gen/CellularMap.js';
+import { DebugMap } from '../world_gen/debugMap.js';
+
 import {Player} from '../entities/player.js';
 import { KBController} from '../entities/controller.js';
 import {ShadowMap} from '../lighting/shadowMap.js';
@@ -12,6 +15,8 @@ import {DissolveFilter} from '../filters/DissolveFilter.js';
 import {CatnipTrip} from '../filters/catTripState.js'
 import {PaletteSwapFilter} from '../filters/paletteSwap.js';
 import {MyLoader} from './myLoader.js'
+import { PointLight } from '../lighting/PointLight.js';
+
 
 // Aliases
 let Engine = Matter.Engine,
@@ -57,12 +62,36 @@ export class Game {
         this.world = this.engine.world;
         this.updateLag = 0;
 
-        // procedural cave generator
-         
-        // this.tileMap = new MazeMap(25,25,150,6, loader.lightShader, loader.tileset, loader.torchFrames);
-        this.tileMap = new CellularMap(25,25,150,6, loader.lightShader, loader.tileset, loader.torchFrames);
-         //this.tileMap = new WangMap(32, 32, loader.wangPic, 120,6, loader.lightShader, loader.dungeonTextures, loader.torchFrames, loader.perlinNoise)
+        // static dungeon map for debugging
+        this.tileMap = new DebugMap({
+          wangImage: loader.wangPic,
+          perlinNoise: loader.perlinNoise,
+          shaderProgram: loader.lightShader,
+          tileset: loader.dungeonTextures, 
+          torchFrames: loader.torchFrames
+        })
 
+        // procedural dungeon map from herringbone wang tiles
+        // this.tileMap = new WangMap({
+        //   wangImage: loader.wangPic,
+        //   perlinNoise: loader.perlinNoise,
+        //   shaderProgram: loader.lightShader,
+        //   tileset: loader.dungeonTextures, 
+        //   torchFrames: loader.torchFrames
+        // })
+
+        // procedural cave map from cellular automata
+        // this.tileMap = new CellularMap({
+        //   shaderProgram: loader.lightShader,
+        //   tileset: loader.tileset, 
+        //   torchFrames: loader.torchFrames
+        // })
+        this.mouseData = this.app.renderer.plugins.interaction.mouse.global;
+
+         this.dynamicTorch = new PointLight(this.mouseData.x, this.mouseData.y, this.tileMap.edges, this.tileMap.vertices,
+                                            loader.lightShader, loader.torchFrames);
+   
+        
         this.allLights = new PIXI.Container();
 
         // Contains player animations, physics bodies, flags, behavior functionsxc
@@ -78,6 +107,7 @@ export class Game {
           this.animationContainer.addChild(animation); // add torches
         });
         this.animationContainer.addChild(this.player.animationContainer);
+        //this.animationContainer.addChild(this.dynamicTorch.torch.animation)
 
         // Add player's rigidbody to matterjs world
         World.add(this.world, this.player.body);
@@ -134,6 +164,7 @@ export class Game {
         this.tileMap.lights.forEach( (light) => {
           light.update(this.app.ticker.speed);
         });
+        this.dynamicTorch.update(this.app.ticker.speed);
 
         // Add objects to pixi stage
         this.initLayers();
@@ -144,7 +175,7 @@ export class Game {
         this.app.ticker.add(delta => this.loop(delta));   
     }
 
-    // main game loop, does not update at a constant rate
+    /**main game loop, does not update at a constant rate**/
     loop(delta){
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
@@ -162,6 +193,19 @@ export class Game {
         this.tileMap.parallaxScroll(this.app.stage.pivot);
 
         this.catnipTrip.update(delta);
+
+        //console.log(this.dynamicTorch.visionSource.uniforms.time)
+        let AdjustedPoint = new PIXI.Point( this.camera.position.x - this.app.renderer.width  + this.mouseData.x*2, 
+                                            this.camera.position.y - this.app.renderer.height + this.mouseData.y*2)
+        if ( this.buttonController && this.buttonController.lightTouch ){
+          AdjustedPoint = new PIXI.Point( this.camera.position.x - this.app.renderer.width  + this.buttonController.lightTouch.x*2, 
+            this.camera.position.y - this.app.renderer.height + this.buttonController.lightTouch.y*2)
+        }  
+        
+        this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
+        //this.dynamicTorch.torch.animation.position.copyFrom(AdjustedPoint);
+        this.allLights.addChild(this.dynamicTorch.lightContainer);
+
     }
 
     FixedUpdate(){
@@ -218,14 +262,18 @@ export class Game {
         this.tileMap.lights.forEach( (light) => {
           this.allLights.addChild(light.lightContainer);
         });
+         this.allLights.addChild(this.dynamicTorch.lightContainer);
         
         this.foregroundContainer.addChild(this.allLights);
         
         // makes a mask for shadows
         let shadowMap = new ShadowMap(this.tileMap.lights, this.tileMap, this.app.renderer);
-      
-        this.foregroundContainer.addChild(shadowMap.focus);
-        this.foregroundContainer.addChild(shadowMap.mesh);
+
+        this.shadows = new PIXI.Container();
+        this.shadows.addChild(shadowMap.focus);
+        this.shadows.addChild(shadowMap.mesh);
+
+         this.foregroundContainer.addChild(this.shadows);
 
         this.worldContainer.addChild(this.foregroundContainer);
 

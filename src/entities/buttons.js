@@ -71,9 +71,20 @@ export class ButtonController{
                     else if (button.type == "right" && this.buttons.get("left").pressed )
                         this.buttons.get("left").onPress();
                 }   
-            }
-              
+            }  
         })
+        let lightTouch = false;
+        for ( let i = 0; i < event.touches.length; i++ ){
+            let touchInButton = false;
+            let touch = event.touches.item(i);
+            this.buttons.forEach( (button) => {
+                if ( button.interactionRectangle.contains(touch.clientX, touch.clientY) ) {
+                    touchInButton = true;
+                }
+            })
+            if ( !touchInButton )
+                this.lightTouch = new PIXI.Point(touch.clientX, touch.clientY);
+        }
     }
 
     onMove(event){
