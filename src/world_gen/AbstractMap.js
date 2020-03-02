@@ -76,7 +76,7 @@ export class AbstractMap{
 
                 // this.tileSpriteInit(x,--y, this.tileset.get("catnip"), 3.0);
                 let catnip = new Powerup(x*this.tileSize, --y* this.tileSize, this.tileset.get("catnip"));
-                console.log(this.tileset.get("catnip"))
+                //console.log(this.tileset.get("catnip"))
 
                 catnip.sprite.scale.set(1.5);
                 this.powerups.push(catnip);

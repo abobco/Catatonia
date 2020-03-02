@@ -84,9 +84,9 @@ export class WangMap extends AbstractMap{
         if ( customChunk )
             chunkPos = customChunk;
         else 
-            chunkPos = new PIXI.Point( Math.floor(Math.random() * (img.width / this.w)) ,Math.floor( Math.random() * (img.height / this.h) ) )
+            chunkPos = new PIXI.Point( Math.floor(Math.random() * (img.width - this.w)) ,Math.floor( Math.random() * (img.height - this.h) ) )
 
-        let imgdata = context.getImageData(chunkPos.x * this.w, chunkPos.y * this.h, this.w, this.h).data;
+        let imgdata = context.getImageData(chunkPos.x , chunkPos.y , this.w, this.h).data;
         
         for (let y = 0; y < this.h; y++){
             for (let x = 0; x < this.w; x++){

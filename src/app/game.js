@@ -6,7 +6,7 @@ import { CellularMap } from '../world_gen/CellularMap.js';
 import { DebugMap } from '../world_gen/debugMap.js';
 
 import {Player} from '../entities/player.js';
-import { KBController} from '../entities/controller.js';
+import { KBController, GamepadController} from '../entities/controller.js';
 import {ShadowMap} from '../lighting/shadowMap.js';
 import {MyCamera} from '../entities/myCamera.js';
 import {ButtonController} from '../entities/buttons.js';
@@ -16,6 +16,7 @@ import {CatnipTrip} from '../filters/catTripState.js'
 import {PaletteSwapFilter} from '../filters/paletteSwap.js';
 import {MyLoader} from './myLoader.js'
 import { PointLight } from '../lighting/PointLight.js';
+import { ShadowFilter } from '../filters/ShadowFilter.js';
 
 
 // Aliases
@@ -43,8 +44,16 @@ export class Game {
         this.animationContainer = new PIXI.Container();  // every animated sprite in the game
         this.foregroundContainer = new PIXI.Container(); // objects with no parallax scroll
         this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
+        this.dynamicLightContainer = new PIXI.Container(); // torch that follows the player around
         this.pauseMusic = loader.pauseMusic;
-
+        this.lightRenderTexture = PIXI.RenderTexture.create(this.app.screen.width, this.app.screen.height);
+        console.log("screen dimensions ", this.app.screen.width, this.app.screen.height)
+        this.shadowFilter;
+        this.dynamicLight = new PIXI.Sprite();
+        this.dynamicLight.scale.set(2);
+        this.shadowShader = loader.shadowShader;
+        this.filterOffset = new PIXI.Point(0,0);
+    
         // palette swap filter
         this.paletteIndex = 2;
         this.paletteSwap = new PaletteSwapFilter(loader.paletteFrag, loader.paletteTextures[this.paletteIndex] );
@@ -63,22 +72,22 @@ export class Game {
         this.updateLag = 0;
 
         // static dungeon map for debugging
-        this.tileMap = new DebugMap({
-          wangImage: loader.wangPic,
-          perlinNoise: loader.perlinNoise,
-          shaderProgram: loader.lightShader,
-          tileset: loader.dungeonTextures, 
-          torchFrames: loader.torchFrames
-        })
-
-        // procedural dungeon map from herringbone wang tiles
-        // this.tileMap = new WangMap({
+        // this.tileMap = new DebugMap({
         //   wangImage: loader.wangPic,
         //   perlinNoise: loader.perlinNoise,
         //   shaderProgram: loader.lightShader,
         //   tileset: loader.dungeonTextures, 
         //   torchFrames: loader.torchFrames
         // })
+
+        // procedural dungeon map from herringbone wang tiles
+        this.tileMap = new WangMap({
+          wangImage: loader.wangPic,
+          perlinNoise: loader.perlinNoise,
+          shaderProgram: loader.lightShader,
+          tileset: loader.dungeonTextures, 
+          torchFrames: loader.torchFrames
+        });
 
         // procedural cave map from cellular automata
         // this.tileMap = new CellularMap({
@@ -88,7 +97,7 @@ export class Game {
         // })
         this.mouseData = this.app.renderer.plugins.interaction.mouse.global;
 
-         this.dynamicTorch = new PointLight(this.mouseData.x, this.mouseData.y, this.tileMap.edges, this.tileMap.vertices,
+        this.dynamicTorch = new PointLight(this.mouseData.x, this.mouseData.y, this.tileMap.edges, this.tileMap.vertices,
                                             loader.lightShader, loader.torchFrames);
    
         
@@ -148,9 +157,14 @@ export class Game {
                                                         );
           this.pauseMenu.attachController(this.buttonController);
         }
+        this.GamepadInput = new GamepadController(this.player.handleEvent.bind(this.player), 
+                                                  this.pauseMenu.handleEvent.bind(this.pauseMenu),
+                                                  this.pauseMenu,
+                                                  this.app.ticker);
 
         // keyboard
         this.KBInput = new KBController(this.player, this.player.body, this.app.ticker, this.camera, this.pauseMenu);
+
 
         // resize canvas on window resize
         window.addEventListener( 'resize', this.onWindowResize.bind(this), false );
@@ -171,14 +185,33 @@ export class Game {
 
         this.app.stage.scale.set(0.5);
 
+        //this.lightRenderTexture.resize(this.app.screen.width*2, this.app.screen.height*2);
+
         // Start the game loop 
-        this.app.ticker.add(delta => this.loop(delta));   
+        this.app.ticker.add(delta => this.loop(delta));  
+
+               
+        window.addEventListener("keydown", (e) => {
+          e = e || window.event;
+          if ( e.keyCode == 88 ){
+            //let oldPos = new PIXI.Point( this.dynamicLight.position.x, this.dynamicLight.position.y );
+            this.dynamicLight.y += 5;
+            this.filterOffset.y -= 5;
+            //this.allLights.y -= 5;
+            // this.dynamicLight.texture.updateUvs()
+            //this.shadowFilter.uniforms.filterMatrix.apply(this.dynamicLightContainer.position, this.dynamicLight.position)
+            console.log( this.dynamicLightContainer.position)
+            console.log( this.dynamicLight.position)
+          }
+        })
     }
 
     /**main game loop, does not update at a constant rate**/
     loop(delta){
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
+  
+        this.GamepadInput.update();
 
         if ( this.catnipTrip.ticker.started)
           this.worldContainer.rotation = this.catnipTrip.cameraRotation;
@@ -201,11 +234,36 @@ export class Game {
           AdjustedPoint = new PIXI.Point( this.camera.position.x - this.app.renderer.width  + this.buttonController.lightTouch.x*2, 
             this.camera.position.y - this.app.renderer.height + this.buttonController.lightTouch.y*2)
         }  
-        
-        this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
-        //this.dynamicTorch.torch.animation.position.copyFrom(AdjustedPoint);
-        this.allLights.addChild(this.dynamicTorch.lightContainer);
 
+        this.dynamicLightContainer.removeChild(this.dynamicTorch.visionSource.mesh)
+        //this.dynamicLightContainer = new PIXI.Container();
+        this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
+        
+        this.dynamicLightContainer.addChild(this.dynamicTorch.visionSource.mesh); 
+        //this.foregroundContainer.addChild(this.dynamicLightContainer);
+
+
+        //console.log("cameraPosition: ", this.camera.position);
+        //let tPos = new PIXI.Point(this.dynamicLight.x, this.dynamicLight.y);
+         this.filterOffset.set( -this.camera.position.x + this.app.screen.width, 
+                                -this.camera.position.y + this.app.screen.height);
+         this.dynamicLight.position.set(-this.filterOffset.x, -this.filterOffset.y);
+        
+         let myMatrix = new PIXI.Matrix();
+         myMatrix.tx = this.filterOffset.x/2.0;
+         myMatrix.ty = this.filterOffset.y/2.0;
+         myMatrix.a = 0.5;
+         myMatrix.d = 0.5;
+        
+         this.app.renderer.render(this.allLights, this.lightRenderTexture, true, myMatrix );
+         this.app.renderer.render(this.dynamicTorch.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
+         this.lightRenderTexture.updateUvs();
+         this.dynamicLight.texture = this.lightRenderTexture;
+         this.dynamicLight.texture.updateUvs();
+         this.shadowFilter.uniforms.lightSampler = this.lightRenderTexture;
+
+         
+        //console.log(this.shadowFilter.lightMatrix);   
     }
 
     FixedUpdate(){
@@ -230,10 +288,9 @@ export class Game {
           // move forward one time step
           this.updateLag -= 16.666
           this.tileMap.lights.forEach( (light) => {
-            light.lightContainer.children.forEach( ( mesh ) => {
-            mesh.shader.uniforms.time += 0.00003;
-            });
-        });
+            //light.visionSource.mesh.shader.uniforms.time += 0.00003;
+            light.visionSource.mesh.shader.uniforms.time += 0.003;
+          });
         
         // update catnip trip effect
         this.catnipTrip.FixedUpdate(this.player, 
@@ -252,7 +309,8 @@ export class Game {
         // background / uninteractable tiles
         this.backgroundContainer.addChild(this.tileMap.backgroundContainer);
         this.worldContainer.addChild(this.backgroundContainer);
-
+        this.dynamicLightContainer.addChild(this.dynamicLight);
+        this.foregroundContainer.addChild(this.dynamicLightContainer)
         // add animations
         this.foregroundContainer.addChild(this.animationContainer);
 
@@ -260,20 +318,24 @@ export class Game {
         this.foregroundContainer.addChild(this.tileMap.tileContainer);
       
         this.tileMap.lights.forEach( (light) => {
-          this.allLights.addChild(light.lightContainer);
+          this.allLights.addChild(light.visionSource.mesh);
         });
-         this.allLights.addChild(this.dynamicTorch.lightContainer);
+         //this.allLights.addChild(this.dynamicTorch.lightContainer);
+         
         
         this.foregroundContainer.addChild(this.allLights);
         
         // makes a mask for shadows
-        let shadowMap = new ShadowMap(this.tileMap.lights, this.tileMap, this.app.renderer);
+        //let shadowMap = new ShadowMap(this.tileMap.lights, this.tileMap, this.app.renderer);
 
-        this.shadows = new PIXI.Container();
-        this.shadows.addChild(shadowMap.focus);
-        this.shadows.addChild(shadowMap.mesh);
+        this.shadowFilter = new ShadowFilter(this.dynamicLight, this.shadowShader, 2);
 
-         this.foregroundContainer.addChild(this.shadows);
+        // this.shadows = new PIXI.Container();
+        // this.shadows.addChild(shadowMap.focus);
+        // this.shadows.addChild(shadowMap.mesh);
+        //this.shadows.addChild(shadowMap.meshMask);
+
+        //this.foregroundContainer.addChild(this.shadows);
 
         this.worldContainer.addChild(this.foregroundContainer);
 
@@ -287,7 +349,7 @@ export class Game {
         this.tileMap.backgroundContainer.addChild(this.catnipTrip.backgroundNoise);
 
         // apply filters to containers
-        this.worldContainer.filters = [new PixelateFilter(3)];
+        this.worldContainer.filters = [this.shadowFilter, new PixelateFilter(3) ];
       }
 
     /** NSFW Spaghetti code */ 
@@ -446,10 +508,11 @@ export class Game {
         //this.app.renderer.resize(window.innerWidth, window.innerHeight);
         // Lock the camera to the cat's position 
         this.app.stage.position.set(this.app.screen.width/2, this.app.screen.height/2);﻿﻿
+        this.lightRenderTexture.resize(parent.clientWidth, parent.clientHeight)
           
         this.tileMap.lights.forEach( ( light ) => {
            light.update(this.app.ticker.speed);
-           this.worldContainer.addChild(light.lightContainer);
+           this.allLights.addChild(light.visionSource.mesh);
          });       
 
         this.pauseMenu.onResize();

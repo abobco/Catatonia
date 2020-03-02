@@ -1,9 +1,10 @@
 export class ShadowMap {
-    constructor(lights, tileMap, renderer) {
+    constructor(lights, tileMap, renderer, shader) {
         let shaper = new PIXI.Graphics();
         this.mesh = new PIXI.Graphics();
         let blurSize = 32;
         this.tileMap = tileMap;
+        this.unmergedGeometry = [];
 
         let tileSize = tileMap.tileSize
         let w = tileMap.w;
@@ -20,8 +21,9 @@ export class ShadowMap {
 
 
         lights.forEach( (light) => {
-            light.lightContainer.children.forEach( (mesh) =>{
-                let geometry = mesh.geometry;
+            //light.lightContainer.children.forEach( (mesh) =>{
+                let geometry = light.visionSource.mesh.geometry;
+                this.unmergedGeometry.push(geometry);
 
                 let vertices = geometry.getBuffer("aVertexPosition").data;
                 
@@ -35,7 +37,7 @@ export class ShadowMap {
                 }
    
 
-            });
+            //});
         });
         // shaper.filters = [new PIXI.filters.BlurFilter(blurSize)]
 
@@ -50,6 +52,7 @@ export class ShadowMap {
         this.mesh.endFill();
 
         this.mesh.mask = this.focus;
+
     }
 }
 

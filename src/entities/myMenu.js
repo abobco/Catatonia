@@ -208,7 +208,7 @@ export class PauseMenu{
                                 this.toggleOptionsMenu(true);
                                 break;
                             case "SWAP MAPS":
-                                window.location.replace("http://www.xabnab.com/cat%20game/debug/light%20optimizations/cave/index.html");
+                                window.location.replace("http://www.xabnab.com/cat%20game/debug/dynamic-shadows/cave/index.html");
                             case "BACK":
                                 noUpdate = false;
                                 this.toggleOptionsMenu(false);

@@ -18,6 +18,7 @@ export class RaySource {
         this.color = [1, 0.831, 0.322,
                       1, 0.831, 0.322,
                       1, 0.831, 0.322,]
+        this.uColor = [1, 0.831, 0.322];
 
         // init all main rays
         for ( let corner of endpoints ) {
@@ -34,7 +35,8 @@ export class RaySource {
             dimensions:    [window.innerWidth, window.innerHeight],
             // dimensions: [this.renderer.width, this.renderer.height],
             position: [this.pos.x, this.pos.y] ,
-            time : Math.random()
+            time : Math.random(),
+            color : this.uColor
           };
                 
         this.shader = new PIXI.Shader.from(shaderProgram.vert, shaderProgram.frag, this.uniforms);
@@ -47,7 +49,7 @@ export class RaySource {
 
     // for moving light
     update(x,y, time) {
-        console.log(time)
+        //console.log(time)
         this.pos.x = x;
         this.pos.y = y;
 
@@ -57,7 +59,8 @@ export class RaySource {
                 dimensions:    [window.innerWidth, window.innerHeight],
                 // dimensions: [this.renderer.width, this.renderer.height],
                 position: [x, y],
-                time: time
+                time: time,
+                
               };
         }
         else{
@@ -65,7 +68,8 @@ export class RaySource {
             dimensions:    [window.innerWidth, window.innerHeight],
             // dimensions: [this.renderer.width, this.renderer.height],
             position: [x, y],
-            time: Math.random()
+            time: Math.random(),
+            color : this.uColor
           };
         }
 
@@ -194,6 +198,9 @@ export class RaySource {
     drawMesh(/*filters*/) {
         this.tris = [];
         let tris = [];
+        //delete this.mesh;
+        if ( this.mesh)
+            this.mesh.destroy({children: true});
         // draw a triangle beween the endpoints & source of every ray
         for ( let i = 1; i < this.rays.length; i++) {
             const triangle = new PIXI.Geometry()
@@ -201,10 +208,7 @@ export class RaySource {
                         [ this.pos.x,  this.pos.y,
                           this.rays[i-1].closestPoint.x, this.rays[i-1].closestPoint.y,
                           this.rays[i].closestPoint.x, this.rays[i].closestPoint.y],
-                        2)
-                .addAttribute('aColor', 
-                        this.color, 
-                        3);
+                        2);
             tris.push(triangle);
         }
         // draw an extra triangle to connect the beginning and end of the array
@@ -214,16 +218,13 @@ export class RaySource {
             this.rays[0].closestPoint.x, this.rays[0].closestPoint.y,
             this.rays[this.rays.length-1].closestPoint.x, 
             this.rays[this.rays.length-1].closestPoint.y],
-            2)
-        .addAttribute('aColor', 
-            this.color, 
-            3);
-            tris.push(firstTri);
+            2);
+        tris.push(firstTri);
         
         const viewShape = PIXI.Geometry.merge(tris);
         
         this.mesh = new PIXI.Mesh( viewShape, this.shader);
         // this.mesh.filters = filters;
-        this.tris.push(this.mesh);
+        //this.tris.push(this.mesh);
     }
 }

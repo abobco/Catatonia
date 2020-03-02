@@ -35,6 +35,7 @@ export class MyLoader {
        this.displacementShader = this.loadDisplacementShader();
        this.paletteFrag = this.loadPaletteFrag();
        this.paletteTextures = this.loadPalettes();  
+       this.shadowShader = this.loadShadowShader();
 
        this.wangPic = this.loadWangPic();
        this.dungeonTextures = this.loadDungeon();
@@ -61,6 +62,13 @@ export class MyLoader {
        // this.checkLoad();
 
        setupFunction();
+    }
+
+    loadShadowShader(){
+        return {
+            vert: resources['shaders/Shadows/shadowFilter.vert'].data,
+            frag: resources['shaders/Shadows/shadowFilter.frag'].data,
+        }
     }
 
     loadPerlinNoise(){

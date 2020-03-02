@@ -32,6 +32,8 @@ export function FilePaths() {
         "shaders/dissolve/dissolveFrag.GLSL",
         "shaders/BezierDisplacementFilter/BezierDispVert.GLSL",
         "shaders/BezierDisplacementFilter/BezierDispFrag.GLSL",
-        "shaders/PaletteSwap/paletteSwap.GLSL"
+        "shaders/PaletteSwap/paletteSwap.GLSL",
+        "shaders/Shadows/shadowFilter.vert",
+        "shaders/Shadows/shadowFilter.frag"
     ];
 }

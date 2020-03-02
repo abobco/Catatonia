@@ -5,8 +5,7 @@ uniform float time;
 
 uniform mat3 translationMatrix;
 uniform mat3 projectionMatrix;
-
-varying vec3 vColor;
+uniform vec3 color;
 
 varying vec2 lightPos;
 vec2 normPos;
@@ -80,7 +79,7 @@ void main() {
 
     float dist = 0.3 + /*0.01 * sin(time)*/ + 0.05 * snoise(noiseTime) - distance(lightPos, normPos);
 
-    gl_FragColor = vec4(vColor,dist);
+    gl_FragColor = vec4(color,dist);
 
     gl_FragColor.rgb *= dist;
 }
