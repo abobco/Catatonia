@@ -2,38 +2,43 @@ import Matter from 'matter-js/build/matter.min.js';
 import {Ray} from "./ray.js";
 
 let Vector = Matter.Vector;
-export class RaySource {
-
+/**
+ * - Performs all ray casts for one light source
+ * - Creates necessary auxillary rays
+ * - Sorts list of casted rays by angle
+ * - Creates & manages WebGL meshes for result
+ */
+export class RayCaster {
+    /**
+     * 
+     * @param {number} x - x position
+     * @param {number} y - y position
+     * @param {Boundary[]} segments - terrain edges for ray casting
+     * @param {Corner[]} endpoints - terrain vertices for ray casting
+     * @param {Object} shaderProgram - WebGL shader text
+     */
     constructor(x, y, segments, endpoints, shaderProgram){
-        this.pos = Matter.Vector.create(x, y);  // ray source point
+        this.pos = Vector.create(x, y);  // ray source point
         this.rays = []; // all the rays
         this.cornerRays = []; // auxilary rays
-        this.hangRay = new Ray(this.pos, Matter.Vector.create(0,0)); // for visual of hanging from the ceiling
-        this.hangRay.setDir(Matter.Vector.create(0,-1)); // point upwards
-        this.endpoints = endpoints; // all terrain vertices
-        this.segments = segments; // all terrain line segments
+        this.endpoints = endpoints;
+        this.segments = segments;
         this.tris = [];
-        this.mesh;
-        this.shaderProgram = shaderProgram;
-        this.color = [1, 0.831, 0.322,
-                      1, 0.831, 0.322,
-                      1, 0.831, 0.322,]
-        this.uColor = [1, 0.831, 0.322];
+        this.mesh;  // webgl mesh
+        this.shaderProgram = shaderProgram; 
+        this.uColor = [1, 0.831, 0.322]; // color of the light gradient
 
-        // init all main rays
+        // create list of main rays, pointing at each of the endpoints
         for ( let corner of endpoints ) {
             let endpoint = corner.pos;
             let rayDir = Matter.Vector.create(endpoint.x - this.pos.x, endpoint.y - this.pos.y);
             Matter.Vector.normalise(rayDir);
             let newRay = new Ray(this.pos, corner);
-            newRay.setDir(rayDir);
-            
+            newRay.setDir(rayDir);    
             this.rays.push(newRay);
         }
-        this.renderer = PIXI.autoDetectRenderer();
         this.uniforms = {
             dimensions:    [window.innerWidth, window.innerHeight],
-            // dimensions: [this.renderer.width, this.renderer.height],
             position: [this.pos.x, this.pos.y] ,
             time : Math.random(),
             color : this.uColor
@@ -57,16 +62,14 @@ export class RaySource {
         if ( time ){
             this.uniforms = {
                 dimensions:    [window.innerWidth, window.innerHeight],
-                // dimensions: [this.renderer.width, this.renderer.height],
                 position: [x, y],
                 time: time,
-                
+                color : this.uColor
               };
         }
         else{
         this.uniforms = {
             dimensions:    [window.innerWidth, window.innerHeight],
-            // dimensions: [this.renderer.width, this.renderer.height],
             position: [x, y],
             time: Math.random(),
             color : this.uColor
@@ -89,19 +92,22 @@ export class RaySource {
         this.auxLook();
     }
 
+    // cast all main rays
     look() {
         for ( let ray of this.rays) {
             this.cast(ray);
         }
     }
 
+    // cast an individual main ray, create an auxillary ray if necessary
     cast(ray) {
         let closest = ray.endpoint;
         let record = Math.pow(this.pos.x - closest.x,2) + Math.pow(this.pos.y - closest.y,2);
+
+        // check for intersection with each wall
         for ( let wall of this.segments) {              
             const pt = ray.cast(wall);
             if (pt) {
-                //const d = p5.Vector.dist(this.pos, pt);
                 const d = Math.pow(this.pos.x - pt.x,2) + Math.pow(this.pos.y - pt.y,2);
                 if ( d < record ) {
                     record = d;
@@ -109,36 +115,36 @@ export class RaySource {
                 }                    
             }
         }
+
         if ( closest ) {
             ray.closestPoint = closest;
             if ( closest == ray.endpoint) {
+                // Only create an auxillary ray if one of the edges connected to the corner
+                // point is hidden:
 
+                // Project(scalar) each edge vector onto a unit vector perpendicular to the
+                // main ray
                 let projResult1 =  Vector.dot( ray.anglePoint.vec1, Vector.perp( ray.dir ) );
                 let projResult2 =  Vector.dot( ray.anglePoint.vec2, Vector.perp( ray.dir ) );
 
-               if ( projResult1 * projResult2 <= 0 ){
-                    // let ray1 = new Ray(this.pos, ray.anglePoint); 
-                    // let ray2 = new Ray(this.pos, ray.anglePoint);
-                    let auxRay = new Ray(this.pos, ray.anglePoint)
+                // If the results of the projections have differing signs, create a new
+                // auxillary ray:
+                if ( projResult1 * projResult2 <= 0 ){
+                    let auxRay = new Ray(this.pos, ray.anglePoint)   
 
-                    if ( projResult1 < 0 )
-                        auxRay.setDir(Matter.Vector.rotate(ray.dir,-0.005));                      
-                    else 
+                    if ( projResult1 < 0 ) // rotate clockwise from the main ray
+                        auxRay.setDir(Matter.Vector.rotate(ray.dir,-0.005));  
+
+                    else  //  rotate counter clockwise from the main ray  
                         auxRay.setDir(Matter.Vector.rotate(ray.dir,0.005));
-                      
+                        
                     this.cornerRays.push(auxRay);
-
-                    // ray1.dir = Vector.mult(ray1.dir,1000);
-                    // ray2.dir = Vector.mult(ray2.dir,1000);
-                
-                    // this.cornerRays.push(ray1, ray2);
-              }
-              else ;
-
+                }
             }          
         }
     }
 
+    // cast all auxillary rays, sort the all the rays by angle
     auxLook() {
         for ( let ray of this.cornerRays) {
            ray = this.auxCast(ray);
@@ -147,13 +153,13 @@ export class RaySource {
         this.rays.sort(this.compare);
     }
 
+    // cast an individual auxillary ray
     auxCast(ray) {
         let closest = null
         let record = Infinity;
         for ( let wall of this.segments) {              
             const pt = ray.cast(wall);
             if (pt) {
-                //const d = p5.Vector.dist(this.pos, pt);
                 const d = Math.pow(this.pos.x - pt.x,2) + Math.pow(this.pos.y - pt.y,2);
                 if ( d < record ) {
                     record = d;
@@ -165,33 +171,6 @@ export class RaySource {
             ray.closestPoint = closest;
         }
         return ray;
-    }
-
-    show(graphics) {
-        // Circle
-        graphics.lineStyle(1, 0xDE3249); // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
-        graphics.beginFill(0xFEEB77, 1);
-        graphics.drawCircle(this.pos.x, this.pos.y, 10);
-        graphics.endFill();
-    }
-
-    drawLight(graphics){
-        graphics.lineStyle(0);
-        graphics.beginFill(0xFEEB77, 0.5);
-
-        graphics.drawPolygon([this.pos.x, this.pos.y,
-            this.rays[0].closestPoint.x, this.rays[0].closestPoint.y,
-            this.rays[this.rays.length-1].closestPoint.x, 
-            this.rays[this.rays.length-1].closestPoint.y]);
-            graphics.endFill();
-
-        for ( let i = 1; i < this.rays.length; i++) {
-            graphics.beginFill(0xFEEB77, 0.5);
-            graphics.drawPolygon([this.pos.x, this.pos.y,
-                    this.rays[i-1].closestPoint.x, this.rays[i-1].closestPoint.y,
-                    this.rays[i].closestPoint.x, this.rays[i].closestPoint.y]);
-            graphics.endFill();
-        }
     }
 
     // make webgl meshes to draw light, pass shader from constructor

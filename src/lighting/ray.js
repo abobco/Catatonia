@@ -1,7 +1,15 @@
 import Matter from 'matter-js/build/matter.min.js';
 
 let Vector = Matter.Vector;
+/**
+ * - Holds position & direction for single ray
+ * - Performs ray - line segment intersection tests
+ */
 export class Ray {
+    /**
+     * @param {Matter.Vector} pos - source position
+     * @param {Matter.Vector} anglePoint - terrain vertex to be casted at
+     */
     constructor(pos, anglePoint) {
         this.pos = pos;
         this.dir = Vector.create(1,0);
@@ -26,6 +34,10 @@ export class Ray {
         this.dir = Vector.normalise(this.dir)
     }
 
+    /**
+     * Performs ray - line segment intersection test
+     * @param {Boundary} wall 
+     */
     cast(wall) {
         const x1 = wall.a.x,
               y1 = wall.a.y,  

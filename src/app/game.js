@@ -7,7 +7,6 @@ import { DebugMap } from '../world_gen/debugMap.js';
 
 import {Player} from '../entities/player.js';
 import { KBController, GamepadController} from '../entities/controller.js';
-import {ShadowMap} from '../lighting/shadowMap.js';
 import {MyCamera} from '../entities/myCamera.js';
 import {ButtonController} from '../entities/buttons.js';
 import {PauseMenu} from '../entities/myMenu.js';
@@ -34,11 +33,12 @@ export class Game {
       * @param {PIXI.Application} app - pixi application
     **/
     constructor(loader, app){
-
+        // disable pixi's default linear interpolation
         PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.NEAREST;
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; 
 
         this.app = app;
+
         // display object containers        
         this.worldContainer = new PIXI.Container();      // every display object in the game world
         this.animationContainer = new PIXI.Container();  // every animated sprite in the game
@@ -46,11 +46,15 @@ export class Game {
         this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
         this.dynamicLightContainer = new PIXI.Container(); // torch that follows the player around
         this.pauseMusic = loader.pauseMusic;
+
+        this.scale = 0.5; // zoom level of map
+
+        // render texture/sprite for shadows
         this.lightRenderTexture = PIXI.RenderTexture.create(this.app.screen.width, this.app.screen.height);
         console.log("screen dimensions ", this.app.screen.width, this.app.screen.height)
         this.shadowFilter;
         this.dynamicLight = new PIXI.Sprite();
-        this.dynamicLight.scale.set(2);
+        this.dynamicLight.scale.set(1/this.scale);
         this.shadowShader = loader.shadowShader;
         this.filterOffset = new PIXI.Point(0,0);
     
@@ -183,30 +187,14 @@ export class Game {
         // Add objects to pixi stage
         this.initLayers();
 
-        this.app.stage.scale.set(0.5);
-
-        //this.lightRenderTexture.resize(this.app.screen.width*2, this.app.screen.height*2);
+        this.app.stage.scale.set(this.scale);
 
         // Start the game loop 
         this.app.ticker.add(delta => this.loop(delta));  
-
-               
-        window.addEventListener("keydown", (e) => {
-          e = e || window.event;
-          if ( e.keyCode == 88 ){
-            //let oldPos = new PIXI.Point( this.dynamicLight.position.x, this.dynamicLight.position.y );
-            this.dynamicLight.y += 5;
-            this.filterOffset.y -= 5;
-            //this.allLights.y -= 5;
-            // this.dynamicLight.texture.updateUvs()
-            //this.shadowFilter.uniforms.filterMatrix.apply(this.dynamicLightContainer.position, this.dynamicLight.position)
-            console.log( this.dynamicLightContainer.position)
-            console.log( this.dynamicLight.position)
-          }
-        })
     }
 
-    /**main game loop, does not update at a constant rate**/
+    /** 
+     * main game loop, does not update at a constant rate */
     loop(delta){
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
@@ -225,86 +213,47 @@ export class Game {
         //this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
         this.tileMap.parallaxScroll(this.app.stage.pivot);
 
-        this.catnipTrip.update(delta);
+        this.catnipTrip.update(delta); 
 
-        //console.log(this.dynamicTorch.visionSource.uniforms.time)
-        let AdjustedPoint = new PIXI.Point( this.camera.position.x - this.app.renderer.width  + this.mouseData.x*2, 
-                                            this.camera.position.y - this.app.renderer.height + this.mouseData.y*2)
-        if ( this.buttonController && this.buttonController.lightTouch ){
-          AdjustedPoint = new PIXI.Point( this.camera.position.x - this.app.renderer.width  + this.buttonController.lightTouch.x*2, 
-            this.camera.position.y - this.app.renderer.height + this.buttonController.lightTouch.y*2)
-        }  
-
-        this.dynamicLightContainer.removeChild(this.dynamicTorch.visionSource.mesh)
-        //this.dynamicLightContainer = new PIXI.Container();
-        this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
-        
-        this.dynamicLightContainer.addChild(this.dynamicTorch.visionSource.mesh); 
-        //this.foregroundContainer.addChild(this.dynamicLightContainer);
-
-
-        //console.log("cameraPosition: ", this.camera.position);
-        //let tPos = new PIXI.Point(this.dynamicLight.x, this.dynamicLight.y);
-         this.filterOffset.set( -this.camera.position.x + this.app.screen.width, 
-                                -this.camera.position.y + this.app.screen.height);
-         this.dynamicLight.position.set(-this.filterOffset.x, -this.filterOffset.y);
-        
-         let myMatrix = new PIXI.Matrix();
-         myMatrix.tx = this.filterOffset.x/2.0;
-         myMatrix.ty = this.filterOffset.y/2.0;
-         myMatrix.a = 0.5;
-         myMatrix.d = 0.5;
-        
-         this.app.renderer.render(this.allLights, this.lightRenderTexture, true, myMatrix );
-         this.app.renderer.render(this.dynamicTorch.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
-         this.lightRenderTexture.updateUvs();
-         this.dynamicLight.texture = this.lightRenderTexture;
-         this.dynamicLight.texture.updateUvs();
-         this.shadowFilter.uniforms.lightSampler = this.lightRenderTexture;
-
-         
-        //console.log(this.shadowFilter.lightMatrix);   
+        this.updateShadows();
     }
 
     FixedUpdate(){
       this.updateLag += this.app.ticker.deltaMS;
-      while ( this.updateLag >= 16.666 ){
-          // apply player input to physics bodies
-          this.player.update(this.app.ticker.speed);
-          Engine.update(this.engine);
-          if ( this.player.cameraSnapped)
-              this.camera.update(this.player.position, this.player.flip, this.app.ticker.speed);
-          else {
-                this.camera.update(this.player.climbTranslation, this.player.flip, this.app.ticker.speed);                
-          }
-          // increase gravity if player is falling
-          if (!this.player.isGrounded && !this.player.inSlide && !this.player.isHanging && this.player.body.velocity.y > 0){
-              if ( this.world.gravity.y < 3.5 )
-                this.world.gravity.y += 0.015;
-          }
-          else {
-              this.world.gravity.y = 1;
-          }
-          // move forward one time step
-          this.updateLag -= 16.666
-          this.tileMap.lights.forEach( (light) => {
-            //light.visionSource.mesh.shader.uniforms.time += 0.00003;
-            light.visionSource.mesh.shader.uniforms.time += 0.003;
-          });
+      while ( this.updateLag >= 16.666 ) {
+        // apply player input to physics bodies
+        this.player.update(this.app.ticker.speed);
+        Engine.update(this.engine);
+        if ( this.player.cameraSnapped)
+            this.camera.update(this.player.position, this.player.flip, this.app.ticker.speed);
+        else {
+              this.camera.update(this.player.climbTranslation, this.player.flip, this.app.ticker.speed);                
+        }
+        // increase gravity if player is falling
+        if (!this.player.isGrounded && !this.player.inSlide && !this.player.isHanging && this.player.body.velocity.y > 0){
+            if ( this.world.gravity.y < 3.5 )
+              this.world.gravity.y += 0.015;
+        }
+        else {
+            this.world.gravity.y = 1;
+        }
+        // move forward one time step
+        this.updateLag -= 16.666
+        this.tileMap.lights.forEach( (light) => {
+          //light.visionSource.mesh.shader.uniforms.time += 0.00003;
+          light.visionSource.mesh.shader.uniforms.time += 0.003;
+        });
         
-        // update catnip trip effect
+        // update displacement filter for the catnip trip effect
         this.catnipTrip.FixedUpdate(this.player, 
                                    this.foregroundContainer.filters, 
-                                   this.backgroundContainer.filters,
-                                   );
-        
+                                   this.backgroundContainer.filters);  
       }
     }
 
     /**
      * Add pixi objects to global renderer, 
-     * - Works like a stack, last element added = top graphics layer
-    */ 
+     * - Works like a stack, last element added = top graphics layer */ 
     initLayers() {
         // background / uninteractable tiles
         this.backgroundContainer.addChild(this.tileMap.backgroundContainer);
@@ -320,22 +269,10 @@ export class Game {
         this.tileMap.lights.forEach( (light) => {
           this.allLights.addChild(light.visionSource.mesh);
         });
-         //this.allLights.addChild(this.dynamicTorch.lightContainer);
-         
         
         this.foregroundContainer.addChild(this.allLights);
-        
-        // makes a mask for shadows
-        //let shadowMap = new ShadowMap(this.tileMap.lights, this.tileMap, this.app.renderer);
 
         this.shadowFilter = new ShadowFilter(this.dynamicLight, this.shadowShader, 2);
-
-        // this.shadows = new PIXI.Container();
-        // this.shadows.addChild(shadowMap.focus);
-        // this.shadows.addChild(shadowMap.mesh);
-        //this.shadows.addChild(shadowMap.meshMask);
-
-        //this.foregroundContainer.addChild(this.shadows);
 
         this.worldContainer.addChild(this.foregroundContainer);
 
@@ -350,7 +287,32 @@ export class Game {
 
         // apply filters to containers
         this.worldContainer.filters = [this.shadowFilter, new PixelateFilter(3) ];
-      }
+    }
+
+    /** 
+     * - Creates a new WebGL mesh for the dynamic light
+     * - Draws all the lights to a texture for the shadow filter */
+    updateShadows(){
+      this.dynamicLightContainer.removeChild(this.dynamicTorch.visionSource.mesh)
+      this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
+      
+      this.dynamicLightContainer.addChild(this.dynamicTorch.visionSource.mesh); 
+
+      this.filterOffset.set( -this.camera.position.x + this.app.screen.width, 
+                            -this.camera.position.y + this.app.screen.height);
+      this.dynamicLight.position.set(-this.filterOffset.x, -this.filterOffset.y);
+    
+      let myMatrix = new PIXI.Matrix();
+      myMatrix.tx = this.filterOffset.x*this.scale;
+      myMatrix.ty = this.filterOffset.y*this.scale;
+      myMatrix.a = this.scale;
+      myMatrix.d = this.scale;
+    
+      this.app.renderer.render(this.allLights, this.lightRenderTexture, true, myMatrix );
+      this.app.renderer.render(this.dynamicTorch.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
+      this.dynamicLight.texture = this.lightRenderTexture;
+      this.shadowFilter.uniforms.lightSampler = this.lightRenderTexture;
+    }
 
     /** NSFW Spaghetti code */ 
     collisionEventSetup() {
