@@ -10,7 +10,8 @@ import { Boundary } from '../entities/terrain.js';
  */
 export class PointLight {
   /**
-   * 
+   * - Handles light animation
+   * - Parent object of the actual ray caster
    * @param {number} x - x position
    * @param {number} y - y position
    * @param {Boundary[]} castSegments - terrain edges for ray casting

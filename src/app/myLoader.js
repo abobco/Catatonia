@@ -22,7 +22,6 @@ export class MyLoader {
         
         loader
             .add(FilePaths())
-            .add('pauseMusic', 'sound/tropical jam.mp3')
             .add('ARCADECLASSIC', 'fonts/ARCADECLASSIC.TTF')
             .load(this.onLoad.bind(this, setupFunction));  
     }
@@ -30,16 +29,12 @@ export class MyLoader {
     /**  organize data into objects after files load */
     onLoad(setupFunction)
     {
-       this.lightShader = this.loadShaders();
-       this.dissolveShader = this.loadDissolveShader();
-       this.displacementShader = this.loadDisplacementShader();
-       this.paletteFrag = this.loadPaletteFrag();
+       this.shaders = this.loadShaders();
        this.paletteTextures = this.loadPalettes();  
-       this.shadowShader = this.loadShadowShader();
 
        this.wangPic = this.loadWangPic();
        this.dungeonTextures = this.loadDungeon();
-       //console.log(this.wangPic)
+
        this.perlinNoise = this.loadPerlinNoise();
 
        this.catAnimations = this.animationsInit();
@@ -54,21 +49,11 @@ export class MyLoader {
 
        this.menuButtons = this.loadMenu();
 
-       this.pauseMusic = this.loadSound();
-       this.pauseMusic.loop = true;
-
        this.menuFont = this.loadFont();
 
        // this.checkLoad();
 
        setupFunction();
-    }
-
-    loadShadowShader(){
-        return {
-            vert: resources['shaders/Shadows/shadowFilter.vert'].data,
-            frag: resources['shaders/Shadows/shadowFilter.frag'].data,
-        }
     }
 
     loadPerlinNoise(){
@@ -77,14 +62,6 @@ export class MyLoader {
 
     loadWangPic(){
         return resources["sprites/big_wang.png"].data;
-    }
-
-    /** debugging for dummies */ 
-    checkLoad() 
-    {
-        console.log(this.lightShader);
-        console.log(this.catAnimations);
-        console.log(this.doneLoading);
     }
 
     /**returns an array of color map textures */
@@ -96,41 +73,23 @@ export class MyLoader {
 
     /** load light shaders into a {string:string} map */ 
     loadShaders()
-    {
-        let vert = resources["shaders/lightVert.GLSL"].data,
-            frag = resources["shaders/lightFrag.GLSL"].data;
-
+    { 
         return {
-                "vert": vert,
-                "frag": frag,
-               };
+            light: this.loadShader("light.vert", "light.frag"),
+            dissolve: this.loadShader("dissolve/dissolve.vert", "dissolve/dissolve.frag"),
+            displacement: this.loadShader("BezierDisplacementFilter/BezierDisp.vert", "BezierDisplacementFilter/BezierDisp.frag"),
+            shadows: this.loadShader('Shadows/shadowFilter.vert', 'Shadows/shadowFilter.frag'),
+            paletteSwap: resources["shaders/PaletteSwap/paletteSwap.frag"].data
+        }
+
     }
 
-    /** load dissolve shaders into a {string:string} map */ 
-    loadDissolveShader()
-    {
-        let vert = resources["shaders/dissolve/dissolveVert.GLSL"].data,
-        frag = resources["shaders/dissolve/dissolveFrag.GLSL"].data;
-
-    return {
-            "vert": vert,
-            "frag": frag,
-           };
-    }
-
-    /** returns the text for a post processing shader */
-    loadDisplacementShader(){
-        let vert = resources["shaders/BezierDisplacementFilter/BezierDispVert.GLSL"].data,
-        frag = resources["shaders/BezierDisplacementFilter/BezierDispFrag.GLSL"].data;
-
-    return {
-            "vert": vert,
-            "frag": frag,
-           };
-    }
-
-    loadPaletteFrag(){
-        return resources["shaders/PaletteSwap/paletteSwap.GLSL"].data;
+    /** load a shader text from a file path (relative to the '/shaders' directory) */
+    loadShader( vertpath, fragpath){
+        return {
+            vert: resources["shaders/" + vertpath].data,
+            frag: resources["shaders/" + fragpath].data
+        }
     }
     
     /**
@@ -294,11 +253,6 @@ export class MyLoader {
                                    ]);
 
         return buttonFrames;
-    }
-
-    loadSound(){
-        return resources.pauseMusic.data;
-
     }
     
     loadFont() {

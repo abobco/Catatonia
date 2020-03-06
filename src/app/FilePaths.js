@@ -26,13 +26,13 @@ export function FilePaths() {
         // shaders
         "shaders/lightFilterVert.GLSL",
         "shaders/lightFilterFrag.GLSL",
-        "shaders/lightVert.GLSL",
-        "shaders/lightFrag.GLSL",
-        "shaders/dissolve/dissolveVert.GLSL",
-        "shaders/dissolve/dissolveFrag.GLSL",
-        "shaders/BezierDisplacementFilter/BezierDispVert.GLSL",
-        "shaders/BezierDisplacementFilter/BezierDispFrag.GLSL",
-        "shaders/PaletteSwap/paletteSwap.GLSL",
+        "shaders/light.vert",
+        "shaders/light.frag",
+        "shaders/dissolve/dissolve.vert",
+        "shaders/dissolve/dissolve.frag",
+        "shaders/BezierDisplacementFilter/BezierDisp.vert",
+        "shaders/BezierDisplacementFilter/BezierDisp.frag",
+        "shaders/PaletteSwap/paletteSwap.frag",
         "shaders/Shadows/shadowFilter.vert",
         "shaders/Shadows/shadowFilter.frag"
     ];

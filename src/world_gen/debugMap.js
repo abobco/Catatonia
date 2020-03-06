@@ -26,16 +26,15 @@ export class DebugMap extends AbstractMap{
      */
     constructor(options ){
         let defaults = {
-            w : 25,
-            h: 25,
+            w : 40,
+            h: 40,
             tileSize: 120,
-            numLights: 5,
+            numLights: 30,
             customChunk: new PIXI.Point(0,0),
             playerSpawn: new PIXI.Point(5,5)
         }
         let params = Object.assign( {}, defaults, options)
         super(params);
-
         this.generateDungeon(params.wangImage, params.customChunk)
         
         this.findLargestConnected();

@@ -44,8 +44,7 @@ export class Game {
         this.animationContainer = new PIXI.Container();  // every animated sprite in the game
         this.foregroundContainer = new PIXI.Container(); // objects with no parallax scroll
         this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
-        this.dynamicLightContainer = new PIXI.Container(); // torch that follows the player around
-        this.pauseMusic = loader.pauseMusic;
+        this.dynamicLightContainer = new PIXI.Container(); // torch that follows the player around\
 
         this.scale = 0.5; // zoom level of map
 
@@ -55,19 +54,19 @@ export class Game {
         this.shadowFilter;
         this.dynamicLight = new PIXI.Sprite();
         this.dynamicLight.scale.set(1/this.scale);
-        this.shadowShader = loader.shadowShader;
+        this.shadowShader = loader.shaders.shadows;
         this.filterOffset = new PIXI.Point(0,0);
     
         // palette swap filter
         this.paletteIndex = 2;
-        this.paletteSwap = new PaletteSwapFilter(loader.paletteFrag, loader.paletteTextures[this.paletteIndex] );
+        this.paletteSwap = new PaletteSwapFilter(loader.shaders.paletteSwap, loader.paletteTextures[this.paletteIndex] );
 
         // dissolve effect shader
         this.dissolveSprite = new PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');   
         this.dissolveSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
         this.dissolveSprite.scale.set(0.2);
-        this.dissolveShader = loader.dissolveShader;
-        this.bezierDisplacementShader = loader.displacementShader;
+        this.dissolveShader = loader.shaders.dissolve;
+        this.bezierDisplacementShader = loader.shaders.displacement;
         this.worldContainer.addChild(this.dissolveSprite);
         
         // physics Engine
@@ -76,35 +75,40 @@ export class Game {
         this.updateLag = 0;
 
         // static dungeon map for debugging
-        // this.tileMap = new DebugMap({
-        //   wangImage: loader.wangPic,
-        //   perlinNoise: loader.perlinNoise,
-        //   shaderProgram: loader.lightShader,
-        //   tileset: loader.dungeonTextures, 
-        //   torchFrames: loader.torchFrames
-        // })
-
-        // procedural dungeon map from herringbone wang tiles
-        this.tileMap = new WangMap({
+        this.tileMap = new DebugMap({
           wangImage: loader.wangPic,
           perlinNoise: loader.perlinNoise,
-          shaderProgram: loader.lightShader,
+          shaderProgram: loader.shaders.light,
           tileset: loader.dungeonTextures, 
           torchFrames: loader.torchFrames
-        });
+        })
+
+        // procedural dungeon map from herringbone wang tiles
+        // this.tileMap = new WangMap({
+        //   w: 40,
+        //   h: 40,
+        //   wangImage: loader.wangPic,
+        //   perlinNoise: loader.perlinNoise,
+        //   shaderProgram: loader.shaders.light,
+        //   tileset: loader.dungeonTextures, 
+        //   torchFrames: loader.torchFrames,
+        //   numLights: 150
+        // });
 
         // procedural cave map from cellular automata
         // this.tileMap = new CellularMap({
-        //   shaderProgram: loader.lightShader,
+        //   w: 40,
+        //   h:40,
+        //   shaderProgram: loader.shaders.light,
         //   tileset: loader.tileset, 
-        //   torchFrames: loader.torchFrames
+        //   torchFrames: loader.torchFrames,
+        //   numLights: 150
         // })
         this.mouseData = this.app.renderer.plugins.interaction.mouse.global;
 
         this.dynamicTorch = new PointLight(this.mouseData.x, this.mouseData.y, this.tileMap.edges, this.tileMap.vertices,
-                                            loader.lightShader, loader.torchFrames);
+                                              loader.shaders.light, loader.torchFrames);
    
-        
         this.allLights = new PIXI.Container();
 
         // Contains player animations, physics bodies, flags, behavior functionsxc
@@ -210,7 +214,6 @@ export class Game {
         this.app.stage.pivot.copyFrom(this.camera.position);
         this.app.stage.angle = this.camera.angleOffset;
 
-        //this.tileMap.parallaxScroll(this.app.stage.pivot, 1.2, 1.2);
         this.tileMap.parallaxScroll(this.app.stage.pivot);
 
         this.catnipTrip.update(delta); 

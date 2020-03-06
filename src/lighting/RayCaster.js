@@ -7,15 +7,20 @@ let Vector = Matter.Vector;
  * - Creates necessary auxillary rays
  * - Sorts list of casted rays by angle
  * - Creates & manages WebGL meshes for result
+ * @class
  */
 export class RayCaster {
     /**
-     * 
+     * - Performs all ray casts for one light source
+     * - Creates necessary auxillary rays
+     * - Sorts list of casted rays by angle
+     * - Creates & manages WebGL meshes for result
      * @param {number} x - x position
      * @param {number} y - y position
      * @param {Boundary[]} segments - terrain edges for ray casting
      * @param {Corner[]} endpoints - terrain vertices for ray casting
      * @param {Object} shaderProgram - WebGL shader text
+     * 
      */
     constructor(x, y, segments, endpoints, shaderProgram){
         this.pos = Vector.create(x, y);  // ray source point
