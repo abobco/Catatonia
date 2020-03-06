@@ -1,10 +1,10 @@
 # Catatonia
  
-Work in progress 2D roguelike platformer browser game. Made with [node.js](https://nodejs.org/en/).
+Work in progress (mobile friendly) roguelike browser game. Made with [node.js](https://nodejs.org/en/).
 
-Try the demo [here](http://www.xabnab.com/cat%20game/debug/index.html)!
+Try the demo [here](http://www.xabnab.com/cat%20game/debug/dynamic-shadows/cave/index.html)!
 
-![Demo](gifs/demo-2.gif)
+![Demo](gifs/shadow-demo.gif)
 
 ## Build your own version:
  Navigate to your clone's directory and install dependencies via `npm`:
