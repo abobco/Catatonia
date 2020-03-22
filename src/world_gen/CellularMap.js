@@ -16,7 +16,6 @@ export class CellularMap extends AbstractMap{
      * @param {number} [options.h = 25] - height of map in tiles
      * @param {number} [options.tileSize = 150] - edge length of tiles in pixels
      * @param {number} [options.numLights = 5] -  number of lights to randomly place in map
-     * @param {Object} options.shaderProgram - vertex and fragment shader strings for kighting
      * @param {Map<string,PIXI.Texture>} options.tileset - tile textures
      * @param {PIXI.Texture[]} options.torchFrames - Torch animation textures
      */
@@ -84,7 +83,7 @@ export class CellularMap extends AbstractMap{
         console.log("ray cast vertices: ", this.vertices.size);
 
         // make PointLight objects 
-        this.addLights(params.shaderProgram);
+        this.addLights();
 
         let index = Math.floor(ROT.RNG.getUniform() * this.freeCells.length);
         let key = this.freeCells.splice(index, 1)[0];

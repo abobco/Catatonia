@@ -15,6 +15,8 @@ export function FilePaths() {
         "sprites/torchSprites.json",
         "sprites/keys.json",
         "sprites/menuButtons.json",
+        "sprites/spectre.json",
+
         "sprites/color_map_1.png",
         "sprites/color_map_2.png",
         "sprites/color_map_3.png",
@@ -22,18 +24,6 @@ export function FilePaths() {
         "sprites/dungeon.json",
         "sprites/perlin-noise.png",
         "sprites/perlin-2.png",
-
-        // shaders
-        "shaders/lightFilterVert.GLSL",
-        "shaders/lightFilterFrag.GLSL",
-        "shaders/light.vert",
-        "shaders/light.frag",
-        "shaders/dissolve/dissolve.vert",
-        "shaders/dissolve/dissolve.frag",
-        "shaders/BezierDisplacementFilter/BezierDisp.vert",
-        "shaders/BezierDisplacementFilter/BezierDisp.frag",
-        "shaders/PaletteSwap/paletteSwap.frag",
-        "shaders/Shadows/shadowFilter.vert",
-        "shaders/Shadows/shadowFilter.frag"
+        "sprites/PixelCursor.png",
     ];
 }

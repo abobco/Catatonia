@@ -7,7 +7,7 @@
     "@pixi/filter-pixelate": "^3.0.3",
     "install": "^0.13.0",
     "matter-js": "^0.14.2",
-    "npm": "^6.13.6",
+    "npm": "^6.14.3",
     "open-simplex-noise": "^2.2.0",
     "pixi-sound": "^3.0.4",
     "pixi.js": "^5.2.0",
@@ -16,6 +16,7 @@
     "webpack-cli": "^3.3.10"
   },
   "devDependencies": {
+    "raw-loader": "^4.0.0",
     "serialize-javascript": ">=2.1.1",
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-dev-server": "^3.10.1"

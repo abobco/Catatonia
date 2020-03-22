@@ -19,22 +19,23 @@ export class PointLight {
    * @param {Object} shaderProgram - WebGL shader text
    * @param {PIXI.Texture[]} torchFrames - torch animation textures
    */
-  constructor(x, y, castSegments, endpoints, shaderProgram, torchFrames) {
-    this.pos = Matter.Vector.create(x,y);
+  constructor(x, y, castSegments, endpoints, torchFrames) {
+    this.pos = new PIXI.Point(x,y);
     this.castSegments = castSegments;
 
-    this.visionSource = new RayCaster( x, y, castSegments, endpoints, shaderProgram );
+    this.visionSource = new RayCaster( x, y, castSegments, endpoints );
     this.numStaticRays = this.visionSource.rays.length;
     this.vel = -1.5;
     this.visionSource.look();
     this.visionSource.auxLook();
+    this.visionSource.drawMesh();
 
     this.torch = new TorchAnimation(x,y,torchFrames);
   }
 
   update(timescale, position, time) {
     if ( position ){
-      this.pos = position;
+      this.pos.copyFrom(position);
       this.torch.animation.position.set(position);
     }
     else;

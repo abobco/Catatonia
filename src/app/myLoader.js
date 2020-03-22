@@ -5,16 +5,15 @@ let loader = PIXI.loader,
     resources = PIXI.loader.resources;
 
 /**
- *  Loads textures and shaders from files, stores them as object properties
- * @callback requestCallback
+ *  Loads textures from files, stores them as object properties
  * @class
  */
 export class MyLoader {
     /**
-     * @param {requestCallback} setupFunction - Sets up the game after all files are loaded
+     * @param {function()} setupFunction - Sets up the game after all files are loaded
      */
     constructor(setupFunction)
-    {
+    {        
         this.doneLoading = false;
 
         PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.NEAREST;
@@ -29,7 +28,6 @@ export class MyLoader {
     /**  organize data into objects after files load */
     onLoad(setupFunction)
     {
-       this.shaders = this.loadShaders();
        this.paletteTextures = this.loadPalettes();  
 
        this.wangPic = this.loadWangPic();
@@ -51,6 +49,11 @@ export class MyLoader {
 
        this.menuFont = this.loadFont();
 
+       this.spectreTextures = this.loadSpectre();
+
+       this.cursor = PIXI.Texture.from(resources['sprites/PixelCursor.png'].data);
+       console.log("cursor:", this.cursor);
+
        // this.checkLoad();
 
        setupFunction();
@@ -70,28 +73,7 @@ export class MyLoader {
                 PIXI.Texture.from(resources["sprites/color_map_2.png"].data),
                 PIXI.Texture.from(resources["sprites/color_map_3.png"].data)];
     }
-
-    /** load light shaders into a {string:string} map */ 
-    loadShaders()
-    { 
-        return {
-            light: this.loadShader("light.vert", "light.frag"),
-            dissolve: this.loadShader("dissolve/dissolve.vert", "dissolve/dissolve.frag"),
-            displacement: this.loadShader("BezierDisplacementFilter/BezierDisp.vert", "BezierDisplacementFilter/BezierDisp.frag"),
-            shadows: this.loadShader('Shadows/shadowFilter.vert', 'Shadows/shadowFilter.frag'),
-            paletteSwap: resources["shaders/PaletteSwap/paletteSwap.frag"].data
-        }
-
-    }
-
-    /** load a shader text from a file path (relative to the '/shaders' directory) */
-    loadShader( vertpath, fragpath){
-        return {
-            vert: resources["shaders/" + vertpath].data,
-            frag: resources["shaders/" + fragpath].data
-        }
-    }
-    
+ 
     /**
      *   Init animated sprite objects, load into a hashmap
      *   
@@ -161,6 +143,19 @@ export class MyLoader {
             frames.push(PIXI.Texture.from(`torch (${val}).png`));
         }
         return frames;
+    }
+
+    loadSpectre(){
+        let frames = [];
+        for ( let i = 1; i < 4; i++){
+            const val = i;
+            frames.push(PIXI.Texture.from(`spectre-idle (${val}).png`));
+        }
+        let lantern = PIXI.Texture.from('lantern.png');
+        return {
+            idleFrames: frames,
+            lantern: lantern
+        } 
     }
 
     /** must change the for loop when new tiles are added */ 

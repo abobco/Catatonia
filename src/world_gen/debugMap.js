@@ -16,7 +16,6 @@ export class DebugMap extends AbstractMap{
      * @param {number} [options.h = 25] - height of map in tiles
      * @param {number} [options.tileSize = 120] - edge length of tiles in pixels
      * @param {number} [options.numLights = 5] -  number of lights to randomly place in map
-     * @param {Object} options.shaderProgram - vertex and fragment shader strings for kighting
      * @param {Map<string,PIXI.Texture>} options.tileset - tile textures
      * @param {PIXI.Texture[]} options.torchFrames - Torch animation textures
      * @param {HTMLImageElement} options.wangImage - Wang tile image for map generation
@@ -29,7 +28,7 @@ export class DebugMap extends AbstractMap{
             w : 40,
             h: 40,
             tileSize: 120,
-            numLights: 30,
+            numLights: 0,
             customChunk: new PIXI.Point(0,0),
             playerSpawn: new PIXI.Point(5,5)
         }
@@ -69,7 +68,7 @@ export class DebugMap extends AbstractMap{
          console.log("ray cast vertices: ", this.vertices.size);
  
          // make PointLight objects 
-         this.addLights(params.shaderProgram, 1.2);
+         this.addLights( 1.2);
         
          this.setPlayerSpawn(params.playerSpawn);
 

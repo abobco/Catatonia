@@ -1,5 +1,7 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {Ray} from "./ray.js";
+import vert from '../shaders/light.vert'
+import frag from '../shaders/light.frag'
 
 let Vector = Matter.Vector;
 /**
@@ -19,10 +21,9 @@ export class RayCaster {
      * @param {number} y - y position
      * @param {Boundary[]} segments - terrain edges for ray casting
      * @param {Corner[]} endpoints - terrain vertices for ray casting
-     * @param {Object} shaderProgram - WebGL shader text
      * 
      */
-    constructor(x, y, segments, endpoints, shaderProgram){
+    constructor(x, y, segments, endpoints){
         this.pos = Vector.create(x, y);  // ray source point
         this.rays = []; // all the rays
         this.cornerRays = []; // auxilary rays
@@ -30,7 +31,6 @@ export class RayCaster {
         this.segments = segments;
         this.tris = [];
         this.mesh;  // webgl mesh
-        this.shaderProgram = shaderProgram; 
         this.uColor = [1, 0.831, 0.322]; // color of the light gradient
 
         // create list of main rays, pointing at each of the endpoints
@@ -49,7 +49,7 @@ export class RayCaster {
             color : this.uColor
           };
                 
-        this.shader = new PIXI.Shader.from(shaderProgram.vert, shaderProgram.frag, this.uniforms);
+        this.shader = new PIXI.Shader.from(vert, frag, this.uniforms);
     }
     
     // compare 2 rays by angle
@@ -81,7 +81,7 @@ export class RayCaster {
           };
         }
 
-        this.shader = new PIXI.Shader.from(this.shaderProgram.vert, this.shaderProgram.frag, this.uniforms);
+        this.shader = new PIXI.Shader.from(vert, frag, this.uniforms);
         this.cornerRays = [];
 
         for ( let corner of this.endpoints) {

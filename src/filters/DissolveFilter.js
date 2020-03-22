@@ -1,10 +1,13 @@
+import vert from '../shaders/dissolve/dissolve.vert'
+import frag from '../shaders/dissolve/dissolve.frag'
+
 export class DissolveFilter extends PIXI.Filter
 {
     /**
      * @param {PIXI.Sprite} sprite - noise texture for the dissolve effect
      * @param {Object} [shader] - parent object for shader program, must have vert and frag members
      */
-    constructor(sprite, shader, scale) {
+    constructor(sprite, scale) {
         const maskMatrix = new PIXI.Matrix();
 
         sprite.renderable = false;
@@ -16,7 +19,7 @@ export class DissolveFilter extends PIXI.Filter
             DissolveVal: 1.0
         }
 
-        super(shader.vert, shader.frag, uniforms);
+        super(vert, frag, uniforms);
 
         this.maskSprite = sprite;
         this.maskMatrix = maskMatrix;

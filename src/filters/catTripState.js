@@ -3,7 +3,7 @@ import {BezierCurve} from './BezierCurve.js'
 import {MyTimer} from '../entities/myTimer.js'
 
 export class CatnipTrip{
-    constructor(shader, player, powerups){
+    constructor( player, powerups){
         // physics values that will be toggled during the effect
         this.playerDefaultVel = player.maxVel;
         this.playerTripVel = player.maxVel * 1.3;
@@ -40,8 +40,8 @@ export class CatnipTrip{
 
         
         // actual post processing filters for the effect
-        this.foregroundFilter = new BezierDisplacementFilter(this.foregroundNoise, shader);
-        this.backgroundFilter = new BezierDisplacementFilter(this.backgroundNoise, shader);
+        this.foregroundFilter = new BezierDisplacementFilter(this.foregroundNoise);
+        this.backgroundFilter = new BezierDisplacementFilter(this.backgroundNoise);
 
         console.log( 'crash test' );
 

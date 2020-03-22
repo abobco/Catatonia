@@ -12,11 +12,11 @@ export class AbstractMap{
      * @param {number} options.h - height of map in tiles
      * @param {number} options.tileSize - edge length of tiles in pixels
      * @param {number} options.numLights -  number of lights to randomly place in map
-     * @param {Object} options.shaderProgram - vertex and fragment shader strings for kighting
      * @param {Map<string,PIXI.Texture>} options.tileset - tile textures
      * @param {PIXI.Texture[]} options.torchFrames - Torch animation textures
+     * @param {PIXI.Texture[]} options.filterCache - Torch animation textures
+     * @param {PIXI.Texture[]} options.screen - Torch animation textures
      */
-    // constructor(w,h,tileSize, numLights, shaderProgram, tileset, torchFrames) {
     constructor(options){ 
         this.w = options.w;                             // width of map in tiles
         this.h = options.h;                             // width of map in tiles
@@ -35,12 +35,17 @@ export class AbstractMap{
         this.lights = [];                       // light shading meshes 
         this.torchFrames = options.torchFrames;         // torch animation textures
         this.torchSprites = [];                 // torch animated sprites
-        this.shaderProgram = options.shaderProgram;     // light mesh webgl shader 
 
         // containers for display objects
         this.tileContainer = new PIXI.Container();
         this.backgroundContainer = new PIXI.Container();
         this.torchContainer = new PIXI.Container();
+        this.powerupContainer = new PIXI.Container();
+        
+        // let filter = new Effect();
+        // this.powerupContainer.filters = [filter];
+        // filter.cache = options.filterCache
+        // this.powerupContainer.filterArea = options.screen;
 
         // using sets here to filter out duplicate edges/vertices
         // feed these into raycasting functions
@@ -81,7 +86,7 @@ export class AbstractMap{
                 catnip.sprite.scale.set(1.5);
                 this.powerups.push(catnip);
 
-                this.tileContainer.addChild(catnip.sprite);
+                this.powerupContainer.addChild(catnip.sprite);
             }
         }
     }
@@ -232,14 +237,14 @@ export class AbstractMap{
     }
 
     /** Make webgl meshes from the light shader & raycasting data */ 
-    addLights(shaderProgram, scale){
+    addLights( scale){
         for (let key in this.tileMap){
             if (this.tileMap[key] == '*'){
                 let parts = key.split(",");
                 let x = parseInt(parts[0]);
                 let y = parseInt(parts[1]);
 
-                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, shaderProgram, this.torchFrames))
+                this.lights.push(new PointLight(x*this.tileSize, y*this.tileSize, this.edges, this.vertices, this.torchFrames))
             }
         }
 

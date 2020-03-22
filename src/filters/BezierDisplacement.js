@@ -1,3 +1,5 @@
+import vert from '../shaders/BezierDisplacementFilter/BezierDisp.vert'
+import frag from '../shaders/BezierDisplacementFilter/BezierDisp.frag'
 /**
  * The DisplacementFilter class uses the pixel values from the specified texture
  * (called the displacement map) to perform a displacement of an object.
@@ -22,13 +24,13 @@ export class BezierDisplacementFilter extends PIXI.Filter
      * @param {PIXI.Sprite} sprite - The sprite used for the displacement map. (make sure its added to the scene!)
      * @param {number} scale - The scale of the displacement
      */
-    constructor(sprite, shader, scale)
+    constructor(sprite, scale)
     {
         const maskMatrix = new PIXI.Matrix();
 
         sprite.renderable = false;
 
-        super(shader.vert, shader.frag, {
+        super(vert, frag, {
             mapSampler: sprite._texture,
             filterMatrix: maskMatrix,
             scale: { x: 1, y: 1 },

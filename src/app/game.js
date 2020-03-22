@@ -5,6 +5,8 @@ import { WangMap } from '../world_gen/WangMap.js';
 import { CellularMap } from '../world_gen/CellularMap.js';
 import { DebugMap } from '../world_gen/debugMap.js';
 
+import {ParticleSystem} from '../physics/particle.js'
+
 import {Player} from '../entities/player.js';
 import { KBController, GamepadController} from '../entities/controller.js';
 import {MyCamera} from '../entities/myCamera.js';
@@ -16,6 +18,8 @@ import {PaletteSwapFilter} from '../filters/paletteSwap.js';
 import {MyLoader} from './myLoader.js'
 import { PointLight } from '../lighting/PointLight.js';
 import { ShadowFilter } from '../filters/ShadowFilter.js';
+import { FilterCache} from '../filters/TextureBuffer.js'
+import {  Spectre } from '../entities/NPCs/spectre.js';
 
 
 // Aliases
@@ -38,14 +42,27 @@ export class Game {
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; 
 
         this.app = app;
+        this.filterCache = new FilterCache();       
+        this.filterTicker = new PIXI.Ticker();
+        this.filterTicker.add(this.filterCache.update.bind(this.filterCache));
+        this.filterTicker.start();
 
         // display object containers        
-        this.worldContainer = new PIXI.Container();      // every display object in the game world
-        this.animationContainer = new PIXI.Container();  // every animated sprite in the game
-        this.foregroundContainer = new PIXI.Container(); // objects with no parallax scroll
-        this.backgroundContainer = new PIXI.Container(); // objects affected by parallax
-        this.dynamicLightContainer = new PIXI.Container(); // torch that follows the player around\
+        this.worldContainer = new PIXI.Container();        // every display object in the game world
+        this.animationContainer = new PIXI.Container();    // every animated sprite in the game
+        this.foregroundContainer = new PIXI.Container();   // objects with no parallax scroll
+        this.backgroundContainer = new PIXI.Container();   // objects affected by parallax
+        this.dynamicLightContainer = new PIXI.Container(); // torch that follows the player around
 
+        this.cursor = new PIXI.Sprite.from( loader.cursor);
+        this.cursor.visible = false;
+        this.cursor.scale.set(0.125);
+        this.mouseData = this.app.renderer.plugins.interaction.mouse;
+        this.mouseDown = false;
+
+        this.spectreTextures = loader.spectreTextures;    
+        //this.animationContainer.addChild(this.spectre.idleAnim);
+     
         this.scale = 0.5; // zoom level of map
 
         // render texture/sprite for shadows
@@ -54,19 +71,16 @@ export class Game {
         this.shadowFilter;
         this.dynamicLight = new PIXI.Sprite();
         this.dynamicLight.scale.set(1/this.scale);
-        this.shadowShader = loader.shaders.shadows;
         this.filterOffset = new PIXI.Point(0,0);
     
         // palette swap filter
         this.paletteIndex = 2;
-        this.paletteSwap = new PaletteSwapFilter(loader.shaders.paletteSwap, loader.paletteTextures[this.paletteIndex] );
+        this.paletteSwap = new PaletteSwapFilter( loader.paletteTextures[this.paletteIndex] );
 
-        // dissolve effect shader
+        // dissolve filter noise texture
         this.dissolveSprite = new PIXI.Sprite.from('https://res.cloudinary.com/dvxikybyi/image/upload/v1486634113/2yYayZk_vqsyzx.png');   
         this.dissolveSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
         this.dissolveSprite.scale.set(0.2);
-        this.dissolveShader = loader.shaders.dissolve;
-        this.bezierDisplacementShader = loader.shaders.displacement;
         this.worldContainer.addChild(this.dissolveSprite);
         
         // physics Engine
@@ -74,57 +88,59 @@ export class Game {
         this.world = this.engine.world;
         this.updateLag = 0;
 
-        // static dungeon map for debugging
-        this.tileMap = new DebugMap({
-          wangImage: loader.wangPic,
-          perlinNoise: loader.perlinNoise,
-          shaderProgram: loader.shaders.light,
-          tileset: loader.dungeonTextures, 
-          torchFrames: loader.torchFrames
-        })
+        this.particleSystem = new ParticleSystem()
+        this.torchFrames = loader.torchFrames;
 
-        // procedural dungeon map from herringbone wang tiles
-        // this.tileMap = new WangMap({
-        //   w: 40,
-        //   h: 40,
+        // static dungeon map for debugging
+        // this.tileMap = new DebugMap({
         //   wangImage: loader.wangPic,
         //   perlinNoise: loader.perlinNoise,
-        //   shaderProgram: loader.shaders.light,
         //   tileset: loader.dungeonTextures, 
-        //   torchFrames: loader.torchFrames,
-        //   numLights: 150
-        // });
+        //   torchFrames: loader.torchFrames
+        // })
+
+        // procedural dungeon map from herringbone wang tiles
+        this.tileMap = new WangMap({
+          w: 40,
+          h: 40,
+          wangImage: loader.wangPic,
+          perlinNoise: loader.perlinNoise,
+          tileset: loader.dungeonTextures, 
+          torchFrames: loader.torchFrames,
+          numLights: 5,    
+          filterCache:this.filterCache,
+          screen: this.app.screen
+        });
 
         // procedural cave map from cellular automata
         // this.tileMap = new CellularMap({
-        //   w: 40,
-        //   h:40,
-        //   shaderProgram: loader.shaders.light,
+        //   w: 35,
+        //   h:35,
         //   tileset: loader.tileset, 
         //   torchFrames: loader.torchFrames,
-        //   numLights: 150
+        //   numLights: 5
         // })
+
         this.mouseData = this.app.renderer.plugins.interaction.mouse.global;
 
-        this.dynamicTorch = new PointLight(this.mouseData.x, this.mouseData.y, this.tileMap.edges, this.tileMap.vertices,
-                                              loader.shaders.light, loader.torchFrames);
+        // this.dynamicTorch = new PointLight(this.mouseData.x, this.mouseData.y, this.tileMap.edges, this.tileMap.vertices,
+        //                                        loader.torchFrames);
    
         this.allLights = new PIXI.Container();
 
-        // Contains player animations, physics bodies, flags, behavior functionsxc
+        // Contains player animations, physics bodies, flags, behavior functions
         let playerPos = this.tileMap.playerSpawn;
-        this.player = new Player(playerPos, loader.catAnimations);
+        this.player = new Player(playerPos, loader.catAnimations, this.filterCache, this.app.screen);
         console.log(this.player);
 
         // controls all catnip powerups/filters
-        this.catnipTrip = new CatnipTrip(this.bezierDisplacementShader, this.player, this.tileMap.powerups);
+        this.catnipTrip = new CatnipTrip(this.player, this.tileMap.powerups);
 
         // fill the animation container
         this.tileMap.torchSprites.forEach( (animation) => {
           this.animationContainer.addChild(animation); // add torches
         });
         this.animationContainer.addChild(this.player.animationContainer);
-        //this.animationContainer.addChild(this.dynamicTorch.torch.animation)
 
         // Add player's rigidbody to matterjs world
         World.add(this.world, this.player.body);
@@ -173,9 +189,16 @@ export class Game {
         // keyboard
         this.KBInput = new KBController(this.player, this.player.body, this.app.ticker, this.camera, this.pauseMenu);
 
-
         // resize canvas on window resize
         window.addEventListener( 'resize', this.onWindowResize.bind(this), false );
+        
+
+        window.addEventListener("mousedown", () => {
+          this.mouseDown = true;
+        });
+        window.addEventListener("mouseup", () => {
+          this.mouseDown = false;
+        });
 
         // game state changing collision events
         this.collisionEventSetup();
@@ -186,7 +209,7 @@ export class Game {
         this.tileMap.lights.forEach( (light) => {
           light.update(this.app.ticker.speed);
         });
-        this.dynamicTorch.update(this.app.ticker.speed);
+        // this.dynamicTorch.update(this.app.ticker.speed);
 
         // Add objects to pixi stage
         this.initLayers();
@@ -200,6 +223,10 @@ export class Game {
     /** 
      * main game loop, does not update at a constant rate */
     loop(delta){
+      // get new cursor position for particle spawns
+      let cursorWorldPosition = this.app.renderer.plugins.interaction.mouse.getLocalPosition(this.worldContainer);
+      this.cursor.position.copyFrom(cursorWorldPosition);
+     
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
   
@@ -209,7 +236,7 @@ export class Game {
           this.worldContainer.rotation = this.catnipTrip.cameraRotation;
 
         this.pauseMenu.moveButtons(this.camera.position);
-            
+
         // adjust stage for camera movement
         this.app.stage.pivot.copyFrom(this.camera.position);
         this.app.stage.angle = this.camera.angleOffset;
@@ -219,13 +246,23 @@ export class Game {
         this.catnipTrip.update(delta); 
 
         this.updateShadows();
+        this.particleSystem.drawParticles();
+
+        this.spectre.update();
     }
 
     FixedUpdate(){
       this.updateLag += this.app.ticker.deltaMS;
-      while ( this.updateLag >= 16.666 ) {
+      while ( this.updateLag >= 16.666 ) {     
+        // move forward one time step
+        this.updateLag -= 16.666
         // apply player input to physics bodies
         this.player.update(this.app.ticker.speed);
+        this.spectre.FixedUpdate();
+        if ( this.mouseDown){
+          this.particleSystem.addParticle(this.cursor.position, this.world);
+        }
+
         Engine.update(this.engine);
         if ( this.player.cameraSnapped)
             this.camera.update(this.player.position, this.player.flip, this.app.ticker.speed);
@@ -240,8 +277,6 @@ export class Game {
         else {
             this.world.gravity.y = 1;
         }
-        // move forward one time step
-        this.updateLag -= 16.666
         this.tileMap.lights.forEach( (light) => {
           //light.visionSource.mesh.shader.uniforms.time += 0.00003;
           light.visionSource.mesh.shader.uniforms.time += 0.003;
@@ -268,6 +303,7 @@ export class Game {
 
         // add terrain tiles
         this.foregroundContainer.addChild(this.tileMap.tileContainer);
+        this.foregroundContainer.addChild(this.tileMap.powerupContainer);
       
         this.tileMap.lights.forEach( (light) => {
           this.allLights.addChild(light.visionSource.mesh);
@@ -275,7 +311,7 @@ export class Game {
         
         this.foregroundContainer.addChild(this.allLights);
 
-        this.shadowFilter = new ShadowFilter(this.dynamicLight, this.shadowShader, 2);
+        this.shadowFilter = new ShadowFilter(this.dynamicLight, 2);
 
         this.worldContainer.addChild(this.foregroundContainer);
 
@@ -283,23 +319,39 @@ export class Game {
 
         // add ui buttons to the top layer
         this.app.stage.addChild(this.pauseMenu.buttonContainer);
+        this.foregroundContainer.addChild(this.cursor);
+        this.foregroundContainer.addChild(this.particleSystem.renderer);
+        this.spectre = new Spectre(
+          this.player.position, 
+          this.spectreTextures, 
+          this.foregroundContainer, 
+          this.filterCache, 
+          this.app.screen,
+          this.tileMap.edges, this.tileMap.vertices, this.torchFrames,
+          new PIXI.Rectangle(this.tileMap.tileSize, this.tileMap.tileSize, 
+            this.tileMap.w*this.tileMap.tileSize - 2*this.tileMap.tileSize, 
+            this.tileMap.h*this.tileMap.tileSize - 2*this.tileMap.tileSize),
+          this.world
+          );
         
         this.foregroundContainer.addChild(this.catnipTrip.foregroundNoise);
         this.foregroundContainer.addChild(this.catnipTrip.badFilterSolution);
         this.tileMap.backgroundContainer.addChild(this.catnipTrip.backgroundNoise);
 
         // apply filters to containers
-        this.worldContainer.filters = [this.shadowFilter, new PixelateFilter(3) ];
+        this.worldContainer.filterArea = this.app.screen;
+        this.worldContainer.filters = [this.shadowFilter,new PixelateFilter(2.5) ];
     }
 
     /** 
      * - Creates a new WebGL mesh for the dynamic light
      * - Draws all the lights to a texture for the shadow filter */
     updateShadows(){
-      this.dynamicLightContainer.removeChild(this.dynamicTorch.visionSource.mesh)
-      this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
+      this.spectre.update();
+      // this.dynamicLightContainer.removeChild(this.dynamicTorch.visionSource.mesh)
+      //this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
       
-      this.dynamicLightContainer.addChild(this.dynamicTorch.visionSource.mesh); 
+      //this.dynamicLightContainer.addChild(this.dynamicTorch.visionSource.mesh); 
 
       this.filterOffset.set( -this.camera.position.x + this.app.screen.width, 
                             -this.camera.position.y + this.app.screen.height);
@@ -312,7 +364,8 @@ export class Game {
       myMatrix.d = this.scale;
     
       this.app.renderer.render(this.allLights, this.lightRenderTexture, true, myMatrix );
-      this.app.renderer.render(this.dynamicTorch.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
+      // this.app.renderer.render(this.dynamicTorch.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
+      this.app.renderer.render(this.spectre.lantern.light.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
       this.dynamicLight.texture = this.lightRenderTexture;
       this.shadowFilter.uniforms.lightSampler = this.lightRenderTexture;
     }
@@ -324,12 +377,13 @@ export class Game {
           var catCollision = false;
           var pairs = event.pairs;
           var physicsCollisions = 0;
+          
+          let otherBody;
         
           // Iterate through collision pairs
           for (var i = 0; i < pairs.length; i++) {
       
             let pair = pairs[i];
-            let otherBody;
             // check if the collision involves the cat
             if ( pair.bodyA.id == this.player.body.id )
                 otherBody = pair.bodyB;
@@ -360,18 +414,25 @@ export class Game {
               // if colliding with a ground trigger collider
               else if (!this.player.isHanging)
                 inWalkBox = true;
-              
-            if ( otherBody.isCatnip ){
-                  this.foregroundContainer.filters = [this.catnipTrip.foregroundFilter];
-                  this.tileMap.backgroundContainer.filters = [this.catnipTrip.backgroundFilter];
-                  this.catnipTrip.start();
-                  World.remove(this.world, otherBody);
-                  otherBody.spriteReference.filters = [new DissolveFilter(this.dissolveSprite, this.dissolveShader, 1)];
-                  // this.tileMap.tileContainer.removeChild(otherBody.spriteReference);
-                  console.log(otherBody.spriteReference)
-                  
-            }
                 
+              if ( otherBody.isCatnip ){
+                    this.foregroundContainer.filters = [this.catnipTrip.foregroundFilter];
+                    this.tileMap.backgroundContainer.filters = [this.catnipTrip.backgroundFilter];
+                    this.catnipTrip.start();
+                    World.remove(this.world, otherBody);
+                    otherBody.spriteReference.filters = [new DissolveFilter(this.dissolveSprite, 1)];
+                    // this.tileMap.tileContainer.removeChild(otherBody.spriteReference);
+                    console.log(otherBody.spriteReference)
+                    
+              }
+                
+            }
+            else if (otherBody.isParticle){
+              let vel = Matter.Vector.create( 25 - Math.random() * 50, -10);
+              Matter.Body.setVelocity(otherBody, vel);
+              otherBody.collisionFilter.mask = 0x0002 | 0x0001;
+              otherBody.ticks = 0;
+              console.log("particle collision");
             }
             else  {// if physics collision
               this.player.collisionTimer.stop();
@@ -420,17 +481,18 @@ export class Game {
         // start a timer if the player ends a collision with a physics collider
         Events.on(this.engine, 'collisionEnd', (event) => {
           let pairs = event.pairs;
+          
+          let otherBody;
           // Iterate through collision pairs
           for (var i = 0; i < pairs.length; i++) {
             let pair = pairs[i];
-            let otherBody;
             // check if the collision involves the cat
             if ( pair.bodyA.id == this.player.body.id )
                 otherBody = pair.bodyB;
             else if ( pair.bodyB.id == this.player.body.id )
                 otherBody = pair.bodyA;
       
-            if (!otherBody.isSensor) {
+            if (otherBody && !otherBody.isSensor && !otherBody.isParticle) {
               this.player.collisionTimer.start();
               if (this.player.body.velocity.y < 0){
                 this.player.setAnimation("jump", 5);
@@ -455,7 +517,6 @@ export class Game {
                 
                 
               }
-
             }
           } 
             
@@ -473,7 +534,22 @@ export class Game {
         //this.app.renderer.resize(window.innerWidth, window.innerHeight);
         // Lock the camera to the cat's position 
         this.app.stage.position.set(this.app.screen.width/2, this.app.screen.height/2);﻿﻿
+        this.player.animationContainer.filterArea = this.app.screen;
+        //this.spectre.animationContainer.filterArea = this.app.screen;
+        this.filterCache.update();
         this.lightRenderTexture.resize(parent.clientWidth, parent.clientHeight)
+
+        // this.filterCache = new FilterCache();       
+        // this.filterTicker = new PIXI.Ticker();
+        // this.filterTicker.add(this.filterCache.update.bind(this.filterCache));
+        // this.filterTicker.start();
+        // let filter = new Effect();
+        // this.player.animationContainer.filters = [filter];
+        // filter.cache = this.filterCache
+        // this.player.animationContainer.filterArea = this.app.screen;
+        // this.filterCache.clear();
+        // this.filterCache.update();
+        // this.filterCache.update();
           
         this.tileMap.lights.forEach( ( light ) => {
            light.update(this.app.ticker.speed);

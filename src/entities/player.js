@@ -1,25 +1,30 @@
 import Matter from 'matter-js/build/matter.min.js';
 import {Boundary} from "./terrain.js";
 import {MyTimer} from "./myTimer.js";
-
+import {TintedTrail} from '../filters/TextureBuffer.js'
 /**
  * Wrapper object for the cat that the player controls. Contains:
  * - Cat animations
  * - Physics data
  * - Game state flags
  */
+
 export class Player {
     /**
      * 
      * @param {PIXI.Point} position - spawn location, should be calculated during map generation
      * @param {Map<string, PIXI.AnimatedSprite} animationMap - all animations, already set up in the loader
      */
-    constructor(position, animationMap) {
+    constructor(position, animationMap, filterCache, screen) {
         // store most recent input for ledge climbing logic
         this.lastInput = null;
         this.prevTimeScale = 1.0;
         this.prevVel = 0.0
         this.animationContainer = new PIXI.Container();
+        let filter = new TintedTrail();
+        this.animationContainer.filters = [filter];
+        filter.cache = filterCache
+        this.animationContainer.filterArea = screen;
 
         // physics variables
         this.position = new PIXI.Point(position.x, position.y);
@@ -69,23 +74,14 @@ export class Player {
         this.colliderWidth = this.animations.get("walk").width;
         this.colliderHeight = this.animations.get("walk").height; 
 
-        // collision box line segments
-        this.A = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
-        this.B = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
-        this.C = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
-        this.D = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
-        // array of the 4 collision box segments
-        this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
-                    (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
-                    (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
-                    (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
-
         this.body = new Matter.Bodies.rectangle(this.position.x, this.position.y, this.colliderWidth, this.colliderHeight, {
                                          density: 0.0005,
                                          frictionAir: 0.06,
                                          restitution: 0,
                                          friction: 0.01,
-                                         inertia: Infinity
+                                         inertia: Infinity,
+                                         collisionFilter: {
+                                         category: 0x0004}
                     }); 
         
         this.animations.forEach( animation => {
@@ -191,7 +187,7 @@ export class Player {
             this.prevTimeScale = timescale;
         }
 
-        // late jummp system
+        // late jump system
         let fallAnimationTime = (this.lateJumpDuration/5) / timescale;
         let waitTime;
         if (this.inSlide){
@@ -219,16 +215,6 @@ export class Player {
         // move origin point
         this.position.x = ix;
         this.position.y = iy;
-
-        // create new collision boundaries
-        this.A = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
-        this.B = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y - (this.colliderHeight/2));
-        this.C = Matter.Vector.create(this.position.x - (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
-        this.D = Matter.Vector.create(this.position.x + (this.colliderWidth/2), this.position.y + (this.colliderHeight/2));
-        this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
-                       (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
-                       (new Boundary(this.C.x, this.C.y, this.D.x, this.D.y)), 
-                       (new Boundary(this.B.x, this.B.y, this.D.x, this.D.y))];
         
         // move animation sprites              
         this.animations.forEach(function (sprite) {

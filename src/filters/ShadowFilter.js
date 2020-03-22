@@ -1,3 +1,7 @@
+
+import vert from '../shaders/Shadows/ShadowFilter.vert'
+import frag from '../shaders/Shadows/ShadowFilter.frag'
+
 /**
  * Post processing filter to apply shadows to the frame,
  * using a render texture of all the lights on the current frame
@@ -12,12 +16,12 @@
       * @param {PIXI.Texture} texture - The light texture used to calculate shadow colors
       * 
       */
-     constructor(sprite, program, scale = 1){
+     constructor(sprite, scale = 1){
         const lightMatrix = new PIXI.Matrix();
 
         sprite.renderable = false;
 
-        super( program.vert, program.frag,
+        super( vert, frag,
             {
                 lightSampler: sprite._texture,
                 //dimensions: [window.innerWidth, window.innerHeight],

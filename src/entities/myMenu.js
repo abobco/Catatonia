@@ -74,7 +74,7 @@ export class PauseMenu{
             this.buttonContainer.addChild(subMenu.displayContainer);
         });
         let colorSwapper = new ColorReplaceFilter(0x181000, 0xffa252, 0.001);
-        this.playerAnimations.filters = [colorSwapper];
+        this.playerAnimations.filters.push(colorSwapper);
 
         this.changePalette();
 
@@ -208,7 +208,7 @@ export class PauseMenu{
                                 this.toggleOptionsMenu(true);
                                 break;
                             case "SWAP MAPS":
-                                window.location.replace("http://www.xabnab.com/cat%20game/debug/light-bottleneck/dungeon/index.html");
+                                window.location.replace("http://www.studiostudios.net/catatonia/lantern/dungeon/index.html");
                             case "BACK":
                                 noUpdate = false;
                                 this.toggleOptionsMenu(false);
@@ -272,15 +272,20 @@ export class PauseMenu{
     }
 
     changePalette(){
-        this.playerAnimations.filters.length =1;
+        // this.playerAnimations.filters.length =2;
+        let numFilters = this.playerAnimations.filters.length;
+        let postFilters = [this.playerAnimations.filters[numFilters-1], this.playerAnimations.filters[numFilters-2]]
         switch ( this.paletteMenu.currentKey ){
             case "SIMBA":   // just use the default sprite
+                this.playerAnimations.filters = postFilters;
                 break;
             default:       // apply a new color replacement filter
-                // color map index is off by 1 cuz the simba palette doesn't have a filter
+                // color map index is off by 1 cuz the simba palette doesn't have a filter                
                 const index = this.paletteMenu.currentIndex-1; 
                 this.paletteFilter.uniforms.Palette = this.colorMaps[index]; 
-                this.playerAnimations.filters.push(this.paletteFilter);          
+                this.playerAnimations.filters = [
+                    this.paletteFilter, postFilters[0], postFilters[1]
+                ];
         }
         
         // change the font color
@@ -514,7 +519,6 @@ class MenuList {
     }
 
     updateOptions() {
-        console.log("successful pause menu event");
         this.options.forEach ( (element, index) => {
             element.activeSprite.visible = false;
             if ( index == this.currentIndex ){

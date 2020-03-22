@@ -1,9 +1,10 @@
 import Matter from 'matter-js/build/matter.min.js';
 
 /** 
- * - Colliders for kinematics 
+ *  - Colliders for kinematics 
  * - Trigger colliders for game events (climbing/walking)
  * - Options to prevent unneccessary trigger colliders from being made
+ * @class
  */
 export class TileCollider {
     /**

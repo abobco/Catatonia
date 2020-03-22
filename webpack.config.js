@@ -3,9 +3,6 @@ const path = require('path');
 // webpack.config.js
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
-
-
-
 module.exports = {
   // mode: 'development',
   context: path.resolve(__dirname, 'src'),
@@ -17,10 +14,20 @@ module.exports = {
   node: {
     fs: "empty"
   },
+ 
   devServer: {
     contentBase: './dist',
+    host: '10.0.0.43',
   },
   devtool: 'inline-source-map',
+  module: {
+    rules:[
+      {
+        test: /\.(vert|frag)$/i,
+        use: 'raw-loader'
+      }
+    ],
+  },
   // plugins: [
   //   new BundleAnalyzerPlugin(),
   // ],

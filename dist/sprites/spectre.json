@@ -1,0 +1,44 @@
+{"frames": {
+
+"lantern.png":
+{
+	"frame": {"x":0,"y":0,"w":17,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":17,"h":16},
+	"sourceSize": {"w":17,"h":16}
+},
+"spectre-idle (1).png":
+{
+	"frame": {"x":0,"y":16,"w":48,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":48,"h":64},
+	"sourceSize": {"w":48,"h":64}
+},
+"spectre-idle (2).png":
+{
+	"frame": {"x":0,"y":80,"w":48,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":48,"h":64},
+	"sourceSize": {"w":48,"h":64}
+},
+"spectre-idle (3).png":
+{
+	"frame": {"x":0,"y":144,"w":48,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":48,"h":64},
+	"sourceSize": {"w":48,"h":64}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "spectre.png",
+	"format": "RGBA8888",
+	"size": {"w":48,"h":208},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:5c58d8c1ff839920e1260a0ccb623e8c:2948c986b746330ed98c8ce36c1c568b:24291327e4bd3e2b1e382a2adac8ca20$"
+}
+}
