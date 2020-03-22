@@ -61,7 +61,6 @@ export class Game {
         this.mouseDown = false;
 
         this.spectreTextures = loader.spectreTextures;    
-        //this.animationContainer.addChild(this.spectre.idleAnim);
      
         this.scale = 0.5; // zoom level of map
 
@@ -102,14 +101,17 @@ export class Game {
         // procedural dungeon map from herringbone wang tiles
         this.tileMap = new WangMap({
           w: 40,
-          h: 40,
+          h: 40, 
+          world: this.world,
           wangImage: loader.wangPic,
           perlinNoise: loader.perlinNoise,
           tileset: loader.dungeonTextures, 
           torchFrames: loader.torchFrames,
-          numLights: 5,    
-          filterCache:this.filterCache,
-          screen: this.app.screen
+          spectreTextures: loader.spectreTextures,
+          numLights: 2,    
+          filterCache: this.filterCache,
+          screen: this.app.screen,
+          numSpectres: 6,
         });
 
         // procedural cave map from cellular automata
@@ -248,7 +250,7 @@ export class Game {
         this.updateShadows();
         this.particleSystem.drawParticles();
 
-        this.spectre.update();
+        this.tileMap.update();
     }
 
     FixedUpdate(){
@@ -258,7 +260,7 @@ export class Game {
         this.updateLag -= 16.666
         // apply player input to physics bodies
         this.player.update(this.app.ticker.speed);
-        this.spectre.FixedUpdate();
+        this.tileMap.FixedUpdate();
         if ( this.mouseDown){
           this.particleSystem.addParticle(this.cursor.position, this.world);
         }
@@ -321,19 +323,6 @@ export class Game {
         this.app.stage.addChild(this.pauseMenu.buttonContainer);
         this.foregroundContainer.addChild(this.cursor);
         this.foregroundContainer.addChild(this.particleSystem.renderer);
-        this.spectre = new Spectre(
-          this.player.position, 
-          this.spectreTextures, 
-          this.foregroundContainer, 
-          this.filterCache, 
-          this.app.screen,
-          this.tileMap.edges, this.tileMap.vertices, this.torchFrames,
-          new PIXI.Rectangle(this.tileMap.tileSize, this.tileMap.tileSize, 
-            this.tileMap.w*this.tileMap.tileSize - 2*this.tileMap.tileSize, 
-            this.tileMap.h*this.tileMap.tileSize - 2*this.tileMap.tileSize),
-          this.world
-          );
-        
         this.foregroundContainer.addChild(this.catnipTrip.foregroundNoise);
         this.foregroundContainer.addChild(this.catnipTrip.badFilterSolution);
         this.tileMap.backgroundContainer.addChild(this.catnipTrip.backgroundNoise);
@@ -347,25 +336,26 @@ export class Game {
      * - Creates a new WebGL mesh for the dynamic light
      * - Draws all the lights to a texture for the shadow filter */
     updateShadows(){
-      this.spectre.update();
-      // this.dynamicLightContainer.removeChild(this.dynamicTorch.visionSource.mesh)
-      //this.dynamicTorch.update(this.app.ticker.speed, this.player.position, 1 );
-      
-      //this.dynamicLightContainer.addChild(this.dynamicTorch.visionSource.mesh); 
 
       this.filterOffset.set( -this.camera.position.x + this.app.screen.width, 
                             -this.camera.position.y + this.app.screen.height);
+
       this.dynamicLight.position.set(-this.filterOffset.x, -this.filterOffset.y);
     
+      // camera offset
       let myMatrix = new PIXI.Matrix();
       myMatrix.tx = this.filterOffset.x*this.scale;
       myMatrix.ty = this.filterOffset.y*this.scale;
       myMatrix.a = this.scale;
       myMatrix.d = this.scale;
     
+      // draw to shadow mask texture
       this.app.renderer.render(this.allLights, this.lightRenderTexture, true, myMatrix );
-      // this.app.renderer.render(this.dynamicTorch.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
-      this.app.renderer.render(this.spectre.lantern.light.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
+
+      for ( let spectre of this.tileMap.spectres ){
+        this.app.renderer.render(spectre.lantern.light.visionSource.mesh, this.lightRenderTexture, false, myMatrix);
+      }
+
       this.dynamicLight.texture = this.lightRenderTexture;
       this.shadowFilter.uniforms.lightSampler = this.lightRenderTexture;
     }
@@ -535,7 +525,6 @@ export class Game {
         // Lock the camera to the cat's position 
         this.app.stage.position.set(this.app.screen.width/2, this.app.screen.height/2);﻿﻿
         this.player.animationContainer.filterArea = this.app.screen;
-        //this.spectre.animationContainer.filterArea = this.app.screen;
         this.filterCache.update();
         this.lightRenderTexture.resize(parent.clientWidth, parent.clientHeight)
 

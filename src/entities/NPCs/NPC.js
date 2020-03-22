@@ -6,13 +6,22 @@ import {TextureBufferFilter} from '../../filters/TextureBuffer.js'
  * - 
  */
 export class NPC {
-    constructor(position, textures, targetContainer, filterCache, screen){
+    /**
+     * 
+     * @param {*} options.position 
+     * @param {*} options.textures 
+     * @param {*} options.targetContainer 
+     * @param {*} options.filterCache 
+     * @param {*} options.screen 
+     */
+    constructor(options){
+
         this.position = new PIXI.Point();
-        this.position.copyFrom(position);
+        this.position.copyFrom(options.position);
 
         this.animationContainer = new PIXI.Container();
 
-        this.idleAnim = new PIXI.AnimatedSprite(textures.idleFrames);
+        this.idleAnim = new PIXI.AnimatedSprite(options.textures.idleFrames);
         this.animationContainer.addChild(this.idleAnim);
 
         this.idleAnim.anchor.set(0.15, 0.5);
@@ -23,10 +32,10 @@ export class NPC {
 
         this.idleAnim.play();
 
-        
+        // spooky ghost trail effect
         let filter = new TextureBufferFilter();
         this.animationContainer.filters = [filter];
-        filter.cache = filterCache;
-        this.animationContainer.filterArea = screen;
+        filter.cache = options.filterCache;
+        this.animationContainer.filterArea = options.screen;
     }
 }

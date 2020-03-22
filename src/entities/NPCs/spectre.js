@@ -7,8 +7,20 @@ let Vector = Matter.Vector;
 
 
 export class Spectre extends NPC{
-    constructor(position, textures, targetContainer, filterCache, screen, castSegments, endPoints, torchFrames, levelBounds, world){
-        super(position, textures, targetContainer, filterCache, screen);
+    /**
+     * @param {Object} options
+     * @param {*} options.position 
+     * @param {*} options.textures 
+     * @param {*} options.targetContainer 
+     * @param {*} options.filterCache 
+     * @param {*} options.screen 
+     * @param {*} options.castSegments 
+     * @param {*} options.endPoints 
+     * @param {*} options.torchFrames 
+     * @param {*} options.world 
+     */
+    constructor(options){
+        super(options);
         
         this.debugRenderer = new PIXI.Graphics();
 
@@ -41,7 +53,12 @@ export class Spectre extends NPC{
         });
         this.gravityDir = Vector.create(0,-10);
 
-        this.lantern = new Lantern(this.position, textures.lantern, this.colliderOffset, castSegments, endPoints, torchFrames);
+        this.lantern = new Lantern(
+            this.position, 
+            options.textures.lantern, 
+            this.colliderOffset, 
+            options.castSegments, options.endPoints, 
+            options.torchFrames);
 
         this.constraint = Matter.Constraint.create({
             pointA: this.position,
@@ -50,15 +67,13 @@ export class Spectre extends NPC{
             length: 0
         })
 
-        Matter.World.add(world, [this.body, this.lantern.body, this.constraint]);
+        Matter.World.add(options.world, [this.body, this.lantern.body, this.constraint]);
 
-        targetContainer.addChild(this.lantern.lightContainer);
-        targetContainer.addChild(this.animationContainer);
-        targetContainer.addChild(this.lantern.sprite);
-        
-        targetContainer.addChild(this.debugRenderer);
-
-        this.levelBounds = levelBounds
+        options.targetContainer.addChild(this.lantern.lightContainer);
+        options.targetContainer.addChild(this.animationContainer);
+        options.targetContainer.addChild(this.lantern.sprite);
+    
+        options.targetContainer.addChild(this.debugRenderer);
     }
 
     update(){

@@ -21,6 +21,7 @@ export class WangMap extends AbstractMap{
      * @param {PIXI.Texture} options.perlinNoise - noise texture for background generation
      * @param {FilterCache} options.filterCache - Torch animation textures
      * @param {PIXI.Rectangle} options.screen - Torch animation textures
+     * @param {number} options.numSpectres - # of lantern spectre enemies
      */
     constructor( options  ){
         let defaults = {
@@ -56,11 +57,11 @@ export class WangMap extends AbstractMap{
          // randomly place catnip on ground cells
          this.generateCatnip(10);
 
+        this.randomGenFeatures(options.numSpectres, 'S');
+
          // add background tiles
          this.backgroundTiling(params.perlinNoise);
          
-         // add chains and cages
-         // this.addFeatures(this.freeCells, this.tileMap)  
          // add catnip sprites to the map
          this.addCatnip();
  
@@ -68,6 +69,8 @@ export class WangMap extends AbstractMap{
  
          // make PointLight objects 
          this.addLights( 1.2);
+
+         this.addSpectres();
         
          this.setPlayerSpawn(params.playerSpawn);
 
@@ -104,6 +107,8 @@ export class WangMap extends AbstractMap{
             }
         }
     }
+
+
 
     dungeonWalls(tileMap, doesCollisions, tileContainer, tileSize){
         for (let key in tileMap) {

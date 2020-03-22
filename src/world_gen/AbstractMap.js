@@ -1,6 +1,9 @@
 
 import {PointLight} from '../lighting/PointLight.js'
 import {Powerup} from '../entities/powerups.js'
+import { Spectre } from '../entities/NPCs/spectre.js';
+import { FilterCache } from '../filters/TextureBuffer.js';
+import { Rectangle } from 'pixi.js';
 
 /** Parent of all other procedural generation map classes 
  * @class
@@ -16,8 +19,16 @@ export class AbstractMap{
      * @param {PIXI.Texture[]} options.torchFrames - Torch animation textures
      * @param {PIXI.Texture[]} options.filterCache - Torch animation textures
      * @param {PIXI.Texture[]} options.screen - Torch animation textures
+     * @param {PIXI.Texture[]} options.spectreTextures - spectre NPC textures
+     * @param {PIXI.Texture[]} options.world - spectre NPC textures 
+     * @param {FilterCache} options.filterCache - image cache of screen frames
+     * @param {Rectangle} options.screen - viewport rectangle
      */
     constructor(options){ 
+        this.world = options.world // matterjs physics world
+        this.filterCache = options.filterCache
+        this.screen = options.screen;
+
         this.w = options.w;                             // width of map in tiles
         this.h = options.h;                             // width of map in tiles
         this.tileSize = options.tileSize;               // edge length of tiles in pixels
@@ -36,11 +47,16 @@ export class AbstractMap{
         this.torchFrames = options.torchFrames;         // torch animation textures
         this.torchSprites = [];                 // torch animated sprites
 
+        this.spectres = [];
+
         // containers for display objects
         this.tileContainer = new PIXI.Container();
         this.backgroundContainer = new PIXI.Container();
         this.torchContainer = new PIXI.Container();
         this.powerupContainer = new PIXI.Container();
+
+        // spectreTextures 
+        this.spectreTextures = options.spectreTextures;
         
         // let filter = new Effect();
         // this.powerupContainer.filters = [filter];
@@ -67,6 +83,38 @@ export class AbstractMap{
             y-=1;
 
             this.tileMap[key] = "N";
+        }
+    }
+
+    /**
+     * 
+     * @param {number} numSpawns 
+     * @param {Character} value - tilemap character representing the tile
+     */
+    randomGenFeatures(numSpawns, value){
+        for (let i=0;i<numSpawns;i++) {
+            let index = Math.floor(ROT.RNG.getUniform() * this.freeCells.length);
+            let key = this.freeCells.splice(index, 1)[0];
+
+            let parts = key.split(",");
+            let x = parseInt(parts[0]);
+            let y = parseInt(parts[1]);
+
+            y-=1;
+
+            this.tileMap[key] = value;
+        }
+    }
+
+    update(){
+        for ( let spectre of this.spectres ){
+            spectre.update();
+        }
+    }
+
+    FixedUpdate() {
+        for ( let spectre of this.spectres ){
+            spectre.FixedUpdate();
         }
     }
 
@@ -253,6 +301,30 @@ export class AbstractMap{
                 light.torch.animation.scale.set(scale);
             this.torchSprites.push(light.torch.animation);
         })
+    }
+
+    addSpectres(){
+        for (let key in this.tileMap){
+            if (this.tileMap[key] == 'S'){
+                let parts = key.split(",");
+                let x = parseInt(parts[0]);
+                let y = parseInt(parts[1]);
+                
+                this.spectres.push(new Spectre({
+                    position: new PIXI.Point(x*this.tileSize, y*this.tileSize), 
+                    textures: this.spectreTextures, 
+                    targetContainer: this.tileContainer, 
+                    filterCache: this.filterCache, 
+                    screen: this.screen,
+                    castSegments: this.edges, 
+                    endPoints: this.vertices, 
+                    torchFrames: this.torchFrames,
+                    world: this.world
+                }));
+            }
+        }
+
+        
     }
 
     parallaxScroll(cameraCenter, xSpeed, ySpeed){
