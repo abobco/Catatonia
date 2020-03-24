@@ -72,10 +72,14 @@ export class CellularMap extends AbstractMap{
         // randomly place catnip on ground cells
         this.generateCatnip(10);
 
-        // add background tiles
+        // generate & place spectres
+        this.randomGenFeatures(options.numSpectres, 'S');
+        this.addSpectres();
+
+        // add background tiles 
         this.backgroundTiling();
         
-        // add grass and spikes to random edge tilesS
+        // add grass and spikes to random edge tiles
         this.addFeatures(this.freeCells, this.tileMap)  
         // add catnip sprites to the map
         this.addCatnip();

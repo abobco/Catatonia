@@ -21,9 +21,9 @@ export class Player {
         this.prevTimeScale = 1.0;
         this.prevVel = 0.0
         this.animationContainer = new PIXI.Container();
-        let filter = new TintedTrail();
-        this.animationContainer.filters = [filter];
-        filter.cache = filterCache
+        this.tintedTrail = new TintedTrail();
+        this.animationContainer.filters = [this.tintedTrail];
+        this.tintedTrail.cache = filterCache
         this.animationContainer.filterArea = screen;
 
         // physics variables

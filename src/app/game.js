@@ -16,16 +16,15 @@ import {DissolveFilter} from '../filters/DissolveFilter.js';
 import {CatnipTrip} from '../filters/catTripState.js'
 import {PaletteSwapFilter} from '../filters/paletteSwap.js';
 import {MyLoader} from './myLoader.js'
-import { PointLight } from '../lighting/PointLight.js';
 import { ShadowFilter } from '../filters/ShadowFilter.js';
 import { FilterCache} from '../filters/TextureBuffer.js'
-import {  Spectre } from '../entities/NPCs/spectre.js';
 
 
 // Aliases
 let Engine = Matter.Engine,
 World = Matter.World,
-Events = Matter.Events;
+Events = Matter.Events,
+Vector = Matter.Vector;
 
 /**
  * Parent object for everything in the game
@@ -100,27 +99,32 @@ export class Game {
 
         // procedural dungeon map from herringbone wang tiles
         this.tileMap = new WangMap({
-          w: 40,
-          h: 40, 
+          w: 30,
+          h: 30, 
           world: this.world,
           wangImage: loader.wangPic,
           perlinNoise: loader.perlinNoise,
           tileset: loader.dungeonTextures, 
           torchFrames: loader.torchFrames,
           spectreTextures: loader.spectreTextures,
-          numLights: 2,    
+          numLights: 4,    
           filterCache: this.filterCache,
           screen: this.app.screen,
-          numSpectres: 6,
+          numSpectres: 10,
         });
 
         // procedural cave map from cellular automata
         // this.tileMap = new CellularMap({
-        //   w: 35,
-        //   h:35,
+        //   w: 30,
+        //   h:30,
+        //   world: this.world,
         //   tileset: loader.tileset, 
         //   torchFrames: loader.torchFrames,
-        //   numLights: 5
+        //   spectreTextures: loader.spectreTextures,
+        //   numLights: 5,  
+        //   filterCache: this.filterCache,
+        //   screen: this.app.screen,
+        //   numSpectres: 5,
         // })
 
         this.mouseData = this.app.renderer.plugins.interaction.mouse.global;
@@ -228,9 +232,13 @@ export class Game {
       // get new cursor position for particle spawns
       let cursorWorldPosition = this.app.renderer.plugins.interaction.mouse.getLocalPosition(this.worldContainer);
       this.cursor.position.copyFrom(cursorWorldPosition);
-     
+
+        let prevPosition = Vector.create(this.camera.position.x, this.camera.position.y);
         // update physics bodies at 60 hz constant
         this.FixedUpdate();
+        let frameMovement = Vector.sub(this.camera.position, prevPosition);
+        this.tileMap.filter.uniforms.movement = [frameMovement.x*this.scale, frameMovement.y*this.scale];
+        this.player.tintedTrail.uniforms.movement = this.tileMap.filter.uniforms.movement;
   
         this.GamepadInput.update();
 
@@ -251,6 +259,8 @@ export class Game {
         this.particleSystem.drawParticles();
 
         this.tileMap.update();
+
+        this.player.tintedTrail.uniforms.alpha = this.catnipTrip.bezierY*0.6;
     }
 
     FixedUpdate(){
@@ -261,9 +271,9 @@ export class Game {
         // apply player input to physics bodies
         this.player.update(this.app.ticker.speed);
         this.tileMap.FixedUpdate();
-        if ( this.mouseDown){
-          this.particleSystem.addParticle(this.cursor.position, this.world);
-        }
+        // if ( this.mouseDown){
+        //   this.particleSystem.addParticle(this.cursor.position, this.world);
+        // }
 
         Engine.update(this.engine);
         if ( this.player.cameraSnapped)
@@ -271,6 +281,7 @@ export class Game {
         else {
               this.camera.update(this.player.climbTranslation, this.player.flip, this.app.ticker.speed);                
         }
+
         // increase gravity if player is falling
         if (!this.player.isGrounded && !this.player.inSlide && !this.player.isHanging && this.player.body.velocity.y > 0){
             if ( this.world.gravity.y < 3.5 )
@@ -408,6 +419,7 @@ export class Game {
               if ( otherBody.isCatnip ){
                     this.foregroundContainer.filters = [this.catnipTrip.foregroundFilter];
                     this.tileMap.backgroundContainer.filters = [this.catnipTrip.backgroundFilter];
+                    // this.player.tintedTrail.uniforms.alpha = 0.9;
                     this.catnipTrip.start();
                     World.remove(this.world, otherBody);
                     otherBody.spriteReference.filters = [new DissolveFilter(this.dissolveSprite, 1)];
@@ -524,8 +536,8 @@ export class Game {
         //this.app.renderer.resize(window.innerWidth, window.innerHeight);
         // Lock the camera to the cat's position 
         this.app.stage.position.set(this.app.screen.width/2, this.app.screen.height/2);﻿﻿
-        this.player.animationContainer.filterArea = this.app.screen;
-        this.filterCache.update();
+        //this.player.animationContainer.filterArea = this.app.screen;
+        
         this.lightRenderTexture.resize(parent.clientWidth, parent.clientHeight)
 
         // this.filterCache = new FilterCache();       
@@ -543,7 +555,19 @@ export class Game {
         this.tileMap.lights.forEach( ( light ) => {
            light.update(this.app.ticker.speed);
            this.allLights.addChild(light.visionSource.mesh);
-         });       
+         });     
+         
+        // this.tileMap.spectres.forEach( (spectre)=>{
+        //   spectre.animationContainer.filterArea = this.app.screen;
+        // });
+
+        //this.player.animationContainer.filterArea = this.app.screen;
+
+        this.filterCache.entries.forEach( entry => {
+          entry.texture.resize(parent.clientWidth, parent.clientHeight);
+          entry.texture.filterFrame = this.app.screen;
+        }) 
+        //this.filterCache.update();
 
         this.pauseMenu.onResize();
     }

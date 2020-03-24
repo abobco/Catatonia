@@ -25,6 +25,7 @@ export class CatnipTrip{
 
         // Transition curve, 4 point bezier : [(0,0), (0.5, 0), (0.5, 1), (1,1)]
         this.bezierCurve = new BezierCurve();
+        this.bezierY = 0.0;
         this.powerupTimer = new MyTimer;
         this.powerupTimer.start();
 
@@ -81,19 +82,19 @@ export class CatnipTrip{
             player.jumpVel = this.playerTripJump;
 
             this.filterTime += this.displacementIncrement;
-            let bezierY;
+            
             if ( this.bezierTime > 1){
                 this.bezierTime = 1;
-                bezierY = 1;
+                this.bezierY = 1;
             }
             else {
-                bezierY = this.bezierCurve.getY(this.bezierTime);
+                this.bezierY = this.bezierCurve.getY(this.bezierTime);
             }
 
-            this.foregroundFilter.uniforms.bezierVal = bezierY;
-            this.backgroundFilter.uniforms.bezierVal = bezierY;
+            this.foregroundFilter.uniforms.bezierVal = this.bezierY;
+            this.backgroundFilter.uniforms.bezierVal = this.bezierY;
 
-            this.cameraRotation = 0.015 * bezierY*  Math.sin(this.filterTime * 0.02);
+            this.cameraRotation = 0.015 * this.bezierY*  Math.sin(this.filterTime * 0.02);
 
             if ( this.tickerMS < this.filterTransitionMS){   
                 this.bezierTime += this.bezierIncrement;

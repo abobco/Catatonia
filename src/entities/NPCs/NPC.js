@@ -33,9 +33,9 @@ export class NPC {
         this.idleAnim.play();
 
         // spooky ghost trail effect
-        let filter = new TextureBufferFilter();
-        this.animationContainer.filters = [filter];
-        filter.cache = options.filterCache;
-        this.animationContainer.filterArea = options.screen;
+        // let filter = new TextureBufferFilter();
+        // this.animationContainer.filters = [filter];
+        // filter.cache = options.filterCache;
+        // this.animationContainer.filterArea = options.screen;
     }
 }

@@ -8,7 +8,6 @@ uniform mat3 projectionMatrix;
 uniform vec3 color;
 
 varying vec2 lightPos;
-vec2 normPos;
 vec2 noiseTime = vec2(time, 0.0);
 
 vec3 mod289(vec3 x) {
@@ -73,13 +72,11 @@ float snoise(vec2 v)
 }
 
 void main() {
-    // this will lock the lighting shading to radiating from whatever lightPos is set to(0-1.0, 0-1.0)
-    normPos = gl_FragCoord.xy / dimensions;
-    normPos.x *= dimensions.x/dimensions.y;
+    const float falloff_scale = 0.0018; // bigger value = smaller light radius
 
-    float dist = 0.3 + /*0.01 * sin(time)*/ + 0.05 * snoise(noiseTime) - distance(lightPos, normPos);
+    float dist = 0.3 + 0.05 * snoise(noiseTime) - falloff_scale*distance(lightPos, gl_FragCoord.xy);
 
-    gl_FragColor = vec4(color,dist);
+    gl_FragColor = vec4(color, dist);
 
     gl_FragColor.rgb *= dist;
 }

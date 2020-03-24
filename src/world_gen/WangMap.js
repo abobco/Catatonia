@@ -34,6 +34,7 @@ export class WangMap extends AbstractMap{
 
         super(params);
 
+
         this.generateDungeon(params.wangImage, params.customChunk)
         
         this.findLargestConnected();
@@ -54,25 +55,26 @@ export class WangMap extends AbstractMap{
         // make wall cells
         this.dungeonWalls(this.tileMap, true, this.tileContainer, this.tileSize);
 
-         // randomly place catnip on ground cells
-         this.generateCatnip(10);
+        // randomly place catnip on ground cells
+        this.generateCatnip(10);
 
+        // generate & place spectres
         this.randomGenFeatures(options.numSpectres, 'S');
+        this.addSpectres();
 
-         // add background tiles
-         this.backgroundTiling(params.perlinNoise);
-         
-         // add catnip sprites to the map
-         this.addCatnip();
- 
-         console.log("ray cast vertices: ", this.vertices.size);
- 
-         // make PointLight objects 
-         this.addLights( 1.2);
+        // add background tiles
+        this.backgroundTiling(params.perlinNoise);
+      
+        // add catnip sprites to the map
+        this.addCatnip();
 
-         this.addSpectres();
+        console.log("ray cast vertices: ", this.vertices.size);
+
+        // make PointLight objects 
+        this.addLights( 1.2);
         
-         this.setPlayerSpawn(params.playerSpawn);
+    
+        this.setPlayerSpawn(params.playerSpawn);
 
     }
 

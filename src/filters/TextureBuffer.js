@@ -1,3 +1,4 @@
+import vert from '../shaders/TextureBuffer/textureBuffer.vert'
 import frag from '../shaders/TextureBuffer/textureBuffer.frag'
 import tintFrag from '../shaders/TextureBuffer/tint.frag'
 
@@ -46,7 +47,7 @@ class FilterEntry {
     }
     const key = renderTexture.filterPoolKey;
   
-    renderTexture.filterFrame = null;
+    //renderTexture.filterFrame = null;
     this.texturePool.returnFilterTexture(renderTexture);
   }
   
@@ -136,11 +137,12 @@ class FilterEntry {
     constructor(fragment, alpha) {
       if ( !fragment )
         fragment = frag;
-      super(undefined, fragment);
+      super(vert, fragment);
       if ( !alpha)
-        alpha = 0.9
+        alpha = 0.75;
       this.alphaScale = alpha;
       this.uniforms.alpha =  this.alphaScale;
+      this.uniforms.movement = [0.0,0.0];
   
       this._filter = new PIXI.Filter();
     }
@@ -163,10 +165,15 @@ class FilterEntry {
         this.cache.putTexture(filterManager, this, temp);
       }
     }
+
+    resize(){
+      
+    }
   }
 
   export class TintedTrail extends TextureBufferFilter{
     constructor(){
       super(tintFrag, 0.01)
     }
+
   }

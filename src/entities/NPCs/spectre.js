@@ -2,6 +2,9 @@ import { makeNoise2D } from 'open-simplex-noise';
 import { PointLight } from '../../lighting/PointLight.js';
 import Matter from 'matter-js/build/matter.min.js';
 import {NPC} from './NPC.js'
+import { FilterCache } from '../../filters/TextureBuffer.js';
+import { Boundary } from '../terrain.js';
+import { Corner } from '../../lighting/geometry.js';
 
 let Vector = Matter.Vector;
 
@@ -9,15 +12,16 @@ let Vector = Matter.Vector;
 export class Spectre extends NPC{
     /**
      * @param {Object} options
-     * @param {*} options.position 
-     * @param {*} options.textures 
-     * @param {*} options.targetContainer 
-     * @param {*} options.filterCache 
-     * @param {*} options.screen 
-     * @param {*} options.castSegments 
-     * @param {*} options.endPoints 
-     * @param {*} options.torchFrames 
-     * @param {*} options.world 
+     * @param {PIXI.Point} options.position - position of lantern joint
+     * @param {PIXI.Texture[]} options.textures 
+     * @param {PIXI.Container} options.targetContainer 
+     * @param {PIXI.Container} options.lightContainer 
+     * @param {Boundary[]} options.castSegments 
+     * @param {Corner[]} options.endPoints 
+     * @param {PIXI.Texture[]} options.torchFrames 
+     * @param {Matter.world} options.world - physics world
+     * @param {FilterCache} options.filterCache - framebuffer & filter manager
+     * @param {Rectangle} options.screen - viewport rectangle
      */
     constructor(options){
         super(options);
@@ -69,7 +73,7 @@ export class Spectre extends NPC{
 
         Matter.World.add(options.world, [this.body, this.lantern.body, this.constraint]);
 
-        options.targetContainer.addChild(this.lantern.lightContainer);
+        options.lightContainer.addChild(this.lantern.lightContainer);
         options.targetContainer.addChild(this.animationContainer);
         options.targetContainer.addChild(this.lantern.sprite);
     

@@ -2,7 +2,7 @@
 import {PointLight} from '../lighting/PointLight.js'
 import {Powerup} from '../entities/powerups.js'
 import { Spectre } from '../entities/NPCs/spectre.js';
-import { FilterCache } from '../filters/TextureBuffer.js';
+import { FilterCache, TextureBufferFilter } from '../filters/TextureBuffer.js';
 import { Rectangle } from 'pixi.js';
 
 /** Parent of all other procedural generation map classes 
@@ -17,11 +17,9 @@ export class AbstractMap{
      * @param {number} options.numLights -  number of lights to randomly place in map
      * @param {Map<string,PIXI.Texture>} options.tileset - tile textures
      * @param {PIXI.Texture[]} options.torchFrames - Torch animation textures
-     * @param {PIXI.Texture[]} options.filterCache - Torch animation textures
-     * @param {PIXI.Texture[]} options.screen - Torch animation textures
      * @param {PIXI.Texture[]} options.spectreTextures - spectre NPC textures
-     * @param {PIXI.Texture[]} options.world - spectre NPC textures 
-     * @param {FilterCache} options.filterCache - image cache of screen frames
+     * @param {Matter.world} options.world - physics world
+     * @param {FilterCache} options.filterCache - framebuffer & filter manager
      * @param {Rectangle} options.screen - viewport rectangle
      */
     constructor(options){ 
@@ -54,14 +52,20 @@ export class AbstractMap{
         this.backgroundContainer = new PIXI.Container();
         this.torchContainer = new PIXI.Container();
         this.powerupContainer = new PIXI.Container();
+        this.spectreContainer = new PIXI.Container();
+        this.lightContainer = new PIXI.Container();
+
+         // spooky ghost trail effect
+         this.filter = new TextureBufferFilter();
+         this.spectreContainer.filters = [ this.filter];
+         this.filter.cache = options.filterCache;
+         this.spectreContainer.filterArea = options.screen;
+
+        this.tileContainer.addChild(this.lightContainer);
+        this.tileContainer.addChild(this.spectreContainer);
 
         // spectreTextures 
         this.spectreTextures = options.spectreTextures;
-        
-        // let filter = new Effect();
-        // this.powerupContainer.filters = [filter];
-        // filter.cache = options.filterCache
-        // this.powerupContainer.filterArea = options.screen;
 
         // using sets here to filter out duplicate edges/vertices
         // feed these into raycasting functions
@@ -313,7 +317,8 @@ export class AbstractMap{
                 this.spectres.push(new Spectre({
                     position: new PIXI.Point(x*this.tileSize, y*this.tileSize), 
                     textures: this.spectreTextures, 
-                    targetContainer: this.tileContainer, 
+                    targetContainer: this.spectreContainer, 
+                    lightContainer: this.lightContainer,
                     filterCache: this.filterCache, 
                     screen: this.screen,
                     castSegments: this.edges, 
@@ -323,6 +328,8 @@ export class AbstractMap{
                 }));
             }
         }
+
+
 
         
     }

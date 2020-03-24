@@ -208,7 +208,7 @@ export class PauseMenu{
                                 this.toggleOptionsMenu(true);
                                 break;
                             case "SWAP MAPS":
-                                window.location.replace("http://www.studiostudios.net/catatonia/lantern/dungeon/index.html");
+                                window.location.replace("http://www.studiostudios.net/catatonia/squad/dungeon/index.html");
                             case "BACK":
                                 noUpdate = false;
                                 this.toggleOptionsMenu(false);
