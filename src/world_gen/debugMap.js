@@ -1,6 +1,6 @@
 import {TileCollider} from '../entities/tiles.js'
 import {Boundary} from '../entities/terrain.js'
-import {Corner} from '../lighting/geometry.js'
+import {Corner} from '../graphics/lighting/geometry.js'
 
 import {AbstractMap} from './AbstractMap.js';
 
@@ -23,25 +23,30 @@ export class DebugMap extends AbstractMap{
      * @param {PIXI.Point} options.customChunk - map generation seed
      * @param {PIXI.Point} options.playerSpawn - custom player spawn location
      */
-    constructor(options ){
+    constructor(resources, options ){
         let defaults = {
-            w : 40,
-            h: 40,
+            w : 32,
+            h: 32,
             tileSize: 120,
-            numLights: 0,
+            numLights: 10,
             customChunk: new PIXI.Point(0,0),
-            playerSpawn: new PIXI.Point(5,5)
+            playerSpawn: new PIXI.Point(5,5),
+            numSpectres: 5
         }
         let params = Object.assign( {}, defaults, options)
-        super(params);
-        this.generateDungeon(params.wangImage, params.customChunk)
+
+        super(resources, params);
+        
+        this.tileset = resources.loader.dungeonTextures;
+
+        this.generateDungeon(resources.loader.wangPic, params.customChunk)
         
         this.findLargestConnected();
         this.tileMap = this.BFSresult;
         
         for (let y = 0; y < params.h; y++){
             for (let x = 0; x < params.w; x++){
-                let key = x+","+y;
+                let key = x+","+y;``
 
                 if( !this.tileMap[key] )
                     this.freeCells.push(key);
@@ -57,8 +62,12 @@ export class DebugMap extends AbstractMap{
          // randomly place catnip on ground cells
          this.generateCatnip(10);
 
+        // generate & place spectres
+        this.randomGenFeatures(params.numSpectres, 'S');
+        this.addSpectres();
+
          // add background tiles
-         this.backgroundTiling(params.perlinNoise);
+         this.backgroundTiling(resources.loader.perlinNoise);
          
          // add chains and cages
          // this.addFeatures(this.freeCells, this.tileMap)  

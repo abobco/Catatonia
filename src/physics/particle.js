@@ -1,4 +1,4 @@
-import Matter from 'matter-js/build/matter.min.js';
+import {Bodies, World} from 'matter-js/build/matter.min.js';
 
 /**
  * Individual particle base class
@@ -17,7 +17,7 @@ export class Particle{
         //     inertia: Infinity,
         //     friction: 0.0
         // });
-        this.body = Matter.Bodies.circle(this.position.x, this.position.y, this.r);
+        this.body = Bodies.circle(this.position.x, this.position.y, this.r);k
         this.body.isParticle = true;
         this.ticks = 60;
         
@@ -60,7 +60,7 @@ export class Particle{
       */
      addParticle(position, world ){
          this.particles.push(new Particle(position));
-         Matter.World.add(world, this.particles[this.particles.length - 1 ].body );
+         World.add(world, this.particles[this.particles.length - 1 ].body );
      }
  }
 

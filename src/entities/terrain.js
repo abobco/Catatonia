@@ -1,8 +1,8 @@
 /*
     Sets of Colliders for physics collisions and Player action triggers
 */
-import Matter from 'matter-js/build/matter.min.js';
-import {Corner} from '../lighting/geometry.js';
+import {Vector, Bodies} from 'matter-js/build/matter.min.js';
+import {Corner} from '../graphics/lighting/geometry.js';
 
 /** 
  * - Colliders for kinematics 
@@ -23,10 +23,10 @@ export class Terrain {
         this.w = w;
         this.h = h;
 
-        this.A = Matter.Vector.create(x - (w/2), y - (h/2));
-        this.B = Matter.Vector.create(x + (w/2), y - (h/2));
-        this.C = Matter.Vector.create(x - (w/2), y + (h/2));
-        this.D = Matter.Vector.create(x + (w/2), y + (h/2));
+        this.A = Vector.create(x - (w/2), y - (h/2));
+        this.B = Vector.create(x + (w/2), y - (h/2));
+        this.C = Vector.create(x - (w/2), y + (h/2));
+        this.D = Vector.create(x + (w/2), y + (h/2));
 
         this.bounds = [(new Boundary(this.A.x, this.A.y, this.B.x, this.B.y)), 
                     (new Boundary(this.A.x, this.A.y, this.C.x, this.C.y)), 
@@ -40,11 +40,11 @@ export class Terrain {
                         new Corner(this.D, this.B, this.C)];
 
         // physics collider
-        this.Collider = new Matter.Bodies.rectangle(x,y,w,h,{ isStatic : true });
+        this.Collider = new Bodies.rectangle(x,y,w,h,{ isStatic : true });
         this.walkBoxHeight = 20;
 
         // action trigger colliders
-        this.walkBox = new Matter.Bodies.rectangle(x, y - (h/2) - (this.walkBoxHeight/2), 
+        this.walkBox = new Bodies.rectangle(x, y - (h/2) - (this.walkBoxHeight/2), 
                                                 w, this.walkBoxHeight, 
                                                     { isStatic : true,
                                                       isSensor : true  
@@ -54,7 +54,7 @@ export class Terrain {
         this.edgeBoxWidth = 10;
         this.edgeBoxHeight = 10;
         const edgeBoxOffset = 20;
-        this.edgeBoxes = [new Matter.Bodies.rectangle( x + w/2 + this.edgeBoxWidth/2, 
+        this.edgeBoxes = [new Bodies.rectangle( x + w/2 + this.edgeBoxWidth/2, 
                                                        y - h/2 + edgeBoxOffset, 
                                                        this.edgeBoxWidth,
                                                        this.walkBoxHeight, 
@@ -63,7 +63,7 @@ export class Terrain {
                                                           isSensor : true,
                                                         }
                                                      ),
-                          new Matter.Bodies.rectangle( x - w/2 - this.edgeBoxWidth/2,
+                          new Bodies.rectangle( x - w/2 - this.edgeBoxWidth/2,
                                                        y - h/2 + edgeBoxOffset, 
                                                        this.edgeBoxWidth, 
                                                        this.walkBoxHeight, 
@@ -117,8 +117,8 @@ export class Boundary  {
      * @param {boolean} isEdge 
      */
     constructor(x1,y1,x2,y2, isEdge = false){
-        this.a = new Matter.Vector.create(x1,y1);
-        this.b = new Matter.Vector.create(x2,y2);
+        this.a = Vector.create(x1,y1);
+        this.b = Vector.create(x2,y2);
         this.isEdge = isEdge;
     }
 
@@ -135,10 +135,10 @@ export class RectSegments{
      * @param {number} h 
      */
     constructor(x,y,w,h){
-        var A = new Matter.Vector.create(x - (w/2), y - (h/2));
-        var B = new Matter.Vector.create(x + (w/2), y - (h/2));
-        var C = new Matter.Vector.create(x - (w/2), y + (h/2));
-        var D = new Matter.Vector.create(x + (w/2), y + (h/2));
+        var A = Vector.create(x - (w/2), y - (h/2));
+        var B = Vector.create(x + (w/2), y - (h/2));
+        var C = Vector.create(x - (w/2), y + (h/2));
+        var D = Vector.create(x + (w/2), y + (h/2));
     
         this.bounds = [new Boundary(A.x,A.y, B.x,B.y), 
                        new Boundary(A.x,A.y, C.x,C.y), 

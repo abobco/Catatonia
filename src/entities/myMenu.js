@@ -208,7 +208,7 @@ export class PauseMenu{
                                 this.toggleOptionsMenu(true);
                                 break;
                             case "SWAP MAPS":
-                                window.location.replace("http://www.studiostudios.net/catatonia/squad/dungeon/index.html");
+                                window.location.replace("http://www.xabnab.com/cat%20game/debug/spooky-ghosts/cave/index.html");
                             case "BACK":
                                 noUpdate = false;
                                 this.toggleOptionsMenu(false);

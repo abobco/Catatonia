@@ -1,4 +1,4 @@
-import Matter from 'matter-js/build/matter.min.js';
+import {Bodies} from 'matter-js/build/matter.min.js';
 /**
  * Interactable object that applies a Displacement filter to the screen when the player collides with it.
  * 
@@ -28,7 +28,7 @@ export class Powerup{
 
         this.DissolveValue = 0.8;
 
-        this.collider = new Matter.Bodies.rectangle( 
+        this.collider = new Bodies.rectangle( 
             x, 
             y, 
             this.width,

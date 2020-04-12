@@ -1,13 +1,10 @@
 import { makeNoise2D } from 'open-simplex-noise';
-import { PointLight } from '../../lighting/PointLight.js';
-import Matter from 'matter-js/build/matter.min.js';
+import { PointLight } from '../../graphics/lighting/PointLight.js';
+import {World, Bodies, Constraint, Vector, Body} from 'matter-js/build/matter.min.js';
 import {NPC} from './NPC.js'
-import { FilterCache } from '../../filters/TextureBuffer.js';
+import { FilterCache } from '../../graphics/filters/TextureBuffer.js';
 import { Boundary } from '../terrain.js';
-import { Corner } from '../../lighting/geometry.js';
-
-let Vector = Matter.Vector;
-
+import { Corner } from '../../graphics/lighting/geometry.js';
 
 export class Spectre extends NPC{
     /**
@@ -19,7 +16,7 @@ export class Spectre extends NPC{
      * @param {Boundary[]} options.castSegments 
      * @param {Corner[]} options.endPoints 
      * @param {PIXI.Texture[]} options.torchFrames 
-     * @param {Matter.world} options.world - physics world
+     * @param {World} options.world - physics world
      * @param {FilterCache} options.filterCache - framebuffer & filter manager
      * @param {Rectangle} options.screen - viewport rectangle
      */
@@ -42,7 +39,7 @@ export class Spectre extends NPC{
 
         this.colliderDimensions = Vector.add(this.colliderPadding, Vector.create(this.idleAnim.width, this.idleAnim.height));
 
-        this.body = Matter.Bodies.rectangle(
+        this.body = Bodies.rectangle(
             this.position.x + this.colliderOffset.x, 
             this.position.y + this.colliderOffset.y, 
             this.colliderDimensions.x, 
@@ -64,14 +61,14 @@ export class Spectre extends NPC{
             options.castSegments, options.endPoints, 
             options.torchFrames);
 
-        this.constraint = Matter.Constraint.create({
+        this.constraint = Constraint.create({
             pointA: this.position,
             bodyB: this.lantern.body,
             pointB: {x: 0, y:this.lantern.sprite.height/2  },
             length: 0
         })
 
-        Matter.World.add(options.world, [this.body, this.lantern.body, this.constraint]);
+        World.add(options.world, [this.body, this.lantern.body, this.constraint]);
 
         options.lightContainer.addChild(this.lantern.lightContainer);
         options.targetContainer.addChild(this.animationContainer);
@@ -94,7 +91,7 @@ export class Spectre extends NPC{
         let xOffset = this.noise2D (this.frameCount, 0) * this.MOVE_SPEED;
         let yOffset = this.noise2D (0,this.frameCount) * this.MOVE_SPEED;
 
-        Matter.Body.setVelocity(this.body, Vector.create(xOffset, yOffset)); 
+        Body.setVelocity(this.body, Vector.create(xOffset, yOffset)); 
     }
 
     drawColliders(){
@@ -142,7 +139,7 @@ export class Lantern{
 
         this.colliderDimensions = Vector.create(this.sprite.width- 10, this.sprite.height-10 );
 
-        this.body = Matter.Bodies.trapezoid(
+        this.body = Bodies.trapezoid(
             this.position.x + colliderOffset.x, 
             this.position.y + colliderOffset.y,  
             this.colliderDimensions.x, this.colliderDimensions.y,

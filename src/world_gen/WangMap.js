@@ -2,7 +2,7 @@ import {AbstractMap} from './AbstractMap.js';
 
 import {TileCollider} from '../entities/tiles.js'
 import {Boundary} from '../entities/terrain.js'
-import {Corner} from '../lighting/geometry.js'
+import {Corner} from '../graphics/lighting/geometry.js'
 /**
  * Textured dungeon from Wang tiles
  * @class
@@ -23,7 +23,7 @@ export class WangMap extends AbstractMap{
      * @param {PIXI.Rectangle} options.screen - Torch animation textures
      * @param {number} options.numSpectres - # of lantern spectre enemies
      */
-    constructor( options  ){
+    constructor( resources, options  ){
         let defaults = {
             w : 25,
             h: 25,
@@ -32,10 +32,11 @@ export class WangMap extends AbstractMap{
         }
         let params = Object.assign( {}, defaults, options)
 
-        super(params);
+        super(resources, params);
 
+        this.tileset = resources.loader.dungeonTextures;
 
-        this.generateDungeon(params.wangImage, params.customChunk)
+        this.generateDungeon(resources.loader.wangPic, params.customChunk)
         
         this.findLargestConnected();
         this.tileMap = this.BFSresult;
@@ -59,11 +60,11 @@ export class WangMap extends AbstractMap{
         this.generateCatnip(10);
 
         // generate & place spectres
-        this.randomGenFeatures(options.numSpectres, 'S');
+        this.randomGenFeatures(params.numSpectres, 'S');
         this.addSpectres();
 
         // add background tiles
-        this.backgroundTiling(params.perlinNoise);
+        this.backgroundTiling(resources.loader.perlinNoise);
       
         // add catnip sprites to the map
         this.addCatnip();
@@ -73,9 +74,26 @@ export class WangMap extends AbstractMap{
         // make PointLight objects 
         this.addLights( 1.2);
         
-    
-        this.setPlayerSpawn(params.playerSpawn);
+        this.setPlayerSpawn(params.playerSpawn);    
+    }
 
+    setPlayerSpawn(playerSpawn){
+        if ( playerSpawn )
+            this.playerSpawn = new PIXI.Point( playerSpawn.x * this.tileSize, playerSpawn.y * this.tileSize);
+        else {
+            let spawnCells = [];
+            let padding = 10;
+            for ( let key of this.freeCells){
+                let parts = key.split(",");
+                if ( parts[0] > padding && parts[0] < this.w - padding 
+                    && parts[1] > padding && parts[1] < this.h - padding)
+                    spawnCells.push(key);
+            }
+            let index = Math.floor(ROT.RNG.getUniform() * spawnCells.length);
+            let key = spawnCells.splice(index, 1)[0];
+            let parts = key.split(",");
+            this.playerSpawn = new PIXI.Point(parseInt(parts[0])*this.tileSize, parseInt(parts[1])*this.tileSize);
+        }
     }
 
     generateDungeon(wangImage, customChunk){

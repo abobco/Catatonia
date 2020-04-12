@@ -9,8 +9,8 @@ export class MyCamera {
      * @param {PIXI.Point} playerPosition - starting position of the player
      */
     constructor(playerPosition){
-        this.targetPos = playerPosition;
-        this.position = playerPosition;
+        this.targetPos = new PIXI.Point(playerPosition.x, playerPosition.y);
+        this.position = new PIXI.Point(playerPosition.x, playerPosition.y);
         this.offset = new PIXI.Point(0.0,0.0);
         this.angleOffset = 0.0;
         this.maxOffset = 250;

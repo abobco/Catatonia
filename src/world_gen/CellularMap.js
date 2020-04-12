@@ -2,7 +2,7 @@ import {AbstractMap} from './AbstractMap.js';
 
 import {TileCollider} from '../entities/tiles.js'
 import {Boundary} from '../entities/terrain.js'
-import {Corner} from '../lighting/geometry.js'
+import {Corner} from '../graphics/lighting/geometry.js'
 
 /**
  * Textured cave map from cellular automata
@@ -19,7 +19,7 @@ export class CellularMap extends AbstractMap{
      * @param {Map<string,PIXI.Texture>} options.tileset - tile textures
      * @param {PIXI.Texture[]} options.torchFrames - Torch animation textures
      */
-    constructor(options){
+    constructor(resources, options){
         let defaults = {
             w : 25,
             h: 25,
@@ -28,8 +28,9 @@ export class CellularMap extends AbstractMap{
         }
         let params = Object.assign( {}, defaults, options)
 
+        super(resources, params);
 
-        super(params);
+        this.tileset = resources.loader.tileset;
 
         this.cellMap = new ROT.Map.Cellular(params.w, params.h, {
             born: [4, 5, 6, 7, 8],
@@ -73,7 +74,7 @@ export class CellularMap extends AbstractMap{
         this.generateCatnip(10);
 
         // generate & place spectres
-        this.randomGenFeatures(options.numSpectres, 'S');
+        this.randomGenFeatures(params.numSpectres, 'S');
         this.addSpectres();
 
         // add background tiles 

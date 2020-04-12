@@ -1,4 +1,4 @@
-import Matter from 'matter-js/build/matter.min.js';
+import {Bodies} from 'matter-js/build/matter.min.js';
 
 /** 
  *  - Colliders for kinematics 
@@ -22,7 +22,7 @@ export class TileCollider {
         this.h = r;
 
         // physics collider
-        this.Collider = new Matter.Bodies.rectangle(this.x,this.y,r,r,{ isStatic : true });
+        this.Collider = new Bodies.rectangle(this.x,this.y,r,r,{ isStatic : true });
         this.edgeBoxes = [];
         this.edgeBoxWidth = 1;
         this.edgeBoxHeight = 2;
@@ -33,7 +33,7 @@ export class TileCollider {
 
         if ( rightLedge ){
 
-            let triggercollider = new Matter.Bodies.rectangle( this.x + r/2 - this.edgeBoxWidth/2 , 
+            let triggercollider = new Bodies.rectangle( this.x + r/2 - this.edgeBoxWidth/2 , 
                 this.y - r/2 + edgeBoxOffset, 
                 this.edgeBoxWidth,
                 this.walkBoxHeight, 
@@ -48,7 +48,7 @@ export class TileCollider {
              
         }
         if ( leftLedge ){
-            let triggercollider = new Matter.Bodies.rectangle( this.x - r/2 + this.edgeBoxWidth/2 ,
+            let triggercollider = new Bodies.rectangle( this.x - r/2 + this.edgeBoxWidth/2 ,
                 this.y - r/2 + edgeBoxOffset, 
                 this.edgeBoxWidth, 
                 this.walkBoxHeight, 
@@ -62,7 +62,7 @@ export class TileCollider {
               this.edgeBoxes.push(triggercollider);
         }
         if ( hasWalkBox ){
-            this.walkBox = new Matter.Bodies.rectangle(this.x, this.y - (r/2) - (this.walkBoxHeight/2), 
+            this.walkBox = new Bodies.rectangle(this.x, this.y - (r/2) - (this.walkBoxHeight/2), 
                                                        r, this.walkBoxHeight, 
                                                         { isStatic : true,
                                                         isSensor : true  

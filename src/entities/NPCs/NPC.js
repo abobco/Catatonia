@@ -1,4 +1,3 @@
-import {TextureBufferFilter} from '../../filters/TextureBuffer.js'
 /**
  * Abstract NPC class
  * - Control animations & transitions
@@ -31,11 +30,5 @@ export class NPC {
         this.idleAnim.scale.set(5);
 
         this.idleAnim.play();
-
-        // spooky ghost trail effect
-        // let filter = new TextureBufferFilter();
-        // this.animationContainer.filters = [filter];
-        // filter.cache = options.filterCache;
-        // this.animationContainer.filterArea = options.screen;
     }
 }

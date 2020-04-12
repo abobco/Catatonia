@@ -1,8 +1,8 @@
 
-import {PointLight} from '../lighting/PointLight.js'
+import {PointLight} from '../graphics/lighting/PointLight.js'
 import {Powerup} from '../entities/powerups.js'
 import { Spectre } from '../entities/NPCs/spectre.js';
-import { FilterCache, TextureBufferFilter } from '../filters/TextureBuffer.js';
+import { FilterCache, TextureBufferFilter } from '../graphics/filters/TextureBuffer.js';
 import { Rectangle } from 'pixi.js';
 
 /** Parent of all other procedural generation map classes 
@@ -22,10 +22,10 @@ export class AbstractMap{
      * @param {FilterCache} options.filterCache - framebuffer & filter manager
      * @param {Rectangle} options.screen - viewport rectangle
      */
-    constructor(options){ 
-        this.world = options.world // matterjs physics world
-        this.filterCache = options.filterCache
-        this.screen = options.screen;
+    constructor(resources, options){ 
+        this.world = resources.world // matterjs physics world
+        this.filterCache = resources.filterCache
+        this.screen = resources.screen;
 
         this.w = options.w;                             // width of map in tiles
         this.h = options.h;                             // width of map in tiles
@@ -35,14 +35,14 @@ export class AbstractMap{
         this.visited = {}                       // hashmap of visited tiles for connectivity BFS
         this.BFSresult = {}                     // result of checking for largest connected area   
         this.openCount = 0;
-        this.tileset = options.tileset;                 // hashmap of textures
+        //this.tileset = options.tileset;                 // hashmap of textures
         this.numLights = options.numLights;             // number of lights to randomly place in map
         this.freeCells = [];                    // keys for empty map tiles
         this.groundTiles = [];                  // keys for tiles with walkboxes
 
         this.terrain = [];                      // box colliders for walls
         this.lights = [];                       // light shading meshes 
-        this.torchFrames = options.torchFrames;         // torch animation textures
+        this.torchFrames = resources.loader.torchFrames;         // torch animation textures
         this.torchSprites = [];                 // torch animated sprites
 
         this.spectres = [];
@@ -58,14 +58,14 @@ export class AbstractMap{
          // spooky ghost trail effect
          this.filter = new TextureBufferFilter();
          this.spectreContainer.filters = [ this.filter];
-         this.filter.cache = options.filterCache;
-         this.spectreContainer.filterArea = options.screen;
+         this.filter.cache = resources.filterCache;
+         this.spectreContainer.filterArea = resources.screen;
 
         this.tileContainer.addChild(this.lightContainer);
         this.tileContainer.addChild(this.spectreContainer);
 
         // spectreTextures 
-        this.spectreTextures = options.spectreTextures;
+        this.spectreTextures = resources.loader.spectreTextures;
 
         // using sets here to filter out duplicate edges/vertices
         // feed these into raycasting functions
