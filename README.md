@@ -2,7 +2,7 @@
  
 Work in progress (mobile friendly) roguelike browser game. Made with [node.js](https://nodejs.org/en/).
 
-Try the demo [here](http://www.xabnab.com/cat%20game/debug/dynamic-shadows/cave/index.html)!
+Try the demo [here](https://www.studiostudios.net/catatonia/squad/dungeon)!
 
 ![Demo](gifs/shadow-demo.gif)
 
