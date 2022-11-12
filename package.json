@@ -14,7 +14,7 @@
     "serialize-javascript": ">=2.1.1",
     "webpack": "^4.42.1",
     "webpack-bundle-analyzer": "^3.6.0",
-    "webpack-cli": "^3.3.11",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.10.1"
   },
   "private": true,
